@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format:build": "pretty-quick && next build"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
@@ -28,6 +29,8 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "postcss": "^8",
+    "prettier": "^3.2.4",
+    "pretty-quick": "^4.0.0",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   }
