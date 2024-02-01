@@ -1,7 +1,7 @@
 "use client";
 import { DollarSign, Filter, Lock, Moon, Zap } from "lucide-react";
 
-import ImageComponent from "@/components/image/image-component";
+import ImageComponent from "@/src/components/image/image-component";
 
 export default function Home() {
   return (
