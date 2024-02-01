@@ -20,7 +20,7 @@ const ImageComponent: React.FC<ImageComponentProps> = ({
 }) => {
   return (
     <Image
-      src={src}
+      src={src ? src : "/placeholder.png"}
       alt={alt}
       height={height}
       width={width}
