@@ -6,20 +6,20 @@ import { DropdownWithIcon } from "../dropdowns/dropdown-with-icon";
 import Networks from "@/src/utils/network-data";
 
 export default function Navbar() {
-   const [scrolling, setScrolling] = useState(false);
+  const [scrolling, setScrolling] = useState(false);
 
-   useEffect(() => {
-     const handleScroll = () => {
-       const scrollTop = window.scrollY;
-       setScrolling(scrollTop > 100);
-     };
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setScrolling(scrollTop > 100);
+    };
 
-     window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
-     return () => {
-       window.removeEventListener("scroll", handleScroll);
-     };
-   }, []);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
   return (
     <nav
       className={`bg-${
@@ -33,7 +33,7 @@ export default function Navbar() {
           </a>
           <ul className="hidden lg:flex gap-4 ml-10">
             <li>
-              <a className="hover:text-gray-200" href="#">
+              <a className="hover:text-gray-200" href="/swap">
                 Swap
               </a>
             </li>
