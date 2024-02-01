@@ -5,3 +5,18 @@
 .glow-bg {
   background: linear-gradient(106.89deg, #7e22ce87, #7e22ce8a);
 }
+.gradient-text {
+  background: linear-gradient(90deg, #8A2BE2, #e8cfff);
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradientAnimation 4s ease-in-out infinite;
+}
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 100% 0%;
+  }
+  100% {
+    background-position: -100% 0%;
+  }
+}
