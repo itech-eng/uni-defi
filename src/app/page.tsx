@@ -1,7 +1,8 @@
 "use client";
-import { DollarSign, Filter, Lock, Moon, Zap } from "lucide-react";
+import { DollarSign, Filter,    Moon, Zap } from "lucide-react";
 
 import ImageComponent from "@/src/components/image/image-component";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -20,7 +21,7 @@ export default function Home() {
             />
           </div>
 
-          <div className="relative z-10 mt-[-20px] max-w-screen-xl mx-auto px-4 flex flex-col items-center justify-center  md:px-8">
+          <div className="relative  mt-[-20px] max-w-screen-xl mx-auto px-4 flex flex-col items-center justify-center  md:px-8">
             <div className="space-y-5 max-w-4xl mx-auto text-center">
               <h2 className="text-5xl font-semibold mx-auto md:text-6xl gradient-text">
                 Trade crypto and NFTs with confidence
@@ -29,9 +30,11 @@ export default function Home() {
                 Buy, sell, and explore tokens and NFTs
               </p>
             </div>
-            <button className="bg-gradient-to-r from-primary via-primary to-purple-400 px-24 py-5 text-white rounded-3xl mt-10">
-              Get Started
-            </button>
+            <Link href="/swap">
+              <button className="bg-gradient-to-r from-primary via-primary to-purple-400 px-24 py-5 text-white rounded-3xl mt-10">
+                Get Started
+              </button>
+            </Link>
             <p className="mt-5 text-gray-400">Learn more</p>
           </div>
         </section>

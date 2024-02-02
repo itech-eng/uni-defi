@@ -23,7 +23,9 @@ export default function Navbar() {
   return (
     <nav
       className={`bg-${
-        scrolling ? "slate-950" : "transparent"
+        scrolling
+          ? "bg-gray-100 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-50 "
+          : "transparent"
       } text-white fixed top-0 w-full z-10 mx-auto`}
     >
       <div className="px-4 py-2 grid grid-cols-3 z-10  items-center justify-center">
