@@ -6,12 +6,30 @@
   background: linear-gradient(106.89deg, #7e22ce87, #7e22ce8a);
 }
 .gradient-text {
-  background: linear-gradient(90deg, #8A2BE2, #e8cfff);
+  background: linear-gradient(90deg, #8a2be2, #e8cfff);
   -webkit-background-clip: text;
   color: transparent;
   animation: gradientAnimation 4s ease-in-out infinite;
 }
+::-webkit-scrollbar {
+  width: 8px;
+}
 
+/* Track */
+::-webkit-scrollbar-track {
+  background: #0f172a; /* You can change this to your preferred background color */
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #475569; /* You can change this to your preferred handle color */
+  border-radius: 20px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #344050; /* You can change this to your preferred handle color on hover */
+}
 @keyframes gradientAnimation {
   0% {
     background-position: 100% 0%;

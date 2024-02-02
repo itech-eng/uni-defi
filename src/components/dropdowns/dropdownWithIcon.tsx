@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/src/components/ui/popover";
-import ImageComponent from "../image/image-component";
+import ImageComponent from "../image/imageComponent";
 
 interface Options {
   value: string;

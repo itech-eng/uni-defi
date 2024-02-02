@@ -1,4 +1,4 @@
-import LayoutWithHeader from "@/src/components/layouts/layout-with-header";
+import LayoutWithHeader from "@/src/components/layouts/layoutWithHeader";
 import React from "react";
 
 export default function SwapLayout({

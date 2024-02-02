@@ -1,4 +1,4 @@
-import LayoutWithHeaderAndFooter from "@/src/components/layouts/layout-with-header-footer";
+import LayoutWithHeaderAndFooter from "@/src/components/layouts/layoutWithHeaderFooter";
 
 export default function DashboardLayout({
   children,

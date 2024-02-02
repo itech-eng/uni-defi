@@ -6,10 +6,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/src/components/ui/card";
+import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
-import { Button } from "@/src/components/ui/button";
 import { ArrowDown, ChevronDown } from "lucide-react";
+import SelectTokenSection from "./selectToken.section";
 const SwapSection = () => {
   return (
     <section className="mt-36">
@@ -38,10 +39,7 @@ const SwapSection = () => {
                     autoCapitalize="off"
                     spellCheck="false"
                   />
-                  <div className="text-md cursor-pointer font-semibold text-white bg-primary w-72 h-10 flex items-center justify-center px-1 py-1 rounded-3xl">
-                    Select Token
-                    <ChevronDown className="ml-2" size={18} />
-                  </div>
+                  <SelectTokenSection />
                 </div>
               </div>
             </div>
