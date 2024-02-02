@@ -1,4 +1,5 @@
 import { MoveRight } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 const Footer = () => {
@@ -27,17 +28,17 @@ const Footer = () => {
           <img src="/logo.webp" className="w-32 sm:mx-auto" />
           <p>Powered by the Uni Defi Protocol</p>
           <div className="items-center gap-x-3 space-y-3 sm:flex sm:justify-center sm:space-y-0">
-            <a
-              href="javascript:void(0)"
+            <Link
+              href="/swap"
               className="block py-3 px-6 text-center text-white font-medium bg-gradient-to-r from-primary via-primary to-purple-400 hover:from-primary hover:via-primary hover:to-purple-400 rounded-lg shadow-lg hover:shadow-none"
             >
               Let's get started
-            </a>
+            </Link>
             <a
               href="javascript:void(0)"
               className="flex items-center justify-center gap-x-2 py-3 px-6 text-white hover:text-white font-medium duration-150 active:bg-white border border-slate-800 rounded-lg md:inline-flex"
             >
-              Get access
+              Connect Wallet
               <MoveRight size={20} />
             </a>
           </div>
