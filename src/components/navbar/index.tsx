@@ -28,16 +28,16 @@ export default function Navbar() {
           : "transparent"
       } text-white fixed top-0 w-full z-10 mx-auto`}
     >
-      <div className="px-4 py-2 grid grid-cols-3 z-10  items-center justify-center">
+      <div className="px-4 py-3 grid grid-cols-3 z-10  items-center justify-center">
         <div className="flex items-center">
-          <a className="text-3xl font-bold font-heading" href="#">
+          <Link className="text-3xl font-bold font-heading" href="/">
             <img className="h-9" src="logo.webp" alt="logo" />
-          </a>
+          </Link>
           <ul className="hidden lg:flex gap-4 ml-10">
             <li>
-              <a className="hover:text-gray-200" href="/swap">
+              <Link className="hover:text-gray-200" href="/swap">
                 Swap
-              </a>
+              </Link>
             </li>
             <li>
               <a className="hover:text-gray-200" href="#">
@@ -62,7 +62,7 @@ export default function Navbar() {
             <input
               type="text"
               placeholder="Search Tokens and NFT collections"
-              className="bg-slate-950 border border-gray-800 w-full h-10 text-white pl-10 pr-4 rounded-md focus:outline-none focus:ring focus:border-primary"
+              className="bg-slate-950 border border-gray-800 w-full h-10 text-white pl-10 pr-4 rounded-2xl focus:outline-none focus:ring focus:border-primary"
             />
           </div>
         </div>
