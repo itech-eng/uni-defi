@@ -1,3 +1,4 @@
+import LayoutWithHeader from "@/src/components/layouts/layout-with-header";
 import React from "react";
 
 export default function SwapLayout({
@@ -5,5 +6,9 @@ export default function SwapLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div>{children}</div>;
+  return (
+    <div>
+      <LayoutWithHeader>{children}</LayoutWithHeader>
+    </div>
+  );
 }
