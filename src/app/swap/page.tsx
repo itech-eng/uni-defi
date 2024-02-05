@@ -12,7 +12,7 @@ export default function Swap() {
         title={"Arbitrum Token Bridge is live! 🎉 "}
         href={"https://google.com"}
         onClick={() => console.log("clicked")}
-        className="w-[450px] mt-4 h-auto"
+        className="w-[450px] mt-4 h-[100px] rounded-xl "
       />
     </div>
   );

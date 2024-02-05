@@ -4,6 +4,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { DropdownWithIcon } from "../dropdowns/dropdownWithIcon";
 import { getNetworks } from "@/src/utils/corefunctions";
+import WalletConnectSection from "@/src/section/global/walletConnect.section";
 
 export default function Navbar() {
   const [scrolling, setScrolling] = useState(false);
@@ -73,9 +74,7 @@ export default function Navbar() {
             defaultValue="bsc"
           />
 
-          <div className="t bg-[#7e22ce4a] rounded-2xl px-6 text-purple-300 text-sm py-2 hover:text-gray-200">
-            Connect
-          </div>
+          <WalletConnectSection />
         </div>
       </div>
     </nav>
