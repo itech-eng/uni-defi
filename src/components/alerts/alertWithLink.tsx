@@ -23,7 +23,6 @@ const AlertWithLink = ({
     "space-x-5",
     `w-[400px]`,
     "justify-between",
-    "h-screen",
     "bg-blue-500/20",
     "text-blue-500",
     "font-bold",
