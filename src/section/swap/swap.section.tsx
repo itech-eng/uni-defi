@@ -49,10 +49,7 @@ const SwapSection = () => {
                   {showSelectToken ? (
                     <SelectTokenSection
                       HtmlButton={
-                        <Button
-                          className="text-md cursor-pointer font-semibold text-white bg-primary w-72 h-10 flex items-center justify-center px-1 py-1 rounded-3xl"
-                          onClick={handleSwap}
-                        >
+                        <Button className="text-md cursor-pointer font-semibold text-white bg-primary w-72 h-10 flex items-center justify-center px-1 py-1 rounded-3xl">
                           Select Token
                           <ChevronDown className="ml-2" size={18} />
                         </Button>
@@ -61,10 +58,7 @@ const SwapSection = () => {
                   ) : (
                     <SelectTokenSection
                       HtmlButton={
-                        <Button
-                          className="text-xl cursor-pointer font-semibold text-white bg-slate-950 w-40  h-10 flex items-center justify-center border border-slate-800 px-3 rounded-3xl hover:bg-slate-800 hover:border-slate-700"
-                          onClick={handleSwap}
-                        >
+                        <Button className="text-xl cursor-pointer font-semibold text-white bg-slate-950 w-40  h-10 flex items-center justify-center border border-slate-800 px-3 rounded-3xl hover:bg-slate-800 hover:border-slate-700">
                           <img
                             src={"/networks/ethereum.png"}
                             className="h-5  mr-3 shrink-0"
@@ -105,10 +99,7 @@ const SwapSection = () => {
                   {showSelectToken ? (
                     <SelectTokenSection
                       HtmlButton={
-                        <Button
-                          className="text-xl cursor-pointer font-semibold text-white bg-slate-950 w-40  h-10 flex items-center justify-center border border-slate-800 px-3 rounded-3xl hover:bg-slate-800 hover:border-slate-700"
-                          onClick={handleSwap}
-                        >
+                        <Button className="text-xl cursor-pointer font-semibold text-white bg-slate-950 w-40  h-10 flex items-center justify-center border border-slate-800 px-3 rounded-3xl hover:bg-slate-800 hover:border-slate-700">
                           <img
                             src={"/networks/ethereum.png"}
                             className="h-5  mr-3 shrink-0"
@@ -121,10 +112,7 @@ const SwapSection = () => {
                   ) : (
                     <SelectTokenSection
                       HtmlButton={
-                        <Button
-                          className="text-md cursor-pointer font-semibold text-white bg-primary w-72 h-10 flex items-center justify-center px-1 py-1 rounded-3xl"
-                          onClick={handleSwap}
-                        >
+                        <Button className="text-md cursor-pointer font-semibold text-white bg-primary w-72 h-10 flex items-center justify-center px-1 py-1 rounded-3xl">
                           Select Token
                           <ChevronDown className="ml-2" size={18} />
                         </Button>
