@@ -1,4 +1,4 @@
-import ImageComponent from '@/src/components/image/imageComponent';
+import ImageComponent from '@/src/components/image/image-component';
 import Link from 'next/link';
 import React from 'react'
 
