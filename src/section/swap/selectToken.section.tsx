@@ -14,15 +14,14 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { ChevronDown, Copy, Search } from "lucide-react";
 import Networks from "@/src/utils/network-data";
-const SelectTokenSection = () => {
+const SelectTokenSection = ({
+  HtmlButton,
+}: {
+  HtmlButton: React.ReactNode;
+}) => {
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button className="text-md cursor-pointer font-semibold text-white bg-primary w-72 h-10 flex items-center justify-center px-1 py-1 rounded-3xl">
-          Select Token
-          <ChevronDown className="ml-2" size={18} />
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{HtmlButton}</DialogTrigger>
       <DialogContent className="sm:max-w-md border border-slate-900 bg-slate-950 h-[600px] flex flex-col justify-start">
         <DialogHeader>
           <DialogTitle className="text-white">Selece Token</DialogTitle>
