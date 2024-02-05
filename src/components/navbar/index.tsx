@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { DropdownWithIcon } from "../dropdowns/dropdownWithIcon";
-import Networks from "@/src/utils/network-data";
+import { getNetworks } from "@/src/utils/corefunctions";
 
 export default function Navbar() {
   const [scrolling, setScrolling] = useState(false);
@@ -68,7 +68,7 @@ export default function Navbar() {
         </div>
         <div className="flex items-center justify-end gap-4">
           <DropdownWithIcon
-            options={Networks}
+            options={getNetworks()}
             placeholder="Select a Network"
             defaultValue="bsc"
           />

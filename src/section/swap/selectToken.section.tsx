@@ -13,8 +13,15 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { ChevronDown, Copy, Search } from "lucide-react";
-import Networks from "@/src/utils/network-data";
+import { getNetworkCoins } from "@/src/utils/corefunctions";
+import { NETWORK_SLUG } from "@/src/utils/network-data";
 const SelectTokenSection = () => {
+
+  // TODO: selected network will be fetched from redux
+  const network = NETWORK_SLUG.GOERLI_ETH;
+
+  const Coins = getNetworkCoins(network);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -37,30 +44,30 @@ const SelectTokenSection = () => {
             />
           </div>
           <div className="grid grid-cols-3 gap-4 mt-4 border-b border-gray-800 pb-10">
-            {Networks.map((network) => (
+            {Coins.map((coin) => (
               <div className="px-2 text-white text-sm py-1 border border-gray-800 flex items-center justify-start rounded-2xl">
                 <img
-                  src={network.icon}
+                  src={coin.basic.icon}
                   className="h-6 w-6 rounded-full mr-2"
                   alt=""
                 />
 
-                {network.label}
+                {coin.basic.name}
               </div>
             ))}
           </div>
         </div>
         <div className="max-h-[350px] overflow-y-auto mt-4">
           <h1 className="text-white text-sm ">Popular Tokens</h1>
-          {Networks.map((network) => (
+          {Coins.map((coin) => (
             <div className=" text-white text-sm py-4 flex items-center justify-start rounded-2xl">
               <img
-                src={network.icon}
+                src={coin.basic.icon}
                 className="h-9 w-9 rounded-full mr-4"
                 alt=""
               />
 
-              {network.label}
+              {coin.basic.name}
             </div>
           ))}
         </div>
