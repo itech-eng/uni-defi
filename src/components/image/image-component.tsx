@@ -1,5 +1,3 @@
-// components/ImageComponent.tsx
-
 import Image, { ImageProps } from "next/image";
 
 interface ImageComponentProps extends ImageProps {
