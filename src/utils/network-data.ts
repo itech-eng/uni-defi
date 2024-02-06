@@ -60,6 +60,7 @@ export const NETWORK_DATA: { [slug: string]: NetworkData } = {
   }
 };
 
+// console.log('Goerli data: ', NETWORK_DATA[NETWORK_SLUG.GOERLI_ETH]);
 
 // export const Networks = [
 //   {
