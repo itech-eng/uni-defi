@@ -17,35 +17,34 @@ export const WalletHook = (): WalletHookReturnType => {
   const [balance, setBalance] = useState<string | null>(null);
   const [networkName, setNetworkName] = useState<string | null>(null);
   const dispatch = useDispatch();
-
+  const load = async () => {
+    try {
+      const address = await getAddress();
+      const { networkName } = await getNetworkInfo();
+      const chain = await getChainInfo();
+      const walletBalance = await getBalance(address);
+      setWalletAddress(address?.toLowerCase() ?? null);
+      setChainID(chain);
+      setNetworkName(networkName);
+      setBalance(walletBalance);
+      dispatch(
+        setWallet({
+          chain_id: chain,
+          wallet_address: address?.toLowerCase() ?? null,
+          balance: walletBalance,
+          network_name: networkName,
+        }),
+      );
+    } catch (error) {
+      console.error("Error loading wallet:", error);
+    }
+  };
   useEffect(() => {
-    const load = async () => {
-      try {
-        const address = await getAddress();
-        const { networkName } = await getNetworkInfo();
-        const chain = await getChainInfo();
-        const walletBalance = await getBalance(address);
-        setWalletAddress(address?.toLowerCase() ?? null);
-        setChainID(chain);
-        setNetworkName(networkName);
-        setBalance(walletBalance);
-        dispatch(
-          setWallet({
-            chain_id: chain,
-            wallet_address: address?.toLowerCase() ?? null,
-            balance: walletBalance,
-            network_name: networkName,
-          }),
-        );
-      } catch (error) {
-        console.error("Error loading wallet:", error);
-      }
+    const handleAccountsChanged = async (accounts: string[]) => {
+      if (!accounts[0]) return;
+      load();
     };
-
-    onAccountsChanged((_address: string[]) => {
-      if (!_address[0]) return;
-      setWalletAddress(_address[0].toLowerCase());
-    });
+    onAccountsChanged(handleAccountsChanged);
     onChainChanged((_chain: string) => {
       if (!_chain) return;
       setChainID(parseInt(_chain));
@@ -79,6 +78,8 @@ const getChainInfo = async (): Promise<number> => {
 };
 
 const onAccountsChanged = (callback: (address: string[]) => void): void => {
+  console.log("onAccountsChanged event");
+
   if (!isMetaMaskInstalled()) return;
   window.ethereum.on("accountsChanged", callback);
 };
