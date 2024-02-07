@@ -210,6 +210,7 @@ export function getNetworks(): NetworkData[] {
 export function getNetworkCoins(network_slug: string): {
   net_info: Currency,
   basic: CoinBasic,
+  is_native?: boolean,
 }[] {
   return Object.values(NETWORK_COIN_DATA[network_slug]);
 }

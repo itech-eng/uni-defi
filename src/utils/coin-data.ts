@@ -20,7 +20,7 @@ export enum COIN_SLUG {
   USDT = 'USDT',
 }
 
-export const COIN_DATA: {[slug: string]: CoinBasic } = {
+export const COIN_BAISC_DATA: {[slug: string]: CoinBasic } = {
   //native
   [COIN_SLUG.ETH]: { code: NativeCurrencyName.ETHER, name: 'Ether', icon: '/coins/eth.svg'},
   [COIN_SLUG.MATIC]: { code: NativeCurrencyName.MATIC, name: 'Matic', icon: '/coins/matic.png'},
