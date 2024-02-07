@@ -5,6 +5,7 @@ import {
   WalletHook,
   connectMetamask,
   disconnectMetamask,
+  ellipseAddress,
 } from "@/src/hooks/useWallet";
 import { useSelector } from "react-redux";
 import { IRootState } from "@/store";
@@ -35,7 +36,7 @@ const WalletConnectSection = () => {
       <SheetTrigger className="text-white ">
         <div className="t bg-[#7e22ce4a] rounded-2xl px-6 text-purple-300 text-sm py-2 hover:text-gray-200">
           {wallet_address
-            ? String(wallet_address).substring(0, 6) + "..."
+            ? ellipseAddress(wallet_address).substring(0, 6) + "..."
             : "Connect"}
         </div>
       </SheetTrigger>
@@ -77,7 +78,7 @@ const WalletConnectSection = () => {
                       onClick={() => copyToClipboard(wallet_address)}
                     >
                       <span className="text-sm font-bold">
-                        {wallet_address}
+                        {ellipseAddress(wallet_address)}
                       </span>
                     </div>
 

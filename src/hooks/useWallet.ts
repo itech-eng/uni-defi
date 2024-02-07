@@ -100,7 +100,12 @@ export const WalletHook = (): WalletHookReturnType => {
     networkName,
   };
 };
-
+export function ellipseAddress(
+  address: string = "",
+  width: number = 10,
+): string {
+  return `${address.slice(0, width)}...${address.slice(-width)}`;
+}
 const isMetaMaskInstalled = (): boolean => {
   if (typeof window === "undefined") return false;
   const { ethereum } = window;
