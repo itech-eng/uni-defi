@@ -14,7 +14,6 @@ export class Contract {
 }
 
 export class CoinBasic {
-  // is_native: boolean;
   code: string;
   name: string; 
   icon: string;
@@ -34,5 +33,6 @@ export class NetworkCoinData {
   [coin_slug: string]: { 
     net_info: Currency, 
     basic: CoinBasic 
+    is_native?: boolean;
   } 
 }
