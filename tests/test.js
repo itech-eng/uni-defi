@@ -1,73 +1,62 @@
-const uni_core = require('@uniswap/sdk-core');
-const { getTokenAmounts, getFees } = require('./functions');
+const { getUncollectedFees } = require("./uncollected_fees");
+const { getTokenAmountsTheirs, getTokenAmountsOurs } = require("./liquidity_amount");
 
-// Assuming you have the necessary data
+// liquidity token amount
 const currentTick = -108166; // slot0 tick
 const tickLower = -887200;
 const tickUpper = 887200;
 const liquidity = Number(1952931264130274449n);
 const sqrtPriceX96 = Number(354994108308571189386340633n);
 
-const getPrice = () => {
-  // price from token0 to token1; 1 token0 = price token1
-  return (sqrtPriceX96 / (2**96)) ** 2;
-  //or
-  // return (1.0001 ** currentTick);
+// getTokenAmountsOurs(liquidity, sqrtPriceX96, tickLower, tickUpper, 18, 18);
+// console.log('=======');
+// getTokenAmountsTheirs(liquidity, sqrtPriceX96, tickLower, tickUpper, 18, 18);
+
+
+
+
+// uncollected fee
+const { Token } = require('@uniswap/sdk-core');
+
+const SupportedChainId = {
+  GOERLI: 5,
+  SEPOLIA: 11155111,
 };
 
-const price = getPrice();
-const sqrtRatioL = Math.sqrt(1.0001 ** tickLower);
-const sqrtRatioU = Math.sqrt(1.0001 ** tickUpper);
-const sqrtP = Math.sqrt(price);
+const POSITION_CONTRACT_ADDRESS = '0x1238536071E1c677A632429e3655c799b22cDA52';
 
-const Decimal0 = 18;
-const Decimal1 = 18;
+const POOL_FACTORY_ADDRESS =
+  // '0x1F98431c8aD98523631AE4a59f267346ea31F984'
+  '0x0227628f3F023bb0B980b67D528571c95c6DaC1c' //sepolia
 
-let amount_token0 = 0;
-let amount_token1 = 0;
+const WETH_CONTRACT_ADDRESS =
+  // '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
+  "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14"; //sepolia
 
-if(currentTick < tickLower){
-  amount_token0 = Math.floor(liquidity*((sqrtRatioU-sqrtRatioL)/(sqrtRatioL*sqrtRatioU)));
-} else if(currentTick >= tickUpper){
-  amount_token1 = Math.floor(liquidity*(sqrtRatioU-sqrtRatioL));
-} else if(currentTick >= tickLower && currentTick < tickUpper) {
-  amount_token0 = liquidity * ((sqrtRatioU - sqrtP) / (sqrtRatioU * sqrtP));
-  amount_token1 = liquidity * (sqrtP - sqrtRatioL)
-}
-
-amount_token0 = (amount_token0/(10**Decimal0)).toFixed(Decimal0);
-amount_token1 = (amount_token1/(10**Decimal1)).toFixed(Decimal1);
-
-console.log('price:', price);
-// getTokenAmounts(liquidity, sqrtPriceX96, tickLower, tickUpper, 18, 18);
-// console.log('Fee Earned Token0:', fees_earned_token0.toString());
-// console.log('Fee Earned Token1:', fees_earned_token1.toString());
-console.log('Amount of Token0:', amount_token0.toString());
-console.log('Amount of Token1:', amount_token1.toString());
-
-const feeGrowthGlobal0X128 = 308945033615290578619123104512101582427n;
-const feeGrowthInside0LastX128 = 213086802882828011452425920098799198542n;
-const feeGrowthOutside0X128Low = 0n;
-const feeGrowthOutside0X128High = 0n;
-
-const feeGrowthGlobal1X128 = 4261736057656560224786782344319423n;
-const feeGrowthInside1LastX128 = 4261736057656560224786782344319423n;
-const feeGrowthOutside1X128Low = 0n;
-const feeGrowthOutside1X128High = 0n;
-
-getFees(
-  feeGrowthGlobal0X128,
-  feeGrowthInside0LastX128,
-  feeGrowthOutside0X128Low,
-  feeGrowthOutside0X128High,
-  feeGrowthGlobal1X128,
-  feeGrowthInside1LastX128,
-  feeGrowthOutside1X128Low,
-  feeGrowthOutside1X128High,
-  liquidity,
-  Decimal0,
-  Decimal1,
-  tickLower,
-  tickUpper,
-  currentTick
+const WETH_TOKEN = new Token(
+  SupportedChainId.SEPOLIA,
+  WETH_CONTRACT_ADDRESS,
+  18,
+  "WETH",
+  "Wrapped Ether",
 );
+
+const DKFT20_TOKEN = new Token(
+  // SupportedChainId.GOERLI,
+  // '0x2b669B8dF849a250CB3D228C80CcF21D02F4C5dF',
+  SupportedChainId.SEPOLIA,
+  "0x0228A456B4719Dd584230202b9FF47c986Ad7893",
+  18,
+  "DKFT20",
+  "DK Free Token",
+);
+
+const { FeeAmount } = require('@uniswap/v3-sdk');
+const wallet_address = '0x9908CbCb070d1ed8d8f2c064b281D3029545b185';
+const nft_token_id = 7879;
+// const wallet_address = '0x31d4Ae75Cd68f3eaEfAa8b77fF1bc505FBC32184';
+// const nft_token_id = 7884;
+
+getUncollectedFees(DKFT20_TOKEN, WETH_TOKEN, FeeAmount.HIGH, 
+  POOL_FACTORY_ADDRESS, POSITION_CONTRACT_ADDRESS,
+  nft_token_id, wallet_address, wallet_address);
