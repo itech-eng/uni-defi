@@ -3,6 +3,7 @@ import { providers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
 import { useDispatch } from "react-redux";
 import { setWallet } from "@/store/slice/wallet.slice";
+import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "../utils/network-data";
 
 interface WalletHookReturnType {
   wallet_address: string | null;
@@ -17,7 +18,8 @@ export const WalletHook = (): WalletHookReturnType => {
   const [balance, setBalance] = useState<string | null>(null);
   const [networkName, setNetworkName] = useState<string | null>(null);
   const dispatch = useDispatch();
-  const load = async () => {
+
+  const loadWalletData = async () => {
     try {
       const address = await getAddress();
       const { networkName } = await getNetworkInfo();
@@ -39,17 +41,25 @@ export const WalletHook = (): WalletHookReturnType => {
       console.error("Error loading wallet:", error);
     }
   };
+
   useEffect(() => {
     const handleAccountsChanged = async (accounts: string[]) => {
       if (!accounts[0]) return;
-      load();
+      await loadWalletData();
     };
+
+    const handleChainChanged = async (chainId: string) => {
+      if (!chainId) return;
+      const networkSlug = CHIAN_SLUG_MAPPING[Number(chainId)]; // Convert chainId to number
+      if (!NETWORK_DATA[networkSlug]) {
+        return;
+      }
+      await loadWalletData();
+    };
+
+    onChainChanged(handleChainChanged);
     onAccountsChanged(handleAccountsChanged);
-    onChainChanged((_chain: string) => {
-      if (!_chain) return;
-      setChainID(parseInt(_chain));
-    });
-    load();
+    loadWalletData();
   }, []);
 
   return {
@@ -78,8 +88,6 @@ const getChainInfo = async (): Promise<number> => {
 };
 
 const onAccountsChanged = (callback: (address: string[]) => void): void => {
-  console.log("onAccountsChanged event");
-
   if (!isMetaMaskInstalled()) return;
   window.ethereum.on("accountsChanged", callback);
 };
