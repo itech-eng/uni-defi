@@ -6,10 +6,16 @@ import {
   connectMetamask,
   disconnectMetamask,
 } from "@/src/hooks/useWallet";
+import { useSelector } from "react-redux";
+import { IRootState } from "@/store";
+import { CHIAN_SLUG_MAPPING } from "@/src/utils/network-data";
 
 const WalletConnectSection = () => {
-  const { chain, wallet, balance, networkName } = WalletHook();
+  WalletHook();
   const [showCheckIcon, setShowCheckIcon] = useState(false);
+  const { wallet_address, balance, chain_id, network_name } = useSelector(
+    (state: IRootState) => state.wallet,
+  );
 
   const copyToClipboard = async (text) => {
     try {
@@ -28,11 +34,13 @@ const WalletConnectSection = () => {
     <Sheet>
       <SheetTrigger className="text-white ">
         <div className="t bg-[#7e22ce4a] rounded-2xl px-6 text-purple-300 text-sm py-2 hover:text-gray-200">
-          {wallet ? String(wallet).substring(0, 6) + "..." : "Connect"}
+          {wallet_address
+            ? String(wallet_address).substring(0, 6) + "..."
+            : "Connect"}
         </div>
       </SheetTrigger>
       <SheetContent className="bg-slate-950 border border-gray-800 rounded-xl">
-        {!wallet && (
+        {!wallet_address && (
           <div className="p-4 bg-slate-900 border border-gray-800 rounded-xl mt-2">
             <div
               className="flex items-center justify-between text-white w-full cursor-pointer"
@@ -53,7 +61,7 @@ const WalletConnectSection = () => {
             </div>
           </div>
         )}
-        {wallet && (
+        {wallet_address && (
           <div className="rounded-xl mt-2">
             <div className="flex items-center  text-white">
               <div className="flex items-start w-full justify-between gap-2">
@@ -66,25 +74,26 @@ const WalletConnectSection = () => {
                   <div className="flex items-center cursor-pointer">
                     <div
                       className="overflow-hidden whitespace-nowrap w-[150px] truncate"
-                      onClick={() => copyToClipboard(wallet)}
+                      onClick={() => copyToClipboard(wallet_address)}
                     >
-                      <span className="text-sm font-bold">{wallet}</span>
+                      <span className="text-sm font-bold">
+                        {wallet_address}
+                      </span>
                     </div>
 
                     {showCheckIcon ? (
-                      <Check
-                        className="text-green-500"
-                        size={15}
-                        onClick={() => copyToClipboard(wallet)}
-                      />
+                      <Check className="text-green-500" size={15} />
                     ) : (
-                      <button className="text-purple-300 hover:text-gray-200 mr-4">
+                      <button
+                        className="text-purple-300 hover:text-gray-200 mr-4"
+                        onClick={() => copyToClipboard(wallet_address)}
+                      >
                         <Copy size={15} />
                       </button>
                     )}
                   </div>
                 </div>
-                {wallet && (
+                {wallet_address && (
                   <button
                     className="text-slate-400 hover:text-gray-200"
                     onClick={() => {
@@ -97,8 +106,11 @@ const WalletConnectSection = () => {
               </div>
             </div>
             <div className="mt-4">
-              <div className="text-white text-3xl font-bold ">
-                {balance} <span className="uppercase">{networkName}</span>
+              <div className="text-white text-2xl font-bold ">
+                {balance}{" "}
+                <span className="uppercase">
+                  {CHIAN_SLUG_MAPPING[chain_id]}
+                </span>
               </div>
             </div>
           </div>

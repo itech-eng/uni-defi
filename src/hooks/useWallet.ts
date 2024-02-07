@@ -1,11 +1,22 @@
 import { useState, useEffect } from "react";
 import { providers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
-export const WalletHook = () => {
-  const [wallet, setWallet] = useState(null);
-  const [chain, setChain] = useState(-1);
-  const [balance, setBalance] = useState(null);
-  const [networkName, setNetworkName] = useState(null);
+import { useDispatch } from "react-redux";
+import { setWallet } from "@/store/slice/wallet.slice";
+
+interface WalletHookReturnType {
+  wallet_address: string | null;
+  chain_id: number;
+  balance: string | null;
+  networkName: string | null;
+}
+
+export const WalletHook = (): WalletHookReturnType => {
+  const [wallet_address, setWalletAddress] = useState<string | null>(null);
+  const [chain_id, setChainID] = useState<number>(-1);
+  const [balance, setBalance] = useState<string | null>(null);
+  const [networkName, setNetworkName] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const load = async () => {
@@ -13,94 +24,100 @@ export const WalletHook = () => {
         const address = await getAddress();
         const { networkName } = await getNetworkInfo();
         const chain = await getChainInfo();
-        setWallet(address?.toLowerCase());
-        setChain(Number(chain));
-        setNetworkName(networkName);
-
         const walletBalance = await getBalance(address);
+        setWalletAddress(address?.toLowerCase() ?? null);
+        setChainID(chain);
+        setNetworkName(networkName);
         setBalance(walletBalance);
+        dispatch(
+          setWallet({
+            chain_id: chain,
+            wallet_address: address?.toLowerCase() ?? null,
+            balance: walletBalance,
+            network_name: networkName,
+          }),
+        );
       } catch (error) {
         console.error("Error loading wallet:", error);
       }
     };
 
-    onAccountsChanged((_address) => {
+    onAccountsChanged((_address: string[]) => {
       if (!_address[0]) return;
-      setWallet(_address[0].toLowerCase());
+      setWalletAddress(_address[0].toLowerCase());
     });
-    onChainChanged((_chain) => {
+    onChainChanged((_chain: string) => {
       if (!_chain) return;
-      setChain(parseInt(_chain));
+      setChainID(parseInt(_chain));
     });
     load();
   }, []);
 
   return {
-    wallet,
-    chain,
+    wallet_address,
+    chain_id,
     balance,
     networkName,
   };
 };
-export const isMetaMaskInstalled = () => {
-  if (typeof window === "undefined") return;
+
+const isMetaMaskInstalled = (): boolean => {
+  if (typeof window === "undefined") return false;
   const { ethereum } = window;
   return Boolean(ethereum && ethereum.isMetaMask);
 };
 
-export const getProvider = () => {
+const getProvider = (): providers.Web3Provider | null => {
   if (!isMetaMaskInstalled()) return null;
   return new providers.Web3Provider(window.ethereum);
 };
 
-export const getChainInfo = async () => {
+const getChainInfo = async (): Promise<number> => {
   const provider = getProvider();
   if (!provider) return -1;
-  return `${(await provider.getNetwork()).chainId}`;
+  return (await provider.getNetwork()).chainId;
 };
 
-export const onAccountsChanged = (callback) => {
+const onAccountsChanged = (callback: (address: string[]) => void): void => {
   if (!isMetaMaskInstalled()) return;
   window.ethereum.on("accountsChanged", callback);
 };
 
-export const onChainChanged = (callback) => {
+const onChainChanged = (callback: (chainId: string) => void): void => {
   if (!isMetaMaskInstalled()) return;
   window.ethereum.on("chainChanged", callback);
 };
 
-export const getAddress = async () => {
+const getAddress = async (): Promise<string | null> => {
   const provider = getProvider();
   if (!provider) return null;
   try {
     const accounts = await provider.listAccounts();
-    return accounts.length > 0 ? accounts[0] : null;
+    return accounts?.[0] ?? null;
   } catch (e) {
     return null;
   }
 };
 
-export const getNetworkInfo = async () => {
+const getNetworkInfo = async (): Promise<{ networkName: string | null }> => {
   const provider = getProvider();
-  if (!provider) return null;
+  if (!provider) return { networkName: null };
 
   try {
     const network = await provider.getNetwork();
     const networkName = network.name;
-
     return { networkName };
   } catch (error) {
-    return null;
+    return { networkName: null };
   }
 };
 
-export const getBalance = async (address) => {
+export const getBalance = async (address: string): Promise<string | null> => {
   const provider = getProvider();
   if (!provider) return null;
   try {
     const balance = await provider.getBalance(address);
     const etherBalance = formatEther(balance);
-
     return etherBalance;
   } catch (e) {
     console.error("Error fetching balance:", e);
@@ -108,7 +125,7 @@ export const getBalance = async (address) => {
   }
 };
 
-export const disconnectMetamask = async () => {
+export const disconnectMetamask = async (): Promise<boolean> => {
   if (!isMetaMaskInstalled()) return false;
   try {
     await window.ethereum.request({
@@ -126,7 +143,7 @@ export const disconnectMetamask = async () => {
   }
 };
 
-export const connectMetamask = async () => {
+export const connectMetamask = async (): Promise<boolean> => {
   if (!isMetaMaskInstalled()) return false;
   try {
     await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -137,7 +154,7 @@ export const connectMetamask = async () => {
   }
 };
 
-export const switchToMainnet = async () => {
+export const switchToMainnet = async (): Promise<boolean> => {
   if (!isMetaMaskInstalled()) return false;
   try {
     await window.ethereum.request({
@@ -155,7 +172,10 @@ export const switchToMainnet = async () => {
   }
 };
 
-export const watchTransaction = (txHash, callback) => {
+export const watchTransaction = (
+  txHash: string,
+  callback: (transaction: any, status: boolean) => void,
+): void => {
   const provider = getProvider();
   if (!provider) return;
   provider.once(txHash, (transaction) => {
