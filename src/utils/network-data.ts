@@ -1,5 +1,5 @@
-import { ChainId, Currency } from '@uniswap/sdk-core';
-import { CoinBasic, NetworkCoinData, NetworkData } from './types';
+import { ChainId } from '@uniswap/sdk-core';
+import { NetworkCoinData, NetworkData } from './types';
 import { COIN_SLUG } from './coin-data';
 import { CommonContractData } from './contract-data';
 import { loadContractObject } from './corefunctions';
@@ -18,7 +18,17 @@ export enum NETWORK_SLUG {
 }
 
 export enum OtherChainId {
-  //
+  BINANCE_TESTNET = 97
+}
+
+export const CHIAN_SLUG_MAPPING: { [chian_id: number]: string } = {
+  [ChainId.MAINNET]: NETWORK_SLUG.ETHEREUM,
+  [ChainId.GOERLI]: NETWORK_SLUG.GOERLI_ETH,
+  [ChainId.SEPOLIA]: NETWORK_SLUG.SPOLIA_ETH,
+  [ChainId.POLYGON]: NETWORK_SLUG.POLYGON,
+  [ChainId.POLYGON_MUMBAI]: NETWORK_SLUG.MUMBAI_POLY_TEST,
+  [ChainId.BNB]: NETWORK_SLUG.BINANCE_SMART_CHAIN,
+  [OtherChainId.BINANCE_TESTNET]: NETWORK_SLUG.BINANCE_TESTNET,
 }
 
 export const NETWORK_COIN_DATA: { [net_slug: string]: NetworkCoinData } = {
