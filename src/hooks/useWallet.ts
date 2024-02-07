@@ -4,6 +4,7 @@ import { formatEther } from "ethers/lib/utils";
 import { useDispatch } from "react-redux";
 import { setWallet } from "@/store/slice/wallet.slice";
 import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "../utils/network-data";
+import { useToast } from "../components/ui/use-toast";
 
 interface WalletHookReturnType {
   wallet_address: string | null;
@@ -11,6 +12,10 @@ interface WalletHookReturnType {
   balance: string | null;
   networkName: string | null;
 }
+const isNetworkSupported = (chainId: number): boolean => {
+  const networkSlug = CHIAN_SLUG_MAPPING[chainId];
+  return !!NETWORK_DATA[networkSlug];
+};
 
 export const WalletHook = (): WalletHookReturnType => {
   const [wallet_address, setWalletAddress] = useState<string | null>(null);
@@ -18,12 +23,23 @@ export const WalletHook = (): WalletHookReturnType => {
   const [balance, setBalance] = useState<string | null>(null);
   const [networkName, setNetworkName] = useState<string | null>(null);
   const dispatch = useDispatch();
+  const { toast } = useToast();
 
   const loadWalletData = async () => {
     try {
       const address = await getAddress();
       const { networkName } = await getNetworkInfo();
       const chain = await getChainInfo();
+
+      if (!isNetworkSupported(chain)) {
+        console.log("Network not supported");
+        toast({
+          title: `Network not supported`,
+          description: "Please switch to a supported network.",
+        });
+        return;
+      }
+
       const walletBalance = await getBalance(address);
       setWalletAddress(address?.toLowerCase() ?? null);
       setChainID(chain);
@@ -45,21 +61,36 @@ export const WalletHook = (): WalletHookReturnType => {
   useEffect(() => {
     const handleAccountsChanged = async (accounts: string[]) => {
       if (!accounts[0]) return;
-      await loadWalletData();
+      console.log("Wallet address changed:");
+      loadWalletData();
     };
 
     const handleChainChanged = async (chainId: string) => {
       if (!chainId) return;
-      const networkSlug = CHIAN_SLUG_MAPPING[Number(chainId)]; // Convert chainId to number
-      if (!NETWORK_DATA[networkSlug]) {
+      console.log("Wallet chain changed:");
+      window.ethereum.off("accountsChanged", handleAccountsChanged);
+
+      if (!isNetworkSupported(Number(chainId))) {
+        console.log("Network not supported");
+        toast({
+          title: `Network not supported`,
+          description: "Please switch to a supported network.",
+        });
         return;
       }
       await loadWalletData();
+      onAccountsChanged(handleAccountsChanged);
     };
 
-    onChainChanged(handleChainChanged);
     onAccountsChanged(handleAccountsChanged);
+    onChainChanged(handleChainChanged);
     loadWalletData();
+
+    // Clean up subscriptions when component unmounts
+    return () => {
+      window.ethereum.off("accountsChanged", handleAccountsChanged);
+      window.ethereum.off("chainChanged", handleChainChanged);
+    };
   }, []);
 
   return {
