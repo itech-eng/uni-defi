@@ -1,32 +1,44 @@
+import React, { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/src/components/ui/sheet";
-import React from "react";
 import { Check, Copy, Power } from "lucide-react";
-import useWallet from "@/src/hooks/useWallet";
+import {
+  WalletHook,
+  connectMetamask,
+  disconnectMetamask,
+} from "@/src/hooks/useWallet";
 
 const WalletConnectSection = () => {
-  const {
-    provider,
-    walletAddress,
-    walletBalance,
-    connectToMetaMask,
-    disconnectWallet,
-    copyToClipboard,
-    showTooltip,
-  } = useWallet();
+  const { chain, wallet, balance, networkName } = WalletHook();
+  const [showCheckIcon, setShowCheckIcon] = useState(false);
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      console.log("Copied to clipboard:", text);
+      setShowCheckIcon(true);
+      setTimeout(() => {
+        setShowCheckIcon(false);
+      }, 3000); // Hide check icon after three seconds
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+    }
+  };
 
   return (
     <Sheet>
       <SheetTrigger className="text-white ">
         <div className="t bg-[#7e22ce4a] rounded-2xl px-6 text-purple-300 text-sm py-2 hover:text-gray-200">
-          {provider ? String(walletAddress).substring(0, 6) + "..." : "Connect"}
+          {wallet ? String(wallet).substring(0, 6) + "..." : "Connect"}
         </div>
       </SheetTrigger>
       <SheetContent className="bg-slate-950 border border-gray-800 rounded-xl">
-        {!provider && (
+        {!wallet && (
           <div className="p-4 bg-slate-900 border border-gray-800 rounded-xl mt-2">
             <div
               className="flex items-center justify-between text-white w-full cursor-pointer"
-              onClick={connectToMetaMask}
+              onClick={() => {
+                connectMetamask();
+              }}
             >
               <div className="flex items-center gap-6">
                 <img
@@ -41,7 +53,7 @@ const WalletConnectSection = () => {
             </div>
           </div>
         )}
-        {provider && (
+        {wallet && (
           <div className="rounded-xl mt-2">
             <div className="flex items-center  text-white">
               <div className="flex items-start w-full justify-between gap-2">
@@ -51,38 +63,42 @@ const WalletConnectSection = () => {
                     alt=""
                     className="w-12 h-12 rounded-full "
                   />
-                  <div
-                    className="flex items-center cursor-pointer"
-                    onClick={copyToClipboard}
-                  >
-                    <div className="overflow-hidden whitespace-nowrap w-[150px] truncate">
-                      <span className="text-sm font-bold ">
-                        {walletAddress}
-                      </span>
+                  <div className="flex items-center cursor-pointer">
+                    <div
+                      className="overflow-hidden whitespace-nowrap w-[150px] truncate"
+                      onClick={() => copyToClipboard(wallet)}
+                    >
+                      <span className="text-sm font-bold">{wallet}</span>
                     </div>
-                    <button className="text-purple-300  hover:text-gray-200 mr-4">
-                      {showTooltip ? (
-                        <div className=" bg-transparent text-white text-xs flex items-center gap-2 px-2 py-1 rounded-md ">
-                          <Check size={16} className="text-green-500" />
-                        </div>
-                      ) : (
+
+                    {showCheckIcon ? (
+                      <Check
+                        className="text-green-500"
+                        size={15}
+                        onClick={() => copyToClipboard(wallet)}
+                      />
+                    ) : (
+                      <button className="text-purple-300 hover:text-gray-200 mr-4">
                         <Copy size={15} />
-                      )}
-                    </button>
+                      </button>
+                    )}
                   </div>
                 </div>
-
-                <button
-                  onClick={disconnectWallet}
-                  className="text-slate-400 hover:text-gray-200"
-                >
-                  <Power />
-                </button>
+                {wallet && (
+                  <button
+                    className="text-slate-400 hover:text-gray-200"
+                    onClick={() => {
+                      disconnectMetamask();
+                    }}
+                  >
+                    <Power />
+                  </button>
+                )}
               </div>
             </div>
             <div className="mt-4">
-              <div className="text-white text-3xl font-bold">
-                {walletBalance} ETH
+              <div className="text-white text-3xl font-bold ">
+                {balance} <span className="uppercase">{networkName}</span>
               </div>
             </div>
           </div>
