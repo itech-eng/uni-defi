@@ -11,12 +11,33 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { ArrowDown, ChevronDown } from "lucide-react";
 import SelectTokenSection from "./selectToken.section";
+import { IRootState } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
+import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
 
 const SwapSection = () => {
   const [showSelectToken, setShowSelectToken] = useState(true);
 
-  const handleSwap = () => {
+  const handleTokenSwitch = () => {
     setShowSelectToken((prev) => !prev);
+  };
+
+  const handleSwap = () => {
+    alert("Need to Implement");
+  };
+
+  const { wallet_address, chain_id } = useSelector(
+    (state: IRootState) => state.wallet,
+  );
+
+  const dispatch = useDispatch();
+
+  const handleConnect = () => {
+    dispatch(
+      setWallet<walletSliceType>({
+        open_wallet_sidebar: true,
+      }),
+    );
   };
 
   return (
@@ -76,7 +97,7 @@ const SwapSection = () => {
               <ArrowDown
                 className="mx-auto text-3xl text-white"
                 size={15}
-                onClick={handleSwap}
+                onClick={handleTokenSwitch}
               />
             </div>
             <div className="grid w-full mt-2 items-center gap-4">
@@ -125,9 +146,23 @@ const SwapSection = () => {
           </form>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary  ">
-            Connect Wallet
-          </Button>
+          {!wallet_address ? (
+            <Button
+              onClick={handleConnect}
+              className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
+            rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"
+            >
+              Connect Wallet
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSwap}
+              className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
+            rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary  "
+            >
+              Swap
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </section>
