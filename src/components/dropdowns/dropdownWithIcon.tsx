@@ -24,17 +24,19 @@ interface DropdownWithIconProps {
   options: Options[];
   placeholder?: string;
   className?: string;
-  defaultValue?: string;
+  value?: string;
+  setValue?: (value: string) => void;
 }
 
 export function DropdownWithIcon({
   options,
   placeholder = "Search",
   className = "",
-  defaultValue = "", // Default value for defaultValue
+  value,
+  setValue,
 }: DropdownWithIconProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(defaultValue); // Set default value
+  // const [value, setValue] = useState(defaultValue); // Set default value
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -47,13 +49,13 @@ export function DropdownWithIcon({
         >
           <div className="flex items-center">
             <img
-              src={String(options.find((Basic) => Basic.value === value)?.icon)}
+              src={String(options.find((Basic) => Basic.value == value)?.icon)}
               className="w-3 mr-2 shrink-0"
               alt=""
             />
             <span>
               {value
-                ? options.find((Basic) => Basic.value === value)?.label
+                ? options.find((Basic) => Basic.value == value)?.label
                 : placeholder}
             </span>
           </div>
@@ -76,7 +78,7 @@ export function DropdownWithIcon({
                 value={Basic.value}
                 className="text-white py-2"
                 onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue);
+                  setValue(currentValue);
                   setOpen(false);
                 }}
               >

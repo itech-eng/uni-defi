@@ -1,6 +1,6 @@
 import { Currency } from "@uniswap/sdk-core";
 import { NETWORK_COIN_DATA, NETWORK_DATA } from "./network-data";
-import { CoinBasic, Contract, NetworkData } from "./types";
+import { CoinBasic, CoinData, Contract, NetworkData } from "./types";
 
 Number.prototype["noExponents"] = function () {
   const data = String(this).split(/[eE]/);
@@ -199,18 +199,14 @@ export function loadContractObject(
     },
     nonfungible_position_manager: {
       address: nonfungible_position_manager,
-    }
-  }
+    },
+  };
 }
 
 export function getNetworks(): NetworkData[] {
   return Object.values(NETWORK_DATA);
 }
 
-export function getNetworkCoins(network_slug: string): {
-  net_info: Currency,
-  basic: CoinBasic,
-  is_native?: boolean,
-}[] {
+export function getNetworkCoins(network_slug: string): CoinData[] {
   return Object.values(NETWORK_COIN_DATA[network_slug]);
 }
