@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/src/components/ui/sheet";
 import { Check, Copy, Power } from "lucide-react";
-import {
-  WalletHook,
-  connectMetamask,
-  disconnectMetamask,
-  ellipseAddress,
-} from "@/src/hooks/useWallet";
-import { useSelector } from "react-redux";
+import { useWallet, ellipseAddress } from "@/src/hooks/useWallet";
+import { useDispatch, useSelector } from "react-redux";
 import { IRootState } from "@/store";
-import { CHIAN_SLUG_MAPPING } from "@/src/utils/network-data";
+import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "@/src/utils/network-data";
+import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
+import { Button } from "@/src/components/ui/button";
 
 const WalletConnectSection = () => {
-  WalletHook();
+  const { connect, disconnect, balance } = useWallet();
   const [showCheckIcon, setShowCheckIcon] = useState(false);
-  const { wallet_address, balance, chain_id, network_name } = useSelector(
+  const { wallet_address, chain_id, open_wallet_sidebar } = useSelector(
     (state: IRootState) => state.wallet,
   );
 
-  const copyToClipboard = async (text) => {
+  const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       console.log("Copied to clipboard:", text);
@@ -31,22 +28,44 @@ const WalletConnectSection = () => {
     }
   };
 
+  const dispatch = useDispatch();
+
+  const handleSideBarOpen = () => {
+    dispatch(
+      setWallet<walletSliceType>({
+        open_wallet_sidebar: true,
+      }),
+    );
+  };
+
+  const handleSideBarClose = () => {
+    dispatch(
+      setWallet<walletSliceType>({
+        open_wallet_sidebar: false,
+      }),
+    );
+  };
+
   return (
-    <Sheet>
+    <Sheet open={open_wallet_sidebar}>
       <SheetTrigger className="text-white ">
-        <div className="t bg-[#7e22ce4a] rounded-2xl px-6 text-purple-300 text-sm py-2 hover:text-gray-200">
-          {wallet_address
-            ? ellipseAddress(wallet_address).substring(0, 6) + "..."
-            : "Connect"}
+        <div
+          onClick={handleSideBarOpen}
+          className="t bg-[#7e22ce4a] rounded-2xl px-6 text-purple-300 text-sm py-2 hover:text-gray-200"
+        >
+          {wallet_address ? ellipseAddress(wallet_address, 5) : "Connect"}
         </div>
       </SheetTrigger>
-      <SheetContent className="bg-slate-950 border border-gray-800 rounded-xl">
+      <SheetContent
+        handleClose={handleSideBarClose}
+        className="bg-slate-950 border border-gray-800 rounded-xl"
+      >
         {!wallet_address && (
-          <div className="p-4 bg-slate-900 border border-gray-800 rounded-xl mt-2">
+          <div className="p-4 bg-slate-900 border border-gray-800 rounded-xl mt-8">
             <div
               className="flex items-center justify-between text-white w-full cursor-pointer"
               onClick={() => {
-                connectMetamask();
+                connect();
               }}
             >
               <div className="flex items-center gap-6">
@@ -62,8 +81,9 @@ const WalletConnectSection = () => {
             </div>
           </div>
         )}
+
         {wallet_address && (
-          <div className="rounded-xl mt-2">
+          <div className="rounded-xl mt-8">
             <div className="flex items-center  text-white">
               <div className="flex items-start w-full justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -74,7 +94,7 @@ const WalletConnectSection = () => {
                   />
                   <div className="flex items-center cursor-pointer">
                     <div
-                      className="overflow-hidden whitespace-nowrap w-[150px] truncate"
+                      className="overflow-hidden whitespace-nowrap w-[140px] truncate"
                       onClick={() => copyToClipboard(wallet_address)}
                     >
                       <span className="text-sm font-bold">
@@ -98,7 +118,7 @@ const WalletConnectSection = () => {
                   <button
                     className="text-slate-400 hover:text-gray-200"
                     onClick={() => {
-                      disconnectMetamask();
+                      disconnect();
                     }}
                   >
                     <Power />
@@ -110,7 +130,8 @@ const WalletConnectSection = () => {
               <div className="text-white text-2xl font-bold ">
                 {balance}{" "}
                 <span className="uppercase">
-                  {CHIAN_SLUG_MAPPING[chain_id]}
+                  {NETWORK_DATA[CHIAN_SLUG_MAPPING[chain_id]]
+                    ?.native_currency_code || ""}
                 </span>
               </div>
             </div>

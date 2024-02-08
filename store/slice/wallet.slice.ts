@@ -1,31 +1,36 @@
+import { empty } from "@/src/utils/corefunctions";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-export type walletType = {
-  chain_id: number|null;
-  wallet_address: string;
-  balance: string;
-  network_name: string;
+export type walletSliceType = {
+  chain_id?: number;
+  wallet_address?: string;
+  open_wallet_sidebar?: boolean;
 };
 
-const initialState: walletType = {
+export const walletInitialState: walletSliceType = {
   chain_id: null,
   wallet_address: "",
-  balance: "",
-  network_name: "",
+  open_wallet_sidebar: false,
 };
 
 export const walletSlice = createSlice({
   name: "walletInfo",
-  initialState,
+  initialState: walletInitialState,
   reducers: {
-    setWallet: (state, action: PayloadAction<walletType>) => {
-      state.chain_id = action.payload.chain_id;
-      state.wallet_address = action.payload.wallet_address;
-      state.balance = action.payload.balance;
-      state.network_name = action.payload.network_name;
+    setWallet: (state, action: PayloadAction<walletSliceType>) => {
+      action.payload.chain_id && (state.chain_id = action.payload.chain_id);
+      action.payload.wallet_address &&
+        (state.wallet_address = action.payload.wallet_address);
+      !empty(action.payload.open_wallet_sidebar) &&
+        (state.open_wallet_sidebar = action.payload.open_wallet_sidebar);
+    },
+    setToInitialWallet: (state) => {
+      state.chain_id = walletInitialState.chain_id;
+      state.wallet_address = walletInitialState.wallet_address;
+      state.open_wallet_sidebar = walletInitialState.open_wallet_sidebar;
     },
   },
 });
 
-export const { setWallet } = walletSlice.actions;
+export const { setWallet, setToInitialWallet } = walletSlice.actions;
 export default walletSlice.reducer;
