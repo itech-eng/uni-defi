@@ -5,9 +5,21 @@ import React, { useEffect, useState } from "react";
 import { DropdownWithIcon } from "../dropdowns/dropdownWithIcon";
 import { getNetworks } from "@/src/utils/corefunctions";
 import WalletConnectSection from "@/src/section/global/walletConnect.section";
+import { IRootState } from "@/store";
+import { useSelector } from "react-redux";
+import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "@/src/utils/network-data";
+import { useWallet } from "@/src/hooks/useWallet";
+import { toast } from "../ui/use-toast";
 
 export default function Navbar() {
   const [scrolling, setScrolling] = useState(false);
+
+  const { switchToNetwork } = useWallet();
+
+  const { chain_id } = useSelector((state: IRootState) => state.wallet);
+
+  const [network, setNetwork] = useState<string>("");
+  const networks = getNetworks();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +33,27 @@ export default function Navbar() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    chain_id && setNetwork(CHIAN_SLUG_MAPPING[chain_id]);
+  }, [chain_id]);
+
+  useEffect(() => {
+    network &&
+      (async () => {
+        const chain = NETWORK_DATA[network]?.chain_id;
+        if (await switchToNetwork(chain)) {
+          setNetwork(network);
+        } else {
+          setNetwork(CHIAN_SLUG_MAPPING[chain_id]);
+        }
+      })();
+  }, [network]);
+
+  useEffect(() => {
+    setNetwork(CHIAN_SLUG_MAPPING[chain_id] ?? "");
+  }, [chain_id]);
+
   return (
     <nav
       className={`bg-${
@@ -69,9 +102,10 @@ export default function Navbar() {
         </div>
         <div className="flex items-center justify-end gap-4">
           <DropdownWithIcon
-            options={getNetworks()}
+            options={networks}
             placeholder="Select a Network"
-            defaultValue="bsc"
+            value={network}
+            setValue={setNetwork}
           />
 
           <WalletConnectSection />

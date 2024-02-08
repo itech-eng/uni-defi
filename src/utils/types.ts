@@ -15,7 +15,7 @@ export class Contract {
 
 export class CoinBasic {
   code: string;
-  name: string; 
+  name: string;
   icon: string;
 }
 
@@ -29,10 +29,12 @@ export class NetworkData {
   coin_or_token?: NetworkCoinData;
 }
 
+export class CoinData {
+  net_info: Currency;
+  basic: CoinBasic;
+  is_native?: boolean;
+}
+
 export class NetworkCoinData {
-  [coin_slug: string]: { 
-    net_info: Currency, 
-    basic: CoinBasic 
-    is_native?: boolean;
-  } 
+  [coin_slug: string]: CoinData;
 }
