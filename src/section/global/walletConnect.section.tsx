@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/src/components/ui/sheet";
 import { Check, Copy, Power } from "lucide-react";
-import { useWallet, ellipseAddress } from "@/src/hooks/useWallet";
+import { useWallet } from "@/src/hooks/useWallet";
 import { useDispatch, useSelector } from "react-redux";
 import { IRootState } from "@/store";
 import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "@/src/utils/network-data";
 import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
 import { Button } from "@/src/components/ui/button";
+import { ellipseAddress } from "@/src/lib/wallet";
 
 const WalletConnectSection = () => {
   const { connect, disconnect, balance } = useWallet();
