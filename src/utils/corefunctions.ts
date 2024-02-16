@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { NETWORK_COIN_DATA, NETWORK_DATA } from "./network/network-data";
 import { CoinData, Contract, NetworkData } from "./types";
+import { BigNumber, ethers } from "ethers";
 
 Number.prototype["noExponents"] = function () {
   const data = String(this).split(/[eE]/);
@@ -227,4 +228,35 @@ export function setToLocalStorage(key: string, value: string): void {
   if (typeof window !== "undefined") {
     window.localStorage.setItem(key, value);
   }
+}
+
+export function convertCoinAmountToInt(
+  amount: number,
+  decimals: number,
+): BigNumber | string {
+  // return ethers.utils.parseUnits(amount.toString(), decimals);
+  return noExponents(amount * 10 ** decimals);
+}
+
+export function convertCoinAmounttoDecimal(
+  rawAmount: number,
+  decimals: number,
+  toFixed = 5,
+): BigNumber | string {
+  // return ethers.utils.formatUnits(rawAmount, decimals).slice(0, toFixed);
+  return noExponents((rawAmount / 10 ** decimals).toFixed(toFixed));
+}
+
+export function decodeMulticall(abi: ReadonlyArray<any>, calls: string[]) {
+  const abiInterface = new ethers.utils.Interface(abi);
+  return calls.map((call) => {
+    try {
+      const func = call.slice(0, 10);
+      const decodedArgs = abiInterface.decodeFunctionData(func, call);
+      const functionName = abiInterface.getFunction(func).name;
+      return { name: functionName, args: decodedArgs };
+    } catch (ex) {
+      return; // you could return a type here to indicate it was not parsed
+    }
+  });
 }

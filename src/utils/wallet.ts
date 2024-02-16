@@ -1,6 +1,6 @@
 import { providers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
-import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "./network/network-data";
+import { CHAIN_SLUG_MAPPING, NETWORK_DATA } from "./network/network-data";
 import { getFromLocalStorage } from "./corefunctions";
 import { LOCAL_STORAGE_KEY } from "./coreconstants";
 
@@ -20,7 +20,7 @@ export interface ProviderMessage {
 }
 
 export const isNetworkSupported = (chainId: number): boolean => {
-  const networkSlug = CHIAN_SLUG_MAPPING[chainId];
+  const networkSlug = CHAIN_SLUG_MAPPING[chainId];
   return !!NETWORK_DATA[networkSlug];
 };
 
@@ -49,15 +49,11 @@ export const getProvider = (): providers.Web3Provider | null => {
 
 export const sendTransactionViaExtension = async (
   transaction: providers.TransactionRequest,
-): Promise<boolean> => {
+): Promise<any> => {
   try {
     const provider = getProvider();
     const receipt = await provider?.send("eth_sendTransaction", [transaction]);
-    if (receipt) {
-      return true;
-    } else {
-      return false;
-    }
+    return receipt;
   } catch (e) {
     console.error(e);
     return false;
@@ -103,8 +99,10 @@ export const onChainChanged = (callback: (chainId: string) => void): void => {
   window.ethereum.on("chainChanged", callback);
 };
 
-export const getAddress = async (): Promise<string | null> => {
-  const provider = getProvider();
+export const getAddress = async (
+  provider?: providers.Web3Provider,
+): Promise<string | null> => {
+  provider = provider ?? getProvider();
   if (!provider) return null;
   try {
     const accounts = await provider.listAccounts();
@@ -184,11 +182,11 @@ export const isDisconnected = (): boolean => {
 
 export const watchTransaction = (
   txHash: string,
-  callback: (transaction: any, status: boolean) => void,
+  callback: (transaction: any) => void,
 ): void => {
   const provider = getProvider();
   if (!provider) return;
   provider.once(txHash, (transaction) => {
-    callback(transaction, transaction.status === 1);
+    callback(transaction);
   });
 };

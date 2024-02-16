@@ -1,4 +1,3 @@
-
 Number.prototype["noExponents"] = function () {
   const data = String(this).split(/[eE]/);
   if (data.length == 1) return data[0];
@@ -21,5 +20,8 @@ Number.prototype["noExponents"] = function () {
 function noExponents(value) {
   return Number(value).noExponents();
 }
+function getPriceFromTick(tick) {
+  return 1.0001 ** tick;
+}
 
-module.exports = { noExponents }
+module.exports = { noExponents, getPriceFromTick };

@@ -21,7 +21,7 @@ export enum OtherChainId {
   BINANCE_TESTNET = 97,
 }
 
-export const CHIAN_SLUG_MAPPING: { [chian_id: number]: string } = {
+export const CHAIN_SLUG_MAPPING: { [chian_id: number]: string } = {
   [ChainId.MAINNET]: NETWORK_SLUG.ETHEREUM,
   [ChainId.GOERLI]: NETWORK_SLUG.GOERLI_ETH,
   [ChainId.SEPOLIA]: NETWORK_SLUG.SPOLIA_ETH,
@@ -75,7 +75,7 @@ export const NETWORK_DATA: { [slug: string]: NetworkData } = {
 
 // console.log('Goerli data: ', NETWORK_DATA[NETWORK_SLUG.GOERLI_ETH]);
 // console.log('Goerli Dkft20 using NETWORK_DATA: ', NETWORK_DATA[NETWORK_SLUG.GOERLI_ETH].coin_or_token[COIN_SLUG.DKFT20]);
-// console.log('Goerli Dkft20 NETWORK_COIN_DATA: ', NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH][COIN_SLUG.DKFT20]);
+// console.log('Goerli Dkft20 NETWORK_COIN_DATA: ', NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH][COIN_SLUG.DKFT20].net_info['address']);
 // console.log(
 //   "Goerli ETH NETWORK_COIN_DATA: ",
 //   NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH][COIN_SLUG.ETH],

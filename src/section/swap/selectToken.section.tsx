@@ -12,7 +12,7 @@ import { Button } from "@/src/components/ui/button";
 import { Search } from "lucide-react";
 import { getNetworkCoins } from "@/src/utils/corefunctions";
 import {
-  CHIAN_SLUG_MAPPING,
+  CHAIN_SLUG_MAPPING,
   NETWORK_SLUG,
 } from "@/src/utils/network/network-data";
 import { IRootState } from "@/store";
@@ -31,7 +31,7 @@ const SelectTokenSection = ({
   const [coins, setCoins] = useState<CoinData[]>([]);
 
   useEffect(() => {
-    chain_id && setCoins(getNetworkCoins(CHIAN_SLUG_MAPPING[chain_id]));
+    chain_id && setCoins(getNetworkCoins(CHAIN_SLUG_MAPPING[chain_id]));
   }, [chain_id]);
 
   return (

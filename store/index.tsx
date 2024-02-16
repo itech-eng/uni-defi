@@ -1,8 +1,8 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import walletSlice from "./slice/wallet.slice";
+import walletSliceReducer from "./slice/wallet.slice";
 
 const rootReducer = combineReducers({
-  wallet: walletSlice,
+  wallet: walletSliceReducer,
 });
 
 export default configureStore({

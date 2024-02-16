@@ -5,7 +5,7 @@ import { useWallet } from "@/src/hooks/useWallet";
 import { useDispatch, useSelector } from "react-redux";
 import { IRootState } from "@/store";
 import {
-  CHIAN_SLUG_MAPPING,
+  CHAIN_SLUG_MAPPING,
   NETWORK_DATA,
 } from "@/src/utils/network/network-data";
 import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
@@ -134,7 +134,7 @@ const WalletConnectSection = () => {
               <div className="text-white text-2xl font-bold ">
                 {balance}{" "}
                 <span className="uppercase">
-                  {NETWORK_DATA[CHIAN_SLUG_MAPPING[chain_id]]
+                  {NETWORK_DATA[CHAIN_SLUG_MAPPING[chain_id]]
                     ?.native_currency_code || ""}
                 </span>
               </div>

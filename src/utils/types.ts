@@ -1,4 +1,4 @@
-import { Currency } from "@uniswap/sdk-core";
+import { Token } from "@uniswap/sdk-core";
 
 export class ContractData {
   address: string;
@@ -30,7 +30,7 @@ export class NetworkData {
 }
 
 export class CoinData {
-  net_info: Currency;
+  net_info: Token;
   basic: CoinBasic;
   is_native?: boolean;
 }

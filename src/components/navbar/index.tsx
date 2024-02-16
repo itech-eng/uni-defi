@@ -8,7 +8,7 @@ import WalletConnectSection from "@/src/section/global/walletConnect.section";
 import { IRootState } from "@/store";
 import { useSelector } from "react-redux";
 import {
-  CHIAN_SLUG_MAPPING,
+  CHAIN_SLUG_MAPPING,
   NETWORK_DATA,
 } from "@/src/utils/network/network-data";
 import { useWallet } from "@/src/hooks/useWallet";
@@ -38,7 +38,7 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    chain_id && setNetwork(CHIAN_SLUG_MAPPING[chain_id]);
+    chain_id && setNetwork(CHAIN_SLUG_MAPPING[chain_id]);
   }, [chain_id]);
 
   useEffect(() => {
@@ -48,13 +48,13 @@ export default function Navbar() {
         if (await switchToNetwork(chain)) {
           setNetwork(network);
         } else {
-          setNetwork(CHIAN_SLUG_MAPPING[chain_id]);
+          setNetwork(CHAIN_SLUG_MAPPING[chain_id]);
         }
       })();
   }, [network]);
 
   useEffect(() => {
-    setNetwork(CHIAN_SLUG_MAPPING[chain_id] ?? "");
+    setNetwork(CHAIN_SLUG_MAPPING[chain_id] ?? "");
   }, [chain_id]);
 
   return (
