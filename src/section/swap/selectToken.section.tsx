@@ -11,7 +11,10 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Search } from "lucide-react";
 import { getNetworkCoins } from "@/src/utils/corefunctions";
-import { CHIAN_SLUG_MAPPING, NETWORK_SLUG } from "@/src/utils/network-data";
+import {
+  CHIAN_SLUG_MAPPING,
+  NETWORK_SLUG,
+} from "@/src/utils/network/network-data";
 import { IRootState } from "@/store";
 import { useSelector } from "react-redux";
 import { CoinData } from "@/src/utils/types";

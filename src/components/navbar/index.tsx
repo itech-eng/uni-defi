@@ -7,7 +7,10 @@ import { getNetworks } from "@/src/utils/corefunctions";
 import WalletConnectSection from "@/src/section/global/walletConnect.section";
 import { IRootState } from "@/store";
 import { useSelector } from "react-redux";
-import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "@/src/utils/network-data";
+import {
+  CHIAN_SLUG_MAPPING,
+  NETWORK_DATA,
+} from "@/src/utils/network/network-data";
 import { useWallet } from "@/src/hooks/useWallet";
 import { toast } from "../ui/use-toast";
 

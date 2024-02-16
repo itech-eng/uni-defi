@@ -1,6 +1,6 @@
 import { ChainId, Currency, Token } from "@uniswap/sdk-core";
 import { COIN_SLUG, EVM_NATIVE_DECIMAL, COIN_BAISC_DATA } from "../coin-data";
-import { NetworkCoinData } from "../types";
+import { NetworkCoinData } from "../../types";
 
 export const goerli_eth_coin_data: NetworkCoinData = {
   [COIN_SLUG.ETH]: {

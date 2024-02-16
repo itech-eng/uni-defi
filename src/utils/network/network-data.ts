@@ -1,11 +1,11 @@
 import { ChainId } from "@uniswap/sdk-core";
-import { NetworkCoinData, NetworkData } from "./types";
+import { NetworkCoinData, NetworkData } from "../types";
 import { COIN_SLUG } from "./coin-data";
 import { CommonContractData } from "./contract-data";
-import { loadContractObject } from "./corefunctions";
-import { eth_coin_data } from "./network/ethereum";
-import { goerli_eth_coin_data } from "./network/goerli-eth";
-import { sepolia_eth_coin_data } from "./network/sepolia-eth";
+import { loadContractObject } from "../corefunctions";
+import { eth_coin_data } from "./coins/ethereum";
+import { goerli_eth_coin_data } from "./coins/goerli-eth";
+import { sepolia_eth_coin_data } from "./coins/sepolia-eth";
 
 export enum NETWORK_SLUG {
   ETHEREUM = "ethereum",

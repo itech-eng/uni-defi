@@ -1,4 +1,4 @@
-import { cn } from "@/src/lib/helpers";
+import { cn } from "@/src/utils/corefunctions";
 import * as React from "react";
 
 export interface InputProps

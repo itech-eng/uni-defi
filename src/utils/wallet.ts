@@ -1,8 +1,8 @@
 import { providers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
-import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "../utils/network-data";
-import { getFromLocalStorage } from "./helpers";
-import { LOCAL_STORAGE_KEY } from "../utils/coreconstants";
+import { CHIAN_SLUG_MAPPING, NETWORK_DATA } from "./network/network-data";
+import { getFromLocalStorage } from "./corefunctions";
+import { LOCAL_STORAGE_KEY } from "./coreconstants";
 
 export interface ConnectInfo {
   chainId: string;

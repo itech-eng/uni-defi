@@ -6,7 +6,7 @@ import {
   walletSliceType,
 } from "@/store/slice/wallet.slice";
 import { useToast } from "../components/ui/use-toast";
-import { setToLocalStorage } from "../lib/helpers";
+import { setToLocalStorage } from "../utils/corefunctions";
 import { LOCAL_STORAGE_KEY } from "../utils/coreconstants";
 import {
   isDisconnected,
@@ -23,7 +23,7 @@ import {
   ProviderMessage,
   ProviderRpcError,
   onConnect,
-} from "../lib/wallet";
+} from "../utils/wallet";
 
 interface WalletHookReturnType {
   connect: () => Promise<boolean>;
