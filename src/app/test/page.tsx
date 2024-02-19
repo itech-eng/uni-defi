@@ -26,6 +26,7 @@ import { FeeAmount } from "@uniswap/v3-sdk";
 import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
 import { getSqrtPx96 } from "@/src/utils/uniswap/helpers";
 import { useSearchParams } from "next/navigation";
+import { getPositions } from "@/src/utils/uniswap/liquidity";
 
 export default async function Test() {
   // const qParams = useSearchParams();
@@ -105,8 +106,8 @@ export default async function Test() {
 
     // Prepare data for adding new position (example)
     const fee = poolFee;
-    const tickLower = getTickFromPrice(priceRange.min);
-    const tickUpper = getTickFromPrice(priceRange.max);
+    const tickLower = getTickFromPrice(priceRange.min_price);
+    const tickUpper = getTickFromPrice(priceRange.max_price);
     const amount0Desired = convertCoinAmountToInt(
       100,
       dkft20.net_info.decimals,
@@ -215,6 +216,11 @@ export default async function Test() {
       });
   };
 
+  const handlePositionList = async () => {
+    const positions = await getPositions(provider);
+    console.log("positions: ", positions);
+  };
+
   return (
     <div className="flex flex-col items-center p-5">
       <Button className="text-white m-2" onClick={handleNewPositionMulticall}>
@@ -222,6 +228,9 @@ export default async function Test() {
       </Button>
       <Button className="text-white m-2" onClick={handleSinglecall}>
         testSingleCall
+      </Button>
+      <Button className="text-white m-2" onClick={handlePositionList}>
+        getPositionsInConsole
       </Button>
     </div>
   );

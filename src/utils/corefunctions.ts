@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { NETWORK_COIN_DATA, NETWORK_DATA } from "./network/network-data";
 import { CoinData, Contract, NetworkData } from "./types";
 import { BigNumber, ethers } from "ethers";
+import { Token } from "@uniswap/sdk-core";
 
 Number.prototype["noExponents"] = function () {
   const data = String(this).split(/[eE]/);
@@ -269,4 +270,14 @@ export function decodeMulticall(abi: ReadonlyArray<any>, calls: string[]) {
       return; // you could return a type here to indicate it was not parsed
     }
   });
+}
+
+export function getTokenByAddress(
+  network_data: NetworkData,
+  address: string,
+): Token {
+  const coins = network_data.coin_or_token;
+  for (const slug in coins) {
+    if (coins[slug].net_info.address == address) return coins[slug].net_info;
+  }
 }

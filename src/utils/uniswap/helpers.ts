@@ -7,6 +7,7 @@ import { NetworkData } from "../types";
 export async function getPrice(params: {
   fromToken: Token;
   toToken: Token;
+  fee?: number;
   network_data?: NetworkData;
   sqrtPx96?: number;
 }): Promise<number> {
@@ -19,6 +20,7 @@ export async function getPrice(params: {
       params.network_data,
       params.fromToken,
       params.toToken,
+      params.fee,
     );
     params.sqrtPx96 = Number(sqrtPriceX96);
   }

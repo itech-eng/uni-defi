@@ -1,6 +1,5 @@
 import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json";
 import IUniswapV3FactoryABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Factory.sol/IUniswapV3Factory.json";
-import { computePoolAddress } from "@uniswap/v3-sdk";
 import { ethers } from "ethers";
 import { NetworkData } from "../types";
 import { Token } from "@uniswap/sdk-core";
