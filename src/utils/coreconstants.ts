@@ -23,3 +23,11 @@ export const LIQUIDITY_PRICE_RANGE: {
     max: 337815857900711430000000000000000000000,
   },
 };
+
+export const PoolFeeText = {
+  [FeeAmount.LOW]: "0.05",
+  [FeeAmount.MEDIUM]: "0.3",
+  [FeeAmount.HIGH]: "1",
+};
+
+export const ETH_NULL_ADDRESS = "0x0000000000000000000000000000000000000000";

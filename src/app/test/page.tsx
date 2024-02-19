@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/src/components/ui/button";
-import { convertCoinAmountToInt } from "@/src/utils/corefunctions";
+import { convertCoinAmountToInt, noExponents } from "@/src/utils/corefunctions";
 import {
   CHAIN_SLUG_MAPPING,
   NETWORK_DATA,
@@ -17,9 +17,14 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 import NonfungiblePositionManagerABI from "@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json";
 import { COIN_SLUG } from "@/src/utils/network/coin-data";
-import { getTickFromPrice } from "@/src/utils/uniswap";
+import {
+  getSqrtPx96FromPrice,
+  getTickFromPrice,
+} from "@/src/utils/uniswap/maths";
 import { LIQUIDITY_PRICE_RANGE } from "@/src/utils/coreconstants";
 import { FeeAmount } from "@uniswap/v3-sdk";
+import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
+import { getSqrtPx96 } from "@/src/utils/uniswap/helpers";
 
 export default async function Test() {
   // const { wallet_address, chain_id } = useSelector(
@@ -39,7 +44,51 @@ export default async function Test() {
     const dkft20 = network_data.coin_or_token[COIN_SLUG.DKFT20];
     const eth = network_data.coin_or_token[COIN_SLUG.ETH];
 
+    const nftPositionManager = new ethers.Contract(
+      network_data.contract.nonfungible_position_manager.address,
+      NonfungiblePositionManagerABI.abi,
+      provider,
+    );
+    // console.log('nftPositionManager: ', nftPositionManager.functions);
+    const calls = [];
+
     const poolFee = FeeAmount.MEDIUM;
+    let poolInfo: PoolInfo = null;
+    try {
+      poolInfo = await getPoolInfo(
+        network_data,
+        dkft20.net_info,
+        eth.net_info,
+        poolFee,
+      );
+    } catch (error) {
+      // console.log(error);
+    }
+
+    if (!poolInfo) {
+      alert("No pool available, will create a new pool also");
+
+      const sqrtP = noExponents(
+        getSqrtPx96({
+          fromToken: eth.net_info,
+          toToken: dkft20.net_info,
+          price: 25000,
+        }),
+      );
+      const param = [
+        eth.net_info.address,
+        dkft20.net_info.address,
+        poolFee,
+        sqrtP,
+      ];
+      console.log("pool create param: ", param);
+      const calldata = nftPositionManager.interface.encodeFunctionData(
+        "createAndInitializePoolIfNecessary",
+        param,
+      );
+      calls.push(calldata);
+    }
+
     const priceRange = LIQUIDITY_PRICE_RANGE[poolFee];
 
     // Prepare data for adding new position (example)
@@ -74,20 +123,11 @@ export default async function Test() {
 
     console.log("mintParam: ", mintParam);
 
-    const nftPositionManager = new ethers.Contract(
-      network_data.contract.nonfungible_position_manager.address,
-      NonfungiblePositionManagerABI.abi,
-      provider,
+    const mintCalldata = nftPositionManager.interface.encodeFunctionData(
+      "mint",
+      [mintParam],
     );
-
-    // console.log('nftPositionManager: ', nftPositionManager.functions);
-
-    const calls = [];
-
-    let calldata = nftPositionManager.interface.encodeFunctionData("mint", [
-      mintParam,
-    ]);
-    calls.push(calldata);
+    calls.push(mintCalldata);
     // console.log('calls: ', calls);
 
     // Encode function calls and parameters

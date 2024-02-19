@@ -247,6 +247,16 @@ export function convertCoinAmounttoDecimal(
   return noExponents((rawAmount / 10 ** decimals).toFixed(toFixed));
 }
 
+export function formatNumber(
+  value: number,
+  decimal: number,
+  abs = true,
+): number {
+  const result = Number(value.toFixed(decimal));
+  if (!abs) return result;
+  else return Math.abs(result);
+}
+
 export function decodeMulticall(abi: ReadonlyArray<any>, calls: string[]) {
   const abiInterface = new ethers.utils.Interface(abi);
   return calls.map((call) => {
