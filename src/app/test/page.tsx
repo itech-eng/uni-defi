@@ -25,8 +25,14 @@ import { LIQUIDITY_PRICE_RANGE } from "@/src/utils/coreconstants";
 import { FeeAmount } from "@uniswap/v3-sdk";
 import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
 import { getSqrtPx96 } from "@/src/utils/uniswap/helpers";
+import { useSearchParams } from "next/navigation";
 
 export default async function Test() {
+  // const qParams = useSearchParams();
+  const qParams = { get: (key: string) => 0 };
+  const qPoolFee = Number(qParams?.get("fee"));
+  const qPrice = Number(qParams?.get("price"));
+
   // const { wallet_address, chain_id } = useSelector(
   //   (state: IRootState) => state.wallet,
   // )
@@ -36,7 +42,7 @@ export default async function Test() {
   const provider = getProvider();
   const wallet_address = await getAddress(provider);
 
-  const handleMulticall = async () => {
+  const handleNewPositionMulticall = async () => {
     const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
     const network_data = NETWORK_DATA[network];
     console.log("network_data: ", network_data);
@@ -52,48 +58,52 @@ export default async function Test() {
     // console.log('nftPositionManager: ', nftPositionManager.functions);
     const calls = [];
 
-    const poolFee = FeeAmount.MEDIUM;
-    let poolInfo: PoolInfo = null;
-    try {
-      poolInfo = await getPoolInfo(
-        network_data,
-        dkft20.net_info,
-        eth.net_info,
-        poolFee,
-      );
-    } catch (error) {
-      // console.log(error);
-    }
+    const token0 =
+      dkft20.net_info.address < eth.net_info.address
+        ? dkft20.net_info.address
+        : eth.net_info.address;
+    const token1 =
+      eth.net_info.address > dkft20.net_info.address
+        ? eth.net_info.address
+        : dkft20.net_info.address;
 
-    if (!poolInfo) {
-      alert("No pool available, will create a new pool also");
+    const poolFee = qPoolFee || FeeAmount.MEDIUM;
 
-      const sqrtP = noExponents(
-        getSqrtPx96({
-          fromToken: eth.net_info,
-          toToken: dkft20.net_info,
-          price: 25000,
-        }),
-      );
-      const param = [
-        eth.net_info.address,
-        dkft20.net_info.address,
-        poolFee,
-        sqrtP,
-      ];
-      console.log("pool create param: ", param);
-      const calldata = nftPositionManager.interface.encodeFunctionData(
-        "createAndInitializePoolIfNecessary",
-        param,
-      );
-      calls.push(calldata);
-    }
+    // let poolInfo: PoolInfo = null;
+    // try {
+    //   poolInfo = await getPoolInfo(
+    //     network_data,
+    //     dkft20.net_info,
+    //     eth.net_info,
+    //     poolFee,
+    //   );
+    // } catch (error) {
+    //   // console.log(error);
+    // }
+
+    // if (!poolInfo) {
+    //   alert("No pool available, will create a new pool also");
+
+    const sqrtP = noExponents(
+      getSqrtPx96({
+        fromToken: eth.net_info,
+        toToken: dkft20.net_info,
+        price: qPrice || 25000,
+      }),
+    );
+    const param = [token0, token1, poolFee, sqrtP];
+    console.log("pool create param: ", param);
+
+    const calldata = nftPositionManager.interface.encodeFunctionData(
+      "createAndInitializePoolIfNecessary",
+      param,
+    );
+    calls.push(calldata);
+    // }
 
     const priceRange = LIQUIDITY_PRICE_RANGE[poolFee];
 
     // Prepare data for adding new position (example)
-    const token0 = dkft20.net_info.address;
-    const token1 = eth.net_info.address;
     const fee = poolFee;
     const tickLower = getTickFromPrice(priceRange.min);
     const tickUpper = getTickFromPrice(priceRange.max);
@@ -137,10 +147,6 @@ export default async function Test() {
     );
     // console.log('multicallData: ', multicallData);
 
-    // Call the multicall function
-    // const tx = await nftPositionManager.multicall(calls);
-    // await tx.wait();
-
     const tx: providers.TransactionRequest = {
       from: wallet_address,
       to: network_data.contract.nonfungible_position_manager.address,
@@ -157,10 +163,65 @@ export default async function Test() {
       });
   };
 
+  const handleSinglecall = async () => {
+    const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
+    const network_data = NETWORK_DATA[network];
+    console.log("network_data: ", network_data);
+
+    const dkft20 = network_data.coin_or_token[COIN_SLUG.DKFT20];
+    const eth = network_data.coin_or_token[COIN_SLUG.ETH];
+
+    const nftPositionManager = new ethers.Contract(
+      network_data.contract.nonfungible_position_manager.address,
+      NonfungiblePositionManagerABI.abi,
+      provider,
+    );
+    // console.log('nftPositionManager: ', nftPositionManager.functions);
+
+    const poolFee = FeeAmount.LOW;
+    const sqrtP = noExponents(
+      getSqrtPx96({
+        fromToken: eth.net_info,
+        toToken: dkft20.net_info,
+        price: 25000,
+      }),
+    );
+    const param = [
+      dkft20.net_info.address,
+      eth.net_info.address,
+      poolFee,
+      sqrtP,
+    ];
+
+    console.log("pool create param: ", param);
+    const transcation =
+      await nftPositionManager.populateTransaction.createAndInitializePoolIfNecessary(
+        ...param,
+      );
+
+    console.log("populated transcation: ", transcation);
+
+    const tx: providers.TransactionRequest = {
+      ...transcation,
+      from: wallet_address,
+    };
+
+    const txHash = await sendTransactionViaExtension(tx);
+    console.log("txHash: ", txHash);
+
+    txHash &&
+      watchTransaction(txHash, (tx) => {
+        console.log("tx: ", tx);
+      });
+  };
+
   return (
     <div className="flex flex-col items-center p-5">
-      <Button className="text-white" onClick={handleMulticall}>
-        testMulticall
+      <Button className="text-white m-2" onClick={handleNewPositionMulticall}>
+        testNewPositionMulticall
+      </Button>
+      <Button className="text-white m-2" onClick={handleSinglecall}>
+        testSingleCall
       </Button>
     </div>
   );
