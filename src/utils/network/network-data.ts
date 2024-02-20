@@ -1,7 +1,7 @@
 import { ChainId } from "@uniswap/sdk-core";
 import { NetworkCoinData, NetworkData } from "../types";
 import { COIN_SLUG } from "./coin-data";
-import { CommonContractData } from "./contract-data";
+import { CommonContractData, CommonExplorerData } from "./common-data";
 import { loadContractObject } from "../corefunctions";
 import { eth_coin_data } from "./coins/ethereum";
 import { goerli_eth_coin_data } from "./coins/goerli-eth";
@@ -46,6 +46,10 @@ export const NETWORK_DATA: { [slug: string]: NetworkData } = {
     label: "Ethereum",
     contract: CommonContractData,
     coin_or_token: NETWORK_COIN_DATA[NETWORK_SLUG.ETHEREUM],
+    explorer_info: {
+      ...CommonExplorerData,
+      base_url: "https://etherscan.io",
+    },
   },
   [NETWORK_SLUG.GOERLI_ETH]: {
     value: NETWORK_SLUG.GOERLI_ETH,
@@ -55,6 +59,10 @@ export const NETWORK_DATA: { [slug: string]: NetworkData } = {
     label: "Goerli",
     contract: CommonContractData,
     coin_or_token: NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH],
+    explorer_info: {
+      ...CommonExplorerData,
+      base_url: "https://goerli.etherscan.io",
+    },
   },
   [NETWORK_SLUG.SPOLIA_ETH]: {
     value: NETWORK_SLUG.SPOLIA_ETH,
@@ -70,6 +78,10 @@ export const NETWORK_DATA: { [slug: string]: NetworkData } = {
       "0x1238536071E1c677A632429e3655c799b22cDA52",
     ),
     coin_or_token: NETWORK_COIN_DATA[NETWORK_SLUG.SPOLIA_ETH],
+    explorer_info: {
+      ...CommonExplorerData,
+      base_url: "https://sepolia.etherscan.io",
+    },
   },
 };
 

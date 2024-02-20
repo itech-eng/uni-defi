@@ -25,8 +25,16 @@ export class NetworkData {
   chain_id: number;
   native_currency_code: string;
   icon: string;
+  explorer_info?: NetworkExplorer;
   contract?: Contract;
   coin_or_token?: NetworkCoinData;
+}
+
+export class NetworkExplorer {
+  base_url: string;
+  token_endpoint: string;
+  address_endpoint: string;
+  tx_endpoint: string;
 }
 
 export class CoinData {

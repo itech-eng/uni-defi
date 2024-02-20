@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
-import { getAllBalance } from "@/src/utils/uniswap/erc";
 import { IRootState } from "@/store";
+import { getCoinBalance } from "../utils/eth/eth";
+import { CoinData } from "../utils/types";
 
 const useSwapSection = () => {
-  const [payInfo, setPayInfo] = useState<any>(null);
-  const [payInputValue, setPayInputValue] = useState<number>(0);
-  const [receiveInfo, setReceiveInfo] = useState<any>(null);
-  const [showConfirmSwap, setShowConfirmSwap] = useState<boolean>(true);
-
-  const [payBalance, setPayBalance] = useState<string | null>(null);
-  const [receiveBalance, setReceiveBalance] = useState<string | null>(null);
+  const [fromCoin, setFromCoin] = useState<any>(null);
+  const [toCoin, setToCoin] = useState<any>(null);
+  const [fromBalance, setFromBalance] = useState<string | number | null>(null);
+  const [toBalance, setToBalance] = useState<string | number | null>(null);
   const walletAddress = useSelector(
     (state: IRootState) => state.wallet.wallet_address,
   );
@@ -20,14 +18,14 @@ const useSwapSection = () => {
   const [loadingReceiveBalance, setLoadingReceiveBalance] =
     useState<boolean>(false);
 
-  const switchTokens = () => {
-    const tempPayInfo = payInfo;
-    setPayInfo(receiveInfo);
-    setReceiveInfo(tempPayInfo);
+  const switchCoins = () => {
+    const tempPayInfo = fromCoin;
+    setFromCoin(toCoin);
+    setToCoin(tempPayInfo);
 
-    const tempPayBalance = payBalance;
-    setPayBalance(receiveBalance);
-    setReceiveBalance(tempPayBalance);
+    const tempPayBalance = fromBalance;
+    setFromBalance(toBalance);
+    setToBalance(tempPayBalance);
   };
 
   const handleConnectWallet = () => {
@@ -39,40 +37,36 @@ const useSwapSection = () => {
   };
 
   const fetchAndSetBalance = async (
-    info,
-    setBalanceSetter,
-    setLoadingSetter,
+    coin: CoinData,
+    setBalanceSetter: (balance: string | number) => void,
+    setLoadingSetter: any,
   ) => {
     setLoadingSetter(true);
-    const balance = await getAllBalance(info);
+    const balance = await getCoinBalance(coin);
     setBalanceSetter(balance);
     setLoadingSetter(false);
   };
 
   useEffect(() => {
-    if (payInfo) {
-      fetchAndSetBalance(payInfo, setPayBalance, setLoadingPayBalance);
+    if (fromCoin) {
+      fetchAndSetBalance(fromCoin, setFromBalance, setLoadingPayBalance);
     }
-  }, [payInfo]);
+  }, [fromCoin]);
 
   useEffect(() => {
-    if (receiveInfo) {
-      fetchAndSetBalance(
-        receiveInfo,
-        setReceiveBalance,
-        setLoadingReceiveBalance,
-      );
+    if (toCoin) {
+      fetchAndSetBalance(toCoin, setToBalance, setLoadingReceiveBalance);
     }
-  }, [receiveInfo]);
+  }, [toCoin]);
 
   return {
-    payInfo,
-    setPayInfo,
-    receiveInfo,
-    setReceiveInfo,
-    payBalance,
-    receiveBalance,
-    switchTokens,
+    fromCoin,
+    setFromCoin,
+    toCoin,
+    setToCoin,
+    fromBalance,
+    toBalance,
+    switchCoins,
     handleConnectWallet,
     walletAddress,
     handleSwap,

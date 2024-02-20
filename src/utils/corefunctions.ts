@@ -1,9 +1,10 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { NETWORK_COIN_DATA, NETWORK_DATA } from "./network/network-data";
-import { CoinData, Contract, NetworkData } from "./types";
+import { CoinData, Contract, NetworkData, NetworkExplorer } from "./types";
 import { BigNumber, ethers } from "ethers";
 import { Token } from "@uniswap/sdk-core";
+import { ORDER_DIRECTION } from "./coreconstants";
 
 Number.prototype["noExponents"] = function () {
   const data = String(this).split(/[eE]/);
@@ -239,7 +240,7 @@ export function convertCoinAmountToInt(
   return noExponents(amount * 10 ** decimals);
 }
 
-export function convertCoinAmounttoDecimal(
+export function convertCoinAmountToDecimal(
   rawAmount: number,
   decimals: number,
   toFixed = 5,
@@ -249,10 +250,11 @@ export function convertCoinAmounttoDecimal(
 }
 
 export function formatNumber(
-  value: number,
+  value: number | string,
   decimal: number,
   abs = true,
 ): number {
+  value = Number(value);
   const result = Number(value.toFixed(decimal));
   if (!abs) return result;
   else return Math.abs(result);
@@ -280,4 +282,60 @@ export function getTokenByAddress(
   for (const slug in coins) {
     if (coins[slug].net_info.address == address) return coins[slug].net_info;
   }
+}
+
+export function sortObjectArray(
+  field: string,
+  direction: string,
+  array: object[],
+): any[] {
+  if (direction == ORDER_DIRECTION.DESC) {
+    array.sort((a1, a2) =>
+      a1[field] < a2[field] ? 1 : a1[field] > a2[field] ? -1 : 0,
+    ); // sorting desc
+  } else {
+    array.sort((a1, a2) =>
+      a1[field] < a2[field] ? -1 : a1[field] > a2[field] ? 1 : 0,
+    ); // sorting asc
+  }
+  return array;
+}
+
+export function sortObjectArrayForDecimal(
+  field: string,
+  direction: string,
+  array: object[],
+): any[] {
+  if (direction == ORDER_DIRECTION.DESC) {
+    array.sort((a1, a2) =>
+      Number(a1[field]) < Number(a2[field])
+        ? 1
+        : Number(a1[field]) > Number(a2[field])
+          ? -1
+          : 0,
+    ); // sorting desc
+  } else {
+    array.sort((a1, a2) =>
+      Number(a1[field]) < Number(a2[field])
+        ? -1
+        : Number(a1[field]) > Number(a2[field])
+          ? 1
+          : 0,
+    ); // sorting asc
+  }
+  return array;
+}
+
+export function calculatePercentRatio(
+  value1: number,
+  value2: number,
+): { value1_percent: number; value2_percent: number } {
+  const result = {
+    value1_percent: 0,
+    value2_percent: 0,
+  };
+  const formula_constant = 100 / (value1 + value2);
+  result.value1_percent = value1 * formula_constant;
+  result.value2_percent = value2 * formula_constant;
+  return result;
 }

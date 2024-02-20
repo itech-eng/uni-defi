@@ -26,7 +26,7 @@ import { FeeAmount } from "@uniswap/v3-sdk";
 import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
 import { getSqrtPx96 } from "@/src/utils/uniswap/helpers";
 import { useSearchParams } from "next/navigation";
-import { getPositions } from "@/src/utils/uniswap/liquidity";
+import { getPositionInfo, getPositions } from "@/src/utils/uniswap/liquidity";
 
 export default async function Test() {
   // const qParams = useSearchParams();
@@ -221,6 +221,12 @@ export default async function Test() {
     console.log("positions: ", positions);
   };
 
+  const handlePositionDetails = async (e: any) => {
+    const tokenId = e.get("tokenId");
+    const positions = await getPositionInfo(tokenId, provider, null, true);
+    console.log(`position (${tokenId}) : `, positions);
+  };
+
   return (
     <div className="flex flex-col items-center p-5">
       <Button className="text-white m-2" onClick={handleNewPositionMulticall}>
@@ -232,6 +238,12 @@ export default async function Test() {
       <Button className="text-white m-2" onClick={handlePositionList}>
         getPositionsInConsole
       </Button>
+      <form action={handlePositionDetails}>
+        <input type="text" name="tokenId" placeholder="Enter Token ID"></input>
+        <Button type="submit" className="text-white m-2">
+          getPositionDetails
+        </Button>
+      </form>
     </div>
   );
 }

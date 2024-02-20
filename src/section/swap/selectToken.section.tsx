@@ -18,7 +18,7 @@ import { IRootState } from "@/store";
 import { useSelector } from "react-redux";
 import { CoinData } from "@/src/utils/types";
 
-const SelectTokenSection = ({ info, setInfo }) => {
+const SelectCoinSection = ({ coin, setCoin }) => {
   const [open, setOpen] = useState(false);
   const { wallet_address, chain_id } = useSelector(
     (state: IRootState) => state.wallet,
@@ -30,30 +30,30 @@ const SelectTokenSection = ({ info, setInfo }) => {
     chain_id && setCoins(getNetworkCoins(CHAIN_SLUG_MAPPING[chain_id]));
   }, [chain_id]);
 
-  const handleTokenSelect = (token: CoinData) => {
-    setInfo(token);
+  const handleCoinSelect = (coin: CoinData) => {
+    setCoin(coin);
     setOpen(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {info ? (
+        {coin ? (
           <Button className="text-xl cursor-pointer font-semibold text-white bg-slate-950 w-auto  h-10 flex items-center justify-center border border-slate-800 px-3 rounded-3xl hover:bg-slate-800 hover:border-slate-700">
-            <img src={info.basic.icon} className="h-5  mr-3 shrink-0" />
-            {info.basic.code}
+            <img src={coin.basic.icon} className="h-5  mr-3 shrink-0" />
+            {coin.basic.code}
             <ChevronDown className="ml-2" size={18} />
           </Button>
         ) : (
           <Button className="text-md cursor-pointer font-semibold text-white bg-primary w-auto h-10 flex items-center justify-center px-1 py-1 rounded-3xl">
-            {"Select Token"}
+            {"Select Coin"}
             <ChevronDown className="ml-2" size={18} />
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md border border-slate-900 bg-slate-950 h-[600px] flex flex-col justify-start">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-white">Select Token</DialogTitle>
+          <DialogTitle className="text-white">Select Coin</DialogTitle>
           <X className="text-white" size={20} onClick={() => setOpen(false)} />
         </DialogHeader>
         <div className="">
@@ -67,14 +67,14 @@ const SelectTokenSection = ({ info, setInfo }) => {
           </div>
         </div>
         <div className="max-h-[350px] overflow-y-auto mt-4">
-          <h1 className="text-white text-sm ">Available Tokens</h1>
+          <h1 className="text-white text-sm ">Available Coins</h1>
           {coins.map((coin) => (
             <div
               key={coin.basic.code}
               className={`${
-                info === coin ? "bg-gray-800" : ""
+                coin === coin ? "bg-gray-800" : ""
               } text-white text-sm py-4 flex items-center justify-start rounded-2xl cursor-pointer`}
-              onClick={() => handleTokenSelect(coin)}
+              onClick={() => handleCoinSelect(coin)}
             >
               <img
                 src={coin.basic.icon}
@@ -90,4 +90,4 @@ const SelectTokenSection = ({ info, setInfo }) => {
   );
 };
 
-export default SelectTokenSection;
+export default SelectCoinSection;
