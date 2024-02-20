@@ -4,6 +4,7 @@ import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
 import { IRootState } from "@/store";
 import { getCoinBalance } from "../utils/eth/eth";
 import { CoinData } from "../utils/types";
+import { useToast } from "../components/ui/use-toast";
 
 const useSwapSection = () => {
   const [fromCoin, setFromCoin] = useState<any>(null);
@@ -18,6 +19,8 @@ const useSwapSection = () => {
   const walletAddress = useSelector(
     (state: IRootState) => state.wallet.wallet_address,
   );
+  const { toast } = useToast();
+
   const [showConfirmSwap, setShowConfirmSwap] = useState(false);
   const dispatch = useDispatch();
   const [loadingPayBalance, setLoadingPayBalance] = useState<boolean>(false);
@@ -46,47 +49,80 @@ const useSwapSection = () => {
     setFromAmountError("");
     setToAmountError("");
   };
+  const confirmSwap = () => {};
   const handleChangeFromAmount = (amount: number | string) => {
-    if (!fromCoin) {
-      setFromAmountError("Please select a coin");
-      return;
-    }
-    if (amount === "" || amount === null) {
-      setFromAmount(0);
-      setFromAmountError("");
-    } else {
-      const parsedAmount = parseFloat(amount as string);
-      if (parsedAmount > Number(fromBalance)) {
-        setFromAmountError("Amount cannot exceed balance");
-      } else {
-        setFromAmountError("");
-        setFromAmount(parsedAmount);
+    try {
+      if (!fromCoin) {
+        setFromAmountError("Please select a coin");
+        return;
       }
+      if (amount === "" || amount === null) {
+        setFromAmount(0);
+        setFromAmountError("");
+      } else {
+        const parsedAmount = parseFloat(amount as string);
+        if (!isNaN(parsedAmount)) {
+          if (parsedAmount > Number(fromBalance)) {
+            setFromAmountError("Amount cannot exceed balance");
+            setFromAmount(0);
+          } else {
+            setFromAmountError("");
+            setFromAmount(parsedAmount);
+          }
+        } else {
+          setFromAmount(0);
+          setFromAmountError("Please enter a valid number");
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
   const handleChangeToAmount = (amount: number | string) => {
-    if (!toCoin) {
-      setToAmountError("Please select a coin");
-      return;
-    }
-    if (amount === "" || amount === null) {
-      setToAmount(0);
-      setToAmountError("");
-    } else {
-      const parsedAmount = parseFloat(amount as string);
-      console.log(parsedAmount, toBalance);
-      if (parsedAmount > Number(toBalance)) {
-        setToAmountError("Amount cannot exceed balance");
-      } else {
-        setToAmountError("");
-        setToAmount(parsedAmount);
+    try {
+      if (!toCoin) {
+        setToAmountError("Please select a coin");
+        return;
       }
+      if (amount === "" || amount === null) {
+        setToAmount(0);
+        setToAmountError("");
+      } else {
+        const parsedAmount = parseFloat(amount as string);
+        if (!isNaN(parsedAmount)) {
+          if (parsedAmount > Number(toBalance)) {
+            setToAmountError("Amount cannot exceed balance");
+            setToAmount(0);
+          } else {
+            setToAmountError("");
+            setToAmount(parsedAmount);
+          }
+        } else {
+          setToAmount(0);
+          setToAmountError("Please enter a valid number");
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
   const handleConnectWallet = () => {
-    dispatch(setWallet<walletSliceType>({ open_wallet_sidebar: true }));
+    try {
+      dispatch(setWallet<walletSliceType>({ open_wallet_sidebar: true }));
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
   };
 
   const handleSwap = () => {
@@ -138,10 +174,17 @@ const useSwapSection = () => {
     setBalanceSetter: (balance: string | number) => void,
     setLoadingSetter: any,
   ) => {
-    setLoadingSetter(true);
-    const balance = await getCoinBalance(coin);
-    setBalanceSetter(balance);
-    setLoadingSetter(false);
+    try {
+      setLoadingSetter(true);
+      const balance = await getCoinBalance(coin);
+      setBalanceSetter(balance);
+      setLoadingSetter(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
   };
 
   useEffect(() => {
@@ -194,6 +237,7 @@ const useSwapSection = () => {
     fromAmountError,
     toAmountError,
     assistMessage,
+    confirmSwap,
   };
 };
 

@@ -37,6 +37,7 @@ const SwapSection = () => {
     fromAmountError,
     toAmountError,
     assistMessage,
+    confirmSwap,
   } = useSwapSection();
 
   const renderBalance = (balance: string | number | null, loading: boolean) => {
@@ -64,6 +65,11 @@ const SwapSection = () => {
           <ConfirmSwapSection
             openStatus={showConfirmSwap}
             setOpenStatus={setShowConfirmSwap}
+            fromCoin={fromCoin}
+            toCoin={toCoin}
+            fromAmount={fromAmount}
+            toAmount={toAmount}
+            confirmSwap={confirmSwap}
           />
           <form>
             <div className="grid w-full items-center gap-4">
@@ -75,8 +81,9 @@ const SwapSection = () => {
                   <div className="flex flex-col items-end space-y-1.5">
                     <Input
                       id="youPay"
-                      type="text"
-                      inputMode="decimal"
+                      type="number"
+                      step="any"
+                      disabled={!walletAddress}
                       className={`bg-transparent p-0 border ${
                         fromAmountError ? "border-red-500" : "border-none"
                       } text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none`}
@@ -85,7 +92,7 @@ const SwapSection = () => {
                       autoCorrect="off"
                       autoCapitalize="off"
                       spellCheck="false"
-                      value={fromAmount ? fromAmount : 0}
+                      value={fromAmount}
                       onChange={(e) =>
                         handleChangeFromAmount(parseFloat(e.target.value))
                       }
@@ -98,7 +105,12 @@ const SwapSection = () => {
                   </div>
 
                   <div className="flex flex-col items-end space-y-1.5">
-                    <SelectCoinSection coin={fromCoin} setCoin={setFromCoin} />
+                    <SelectCoinSection
+                      coin={fromCoin}
+                      setCoin={setFromCoin}
+                      handleConnectWallet={handleConnectWallet}
+                      walletAddress={walletAddress}
+                    />
                     {renderBalance(fromBalance, loadingPayBalance)}
                   </div>
                 </div>
@@ -119,8 +131,10 @@ const SwapSection = () => {
                   <div className="flex flex-col items-end space-y-1.5">
                     <Input
                       id="youReceive"
-                      type="text"
+                      type="number"
+                      step="any"
                       inputMode="decimal"
+                      disabled={!walletAddress}
                       className={`bg-transparent p-0 border ${
                         toAmountError ? "border-red-500" : "border-none"
                       } text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none`}
@@ -129,7 +143,7 @@ const SwapSection = () => {
                       autoCorrect="off"
                       autoCapitalize="off"
                       spellCheck="false"
-                      value={toAmount ? toAmount : 0}
+                      value={toAmount}
                       onChange={(e) =>
                         handleChangeToAmount(parseFloat(e.target.value))
                       }
@@ -142,7 +156,12 @@ const SwapSection = () => {
                   </div>
 
                   <div className="flex flex-col items-end space-y-1.5">
-                    <SelectCoinSection coin={toCoin} setCoin={setToCoin} />
+                    <SelectCoinSection
+                      coin={toCoin}
+                      setCoin={setToCoin}
+                      handleConnectWallet={handleConnectWallet}
+                      walletAddress={walletAddress}
+                    />
                     {renderBalance(toBalance, loadingReceiveBalance)}
                   </div>
                 </div>

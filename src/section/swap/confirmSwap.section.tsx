@@ -6,16 +6,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/src/components/ui/dialog";
+
 import { X } from "lucide-react";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
+import { CoinData } from "@/src/utils/types";
 
 const ConfirmSwapSection = ({
   openStatus,
   setOpenStatus,
+  fromCoin,
+  toCoin,
+  fromAmount,
+  toAmount,
+  confirmSwap,
 }: {
   openStatus: boolean;
   setOpenStatus: any;
+  fromCoin: CoinData;
+  toCoin: CoinData;
+  fromAmount: number;
+  toAmount: number;
+  confirmSwap: () => void;
 }) => {
   return (
     <Dialog open={openStatus}>
@@ -36,13 +48,15 @@ const ConfirmSwapSection = ({
             </Label>
             <div className="flex items-center justify-between space-x-2">
               <div className="bg-transparent p-0 border-none text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-2 font-medium focus:outline-none focus:border-none">
-                <h1>0.00 ETH</h1>
+                <h1>
+                  {fromAmount} {fromCoin?.basic?.code}
+                </h1>
               </div>
 
               <div className="flex flex-col items-end space-y-1.5">
                 {" "}
                 <img
-                  src={"/coins/binance.png"}
+                  src={fromCoin?.basic.icon}
                   className="h-9 w-9 rounded-full mr-4"
                   alt=""
                 />
@@ -55,13 +69,15 @@ const ConfirmSwapSection = ({
             </Label>
             <div className="flex items-center justify-between space-x-2">
               <div className="bg-transparent p-0 border-none text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-2 font-medium focus:outline-none focus:border-none">
-                <h1>0.00 ETH</h1>
+                <h1>
+                  {toAmount} {toCoin?.basic?.code}
+                </h1>
               </div>
 
               <div className="flex flex-col items-end space-y-1.5">
                 {" "}
                 <img
-                  src={"/coins/binance.png"}
+                  src={toCoin?.basic.icon}
                   className="h-9 w-9 rounded-full mr-4"
                   alt=""
                 />
@@ -75,7 +91,7 @@ const ConfirmSwapSection = ({
             <p>Rate</p>{" "}
             <p className="text-gray-200">1 ETH = 51,152.40 DKFT20</p>
           </div>
-          <div className="flex item-center justify-between my-2">
+          {/* <div className="flex item-center justify-between my-2">
             <p>Price impact</p> <p className="text-red-600">~7.908%</p>
           </div>
           <div className="flex item-center justify-between my-2">
@@ -84,13 +100,13 @@ const ConfirmSwapSection = ({
           <div className="flex item-center justify-between my-2">
             <p>Receive at least</p>{" "}
             <p className="text-gray-200">50.8978 DKFT20</p>
-          </div>
+          </div> */}
           <div className="flex item-center justify-between my-2">
             <p>Fee</p> <p className="text-gray-200">0 DKFT20</p>
           </div>
         </div>
         <Button
-          //   onClick={handleSwap}
+          onClick={confirmSwap}
           className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
             rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary  "
         >
