@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -9,35 +9,33 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
-import { ArrowDown, ChevronDown } from "lucide-react";
+import { ArrowDown } from "lucide-react";
+import useSwapSection from "@/src/hooks/useSwap";
 import SelectTokenSection from "./selectToken.section";
-import { IRootState } from "@/store";
-import { useDispatch, useSelector } from "react-redux";
-import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
 
 const SwapSection = () => {
-  const [showSelectToken, setShowSelectToken] = useState(true);
+  const {
+    payInfo,
+    setPayInfo,
+    receiveInfo,
+    setReceiveInfo,
+    payBalance,
+    receiveBalance,
+    switchTokens,
+    handleConnectWallet,
+    walletAddress,
+    handleSwap,
+    loadingPayBalance,
+    loadingReceiveBalance,
+  } = useSwapSection();
 
-  const handleTokenSwitch = () => {
-    setShowSelectToken((prev) => !prev);
-  };
-
-  const handleSwap = () => {
-    alert("Need to Implement");
-  };
-
-  const { wallet_address, chain_id } = useSelector(
-    (state: IRootState) => state.wallet,
-  );
-
-  const dispatch = useDispatch();
-
-  const handleConnect = () => {
-    dispatch(
-      setWallet<walletSliceType>({
-        open_wallet_sidebar: true,
-      }),
-    );
+  const renderBalance = (balance: string | null, loading: boolean) => {
+    if (loading) {
+      return <p className="text-white text-[10px] mt-1 mr-3">Fetching balance...</p>;
+    } else if (balance !== null) {
+      return <p className="text-white text-[10px] mt-1 mr-3">Balance : {balance}</p>;
+    }
+    return null;
   };
 
   return (
@@ -67,38 +65,19 @@ const SwapSection = () => {
                     autoCapitalize="off"
                     spellCheck="false"
                   />
-                  {showSelectToken ? (
-                    <SelectTokenSection
-                      HtmlButton={
-                        <Button className="text-md cursor-pointer font-semibold text-white bg-primary w-72 h-10 flex items-center justify-center px-1 py-1 rounded-3xl">
-                          Select Token
-                          <ChevronDown className="ml-2" size={18} />
-                        </Button>
-                      }
-                    />
-                  ) : (
-                    <SelectTokenSection
-                      HtmlButton={
-                        <Button className="text-xl cursor-pointer font-semibold text-white bg-slate-950 w-40  h-10 flex items-center justify-center border border-slate-800 px-3 rounded-3xl hover:bg-slate-800 hover:border-slate-700">
-                          <img
-                            src={"/networks/ethereum.png"}
-                            className="h-5  mr-3 shrink-0"
-                          />
-                          ETH
-                          <ChevronDown className="ml-2" size={18} />
-                        </Button>
-                      }
-                    />
-                  )}
+
+                  <div className="flex flex-col items-end space-y-1.5">
+                    <SelectTokenSection info={payInfo} setInfo={setPayInfo} />
+                    {renderBalance(payBalance, loadingPayBalance)}
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="absolute -translate-x-1/2 border-[4px] border-slate-950 -translate-y-1/2 flex w-10 h-10 bg-slate-900 rounded-xl items-center justify-center left-1/2 hover:bg-slate-800 hover:border-slate-700 cursor-pointer">
-              <ArrowDown
-                className="mx-auto text-3xl text-white"
-                size={15}
-                onClick={handleTokenSwitch}
-              />
+            <div
+              className="absolute -translate-x-1/2 border-[4px] border-slate-950 -translate-y-1/2 flex w-10 h-10 bg-slate-900 rounded-xl items-center justify-center left-1/2 hover:bg-slate-800 hover:border-slate-700 cursor-pointer"
+              onClick={switchTokens}
+            >
+              <ArrowDown className="mx-auto text-3xl text-white" size={15} />
             </div>
             <div className="grid w-full mt-2 items-center gap-4">
               <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
@@ -117,38 +96,22 @@ const SwapSection = () => {
                     autoCapitalize="off"
                     spellCheck="false"
                   />
-                  {showSelectToken ? (
+                  <div className="flex flex-col items-end space-y-1.5">
                     <SelectTokenSection
-                      HtmlButton={
-                        <Button className="text-xl cursor-pointer font-semibold text-white bg-slate-950 w-40  h-10 flex items-center justify-center border border-slate-800 px-3 rounded-3xl hover:bg-slate-800 hover:border-slate-700">
-                          <img
-                            src={"/networks/ethereum.png"}
-                            className="h-5  mr-3 shrink-0"
-                          />
-                          ETH
-                          <ChevronDown className="ml-2" size={18} />
-                        </Button>
-                      }
+                      info={receiveInfo}
+                      setInfo={setReceiveInfo}
                     />
-                  ) : (
-                    <SelectTokenSection
-                      HtmlButton={
-                        <Button className="text-md cursor-pointer font-semibold text-white bg-primary w-72 h-10 flex items-center justify-center px-1 py-1 rounded-3xl">
-                          Select Token
-                          <ChevronDown className="ml-2" size={18} />
-                        </Button>
-                      }
-                    />
-                  )}
+                    {renderBalance(receiveBalance, loadingReceiveBalance)}
+                  </div>
                 </div>
               </div>
             </div>
           </form>
         </CardContent>
         <CardFooter className="flex justify-between">
-          {!wallet_address ? (
+          {!walletAddress ? (
             <Button
-              onClick={handleConnect}
+              onClick={handleConnectWallet}
               className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
             rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"
             >
