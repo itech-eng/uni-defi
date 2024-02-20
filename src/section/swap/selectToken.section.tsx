@@ -18,7 +18,17 @@ import { IRootState } from "@/store";
 import { useSelector } from "react-redux";
 import { CoinData } from "@/src/utils/types";
 
-const SelectCoinSection = ({ coin, setCoin }) => {
+const SelectCoinSection = ({
+  coin,
+  setCoin,
+  handleConnectWallet,
+  walletAddress,
+}: {
+  coin: CoinData;
+  setCoin: (coin: CoinData) => void;
+  handleConnectWallet: () => void;
+  walletAddress: string;
+}) => {
   const [open, setOpen] = useState(false);
   const { wallet_address, chain_id } = useSelector(
     (state: IRootState) => state.wallet,
@@ -36,7 +46,15 @@ const SelectCoinSection = ({ coin, setCoin }) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={() => {
+        if (!walletAddress) {
+          return handleConnectWallet();
+        }
+        setOpen(!open);
+      }}
+    >
       <DialogTrigger asChild>
         {coin ? (
           <Button className="text-xl cursor-pointer font-semibold text-white bg-slate-950 w-auto  h-10 flex items-center justify-center border border-slate-800 px-3 rounded-3xl hover:bg-slate-800 hover:border-slate-700">
@@ -68,20 +86,20 @@ const SelectCoinSection = ({ coin, setCoin }) => {
         </div>
         <div className="max-h-[350px] overflow-y-auto mt-4">
           <h1 className="text-white text-sm ">Available Coins</h1>
-          {coins.map((coin) => (
+          {coins.map((c) => (
             <div
-              key={coin.basic.code}
+              key={c.basic.code}
               className={`${
-                coin === coin ? "bg-gray-800" : ""
+                coin === c ? "bg-gray-800" : ""
               } text-white text-sm py-4 flex items-center justify-start rounded-2xl cursor-pointer`}
-              onClick={() => handleCoinSelect(coin)}
+              onClick={() => handleCoinSelect(c)}
             >
               <img
-                src={coin.basic.icon}
+                src={c.basic.icon}
                 className="h-9 w-9 rounded-full mr-4"
                 alt=""
               />
-              {coin.basic.name}
+              {c.basic.name}
             </div>
           ))}
         </div>

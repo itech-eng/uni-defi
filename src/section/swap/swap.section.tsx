@@ -12,6 +12,7 @@ import { Label } from "@/src/components/ui/label";
 import { ArrowDown } from "lucide-react";
 import useSwapSection from "@/src/hooks/useSwap";
 import SelectCoinSection from "./selectToken.section";
+import ConfirmSwapSection from "./confirmSwap.section";
 
 const SwapSection = () => {
   const {
@@ -27,6 +28,16 @@ const SwapSection = () => {
     handleSwap,
     loadingPayBalance,
     loadingReceiveBalance,
+    showConfirmSwap,
+    setShowConfirmSwap,
+    fromAmount,
+    toAmount,
+    handleChangeFromAmount,
+    handleChangeToAmount,
+    fromAmountError,
+    toAmountError,
+    assistMessage,
+    confirmSwap,
   } = useSwapSection();
 
   const renderBalance = (balance: string | number | null, loading: boolean) => {
@@ -51,6 +62,15 @@ const SwapSection = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <ConfirmSwapSection
+            openStatus={showConfirmSwap}
+            setOpenStatus={setShowConfirmSwap}
+            fromCoin={fromCoin}
+            toCoin={toCoin}
+            fromAmount={fromAmount}
+            toAmount={toAmount}
+            confirmSwap={confirmSwap}
+          />
           <form>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
@@ -58,20 +78,39 @@ const SwapSection = () => {
                   You Pay
                 </Label>
                 <div className="flex items-center space-x-2">
-                  <Input
-                    id="youPay"
-                    type="text"
-                    inputMode="decimal"
-                    className="bg-transparent p-0 border-none text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none"
-                    placeholder="0"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                  />
+                  <div className="flex flex-col items-end space-y-1.5">
+                    <Input
+                      id="youPay"
+                      type="number"
+                      step="any"
+                      disabled={!walletAddress}
+                      className={`bg-transparent p-0 border ${
+                        fromAmountError ? "border-red-500" : "border-none"
+                      } text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none`}
+                      placeholder="0"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
+                      value={fromAmount}
+                      onChange={(e) =>
+                        handleChangeFromAmount(parseFloat(e.target.value))
+                      }
+                    />
+                    {fromAmountError && (
+                      <p className="text-red-500 text-[10px] mt-1 mr-3">
+                        {fromAmountError}
+                      </p>
+                    )}
+                  </div>
 
                   <div className="flex flex-col items-end space-y-1.5">
-                    <SelectCoinSection coin={fromCoin} setCoin={setFromCoin} />
+                    <SelectCoinSection
+                      coin={fromCoin}
+                      setCoin={setFromCoin}
+                      handleConnectWallet={handleConnectWallet}
+                      walletAddress={walletAddress}
+                    />
                     {renderBalance(fromBalance, loadingPayBalance)}
                   </div>
                 </div>
@@ -89,19 +128,40 @@ const SwapSection = () => {
                   You Receive
                 </Label>
                 <div className="flex items-center space-x-2">
-                  <Input
-                    id="youReceive"
-                    type="text"
-                    inputMode="decimal"
-                    className="bg-transparent p-0 border-none text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none"
-                    placeholder="0"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                  />
                   <div className="flex flex-col items-end space-y-1.5">
-                    <SelectCoinSection coin={toCoin} setCoin={setToCoin} />
+                    <Input
+                      id="youReceive"
+                      type="number"
+                      step="any"
+                      inputMode="decimal"
+                      disabled={!walletAddress}
+                      className={`bg-transparent p-0 border ${
+                        toAmountError ? "border-red-500" : "border-none"
+                      } text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none`}
+                      placeholder="0"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
+                      value={toAmount}
+                      onChange={(e) =>
+                        handleChangeToAmount(parseFloat(e.target.value))
+                      }
+                    />
+                    {toAmountError && (
+                      <p className="text-red-500 text-[10px] mt-1 mr-3">
+                        {toAmountError}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col items-end space-y-1.5">
+                    <SelectCoinSection
+                      coin={toCoin}
+                      setCoin={setToCoin}
+                      handleConnectWallet={handleConnectWallet}
+                      walletAddress={walletAddress}
+                    />
                     {renderBalance(toBalance, loadingReceiveBalance)}
                   </div>
                 </div>
@@ -121,14 +181,14 @@ const SwapSection = () => {
           ) : (
             <Button
               onClick={handleSwap}
-              className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
-            rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary  "
+              className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"
             >
               Swap
             </Button>
           )}
         </CardFooter>
       </Card>
+      <h1 className="text-white text-center mt-10">{assistMessage}</h1>
     </section>
   );
 };
