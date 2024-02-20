@@ -1,4 +1,4 @@
-import { FeeAmount, TICK_SPACINGS } from "@uniswap/v3-sdk";
+import { FeeAmount } from "@uniswap/v3-sdk";
 
 export enum LOCAL_STORAGE_KEY {
   IS_DISCONNECTED = "is_disconnected",
@@ -37,9 +37,14 @@ export const LIQUIDITY_PRICE_RANGE: {
 
 export const PoolFeeText = {
   [FeeAmount.LOW]: "0.05",
-  [FeeAmount.MEDIUM]: "0.3",
-  [FeeAmount.HIGH]: "1",
+  [FeeAmount.MEDIUM]: "0.30",
+  [FeeAmount.HIGH]: "1.00",
 };
 
 export const ETH_NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const INFINITY_TEXT = "∞";
+
+export enum ORDER_DIRECTION {
+  ASC = "asc",
+  DESC = "desc",
+}

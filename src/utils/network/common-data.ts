@@ -1,4 +1,4 @@
-import { Contract } from "../types";
+import { Contract, NetworkExplorer } from "../types";
 
 //Eth Mainnet, Goerli, Arbitrum, Optimism, Polygon
 export const CommonContractData: Contract = {
@@ -17,4 +17,11 @@ export const CommonContractData: Contract = {
   nonfungible_position_manager: {
     address: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
   },
+};
+
+export const CommonExplorerData: NetworkExplorer = {
+  base_url: "",
+  token_endpoint: "/token",
+  address_endpoint: "/address",
+  tx_endpoint: "/tx",
 };
