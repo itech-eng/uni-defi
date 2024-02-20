@@ -11,12 +11,12 @@ export const getCoinBalance = async (coin: CoinData): Promise<number> => {
     if (coin.is_native) {
       const local_balance = await getBalance(
         wallet_address,
-        coin.net_info.decimals,
+        coin.token_info.decimals,
       );
 
       balance = formatNumber(local_balance, 2);
     } else {
-      balance = await getERC20Balance(wallet_address, coin.net_info);
+      balance = await getERC20Balance(wallet_address, coin.token_info);
     }
     return balance;
   }

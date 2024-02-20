@@ -6,7 +6,7 @@ export const sepolia_eth_coin_data: NetworkCoinData = {
   [COIN_SLUG.ETH]: {
     is_native: true,
     basic: COIN_BAISC_DATA[COIN_SLUG.ETH],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.GOERLI,
       "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
       EVM_NATIVE_DECIMAL,
@@ -16,7 +16,7 @@ export const sepolia_eth_coin_data: NetworkCoinData = {
   },
   [COIN_SLUG.WETH]: {
     basic: COIN_BAISC_DATA[COIN_SLUG.WETH],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.GOERLI,
       "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
       EVM_NATIVE_DECIMAL,
@@ -26,7 +26,7 @@ export const sepolia_eth_coin_data: NetworkCoinData = {
   },
   [COIN_SLUG.DKFT20]: {
     basic: COIN_BAISC_DATA[COIN_SLUG.DKFT20],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.GOERLI,
       "0x0228A456B4719Dd584230202b9FF47c986Ad7893",
       EVM_NATIVE_DECIMAL,

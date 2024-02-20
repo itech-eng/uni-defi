@@ -237,16 +237,21 @@ export function convertCoinAmountToInt(
   decimals: number,
 ): BigNumber | string {
   // return ethers.utils.parseUnits(amount.toString(), decimals);
-  return noExponents(amount * 10 ** decimals);
+  return noExponents(amount * 10 ** decimals).split(".")[0];
 }
 
 export function convertCoinAmountToDecimal(
   rawAmount: number,
   decimals: number,
   toFixed = 5,
+  abs = true,
 ): BigNumber | string {
   // return ethers.utils.formatUnits(rawAmount, decimals).slice(0, toFixed);
-  return noExponents((rawAmount / 10 ** decimals).toFixed(toFixed));
+  let out = Number((rawAmount / 10 ** decimals).toFixed(toFixed));
+  if (abs) {
+    out = Math.abs(Number(out));
+  }
+  return noExponents(out);
 }
 
 export function formatNumber(
@@ -280,7 +285,8 @@ export function getTokenByAddress(
 ): Token {
   const coins = network_data.coin_or_token;
   for (const slug in coins) {
-    if (coins[slug].net_info.address == address) return coins[slug].net_info;
+    if (coins[slug].token_info.address == address)
+      return coins[slug].token_info;
   }
 }
 
