@@ -68,20 +68,20 @@ const SelectCoinSection = ({ coin, setCoin }) => {
         </div>
         <div className="max-h-[350px] overflow-y-auto mt-4">
           <h1 className="text-white text-sm ">Available Coins</h1>
-          {coins.map((coin) => (
+          {coins.map((c) => (
             <div
-              key={coin.basic.code}
+              key={c.basic.code}
               className={`${
-                coin === coin ? "bg-gray-800" : ""
+                coin === c ? "bg-gray-800" : ""
               } text-white text-sm py-4 flex items-center justify-start rounded-2xl cursor-pointer`}
-              onClick={() => handleCoinSelect(coin)}
+              onClick={() => handleCoinSelect(c)}
             >
               <img
-                src={coin.basic.icon}
+                src={c.basic.icon}
                 className="h-9 w-9 rounded-full mr-4"
                 alt=""
               />
-              {coin.basic.name}
+              {c.basic.name}
             </div>
           ))}
         </div>

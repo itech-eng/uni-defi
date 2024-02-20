@@ -9,14 +9,25 @@ import {
 import { X } from "lucide-react";
 import { Label } from "@/src/components/ui/label";
 import { Button } from "@/src/components/ui/button";
-const ConfirmSwapSection = (open, setOpen, payInfo, receiveInfo) => {
+
+const ConfirmSwapSection = ({
+  openStatus,
+  setOpenStatus,
+}: {
+  openStatus: boolean;
+  setOpenStatus: any;
+}) => {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={openStatus}>
       <DialogTrigger asChild></DialogTrigger>
       <DialogContent className="sm:max-w-md border border-slate-900 bg-slate-950 h-auto flex flex-col justify-start">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-white">Review swap</DialogTitle>
-          <X className="text-white" size={20} onClick={() => setOpen(false)} />
+          <X
+            className="text-white"
+            size={20}
+            onClick={() => setOpenStatus(false)}
+          />
         </DialogHeader>
         <div className="grid w-full items-center gap-4">
           <div className="flex flex-col space-y-1.5  py-2 rounded-2xl">
