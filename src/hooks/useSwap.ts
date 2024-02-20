@@ -6,7 +6,10 @@ import { IRootState } from "@/store";
 
 const useSwapSection = () => {
   const [payInfo, setPayInfo] = useState<any>(null);
+  const [payInputValue, setPayInputValue] = useState<number>(0);
   const [receiveInfo, setReceiveInfo] = useState<any>(null);
+  const [showConfirmSwap, setShowConfirmSwap] = useState<boolean>(true);
+
   const [payBalance, setPayBalance] = useState<string | null>(null);
   const [receiveBalance, setReceiveBalance] = useState<string | null>(null);
   const walletAddress = useSelector(
@@ -75,6 +78,8 @@ const useSwapSection = () => {
     handleSwap,
     loadingPayBalance,
     loadingReceiveBalance,
+    showConfirmSwap,
+    setShowConfirmSwap,
   };
 };
 

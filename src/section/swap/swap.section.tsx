@@ -12,6 +12,7 @@ import { Label } from "@/src/components/ui/label";
 import { ArrowDown } from "lucide-react";
 import useSwapSection from "@/src/hooks/useSwap";
 import SelectTokenSection from "./selectToken.section";
+import ConfirmSwapSection from "./confirmSwap.section";
 
 const SwapSection = () => {
   const {
@@ -27,13 +28,19 @@ const SwapSection = () => {
     handleSwap,
     loadingPayBalance,
     loadingReceiveBalance,
+    showConfirmSwap,
+    setShowConfirmSwap,
   } = useSwapSection();
 
   const renderBalance = (balance: string | null, loading: boolean) => {
     if (loading) {
-      return <p className="text-white text-[10px] mt-1 mr-3">Fetching balance...</p>;
+      return (
+        <p className="text-white text-[10px] mt-1 mr-3">Fetching balance...</p>
+      );
     } else if (balance !== null) {
-      return <p className="text-white text-[10px] mt-1 mr-3">Balance : {balance}</p>;
+      return (
+        <p className="text-white text-[10px] mt-1 mr-3">Balance : {balance}</p>
+      );
     }
     return null;
   };
@@ -47,6 +54,12 @@ const SwapSection = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {/* <ConfirmSwapSection
+            open={showConfirmSwap}
+            setOpen={setShowConfirmSwap}
+            payInfo={payInfo}
+            receiveInfo={receiveInfo}
+          /> */}
           <form>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
