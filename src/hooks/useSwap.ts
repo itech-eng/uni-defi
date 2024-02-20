@@ -14,6 +14,7 @@ const useSwapSection = () => {
   const [toBalance, setToBalance] = useState<string | number | null>(null);
   const [fromAmountError, setFromAmountError] = useState<string>("");
   const [toAmountError, setToAmountError] = useState<string>("");
+  const [assistMessage, setAssistMessage] = useState<string>("");
   const walletAddress = useSelector(
     (state: IRootState) => state.wallet.wallet_address,
   );
@@ -22,6 +23,13 @@ const useSwapSection = () => {
   const [loadingPayBalance, setLoadingPayBalance] = useState<boolean>(false);
   const [loadingReceiveBalance, setLoadingReceiveBalance] =
     useState<boolean>(false);
+  useEffect(() => {
+    if (fromCoin) {
+      setFromAmountError("");
+    } else if (toCoin) {
+      setToAmountError("");
+    }
+  }, [fromCoin, toCoin]);
 
   const switchCoins = () => {
     const tempToInfo = fromCoin;
@@ -35,14 +43,19 @@ const useSwapSection = () => {
     const tempToAmount = fromAmount;
     setFromAmount(toAmount);
     setToAmount(tempToAmount);
+    setFromAmountError("");
+    setToAmountError("");
   };
   const handleChangeFromAmount = (amount: number | string) => {
+    if (!fromCoin) {
+      setFromAmountError("Please select a coin");
+      return;
+    }
     if (amount === "" || amount === null) {
       setFromAmount(0);
       setFromAmountError("");
     } else {
       const parsedAmount = parseFloat(amount as string);
-      console.log(parsedAmount, fromBalance);
       if (parsedAmount > Number(fromBalance)) {
         setFromAmountError("Amount cannot exceed balance");
       } else {
@@ -53,6 +66,10 @@ const useSwapSection = () => {
   };
 
   const handleChangeToAmount = (amount: number | string) => {
+    if (!toCoin) {
+      setToAmountError("Please select a coin");
+      return;
+    }
     if (amount === "" || amount === null) {
       setToAmount(0);
       setToAmountError("");
@@ -73,8 +90,48 @@ const useSwapSection = () => {
   };
 
   const handleSwap = () => {
-    alert("Need to Implement");
+    if (fromAmountError || toAmountError) {
+      return;
+    }
+    if (fromAmount === undefined || toAmount === undefined) {
+      return;
+    }
+    if (fromAmount === 0 || toAmount === 0) {
+      return;
+    }
+    if (!fromCoin || !toCoin) {
+      return;
+    }
+    if (!walletAddress) {
+      return;
+    }
+    setShowConfirmSwap(true);
   };
+
+  const assistantMessage = () => {
+    if (!walletAddress) {
+      return setAssistMessage("Please connect your wallet.");
+    }
+    if (!fromCoin && !toCoin) {
+      setAssistMessage("Please select both 'From' and 'To' coins.");
+    } else if (!fromCoin) {
+      setAssistMessage("Please select the 'From' coin.");
+    } else if (!toCoin) {
+      setAssistMessage("Please select the 'To' coin.");
+    } else if (!fromAmount && !toAmount) {
+      setAssistMessage("Please enter both 'From' and 'To' amounts.");
+    } else if (!fromAmount) {
+      setAssistMessage("Please enter the 'From' amount.");
+    } else if (!toAmount) {
+      setAssistMessage("Please enter the 'To' amount.");
+    } else {
+      setAssistMessage("");
+    }
+  };
+
+  useEffect(() => {
+    assistantMessage();
+  }, [fromCoin, toCoin, fromAmount, toAmount, walletAddress]);
 
   const fetchAndSetBalance = async (
     coin: CoinData,
@@ -98,7 +155,21 @@ const useSwapSection = () => {
       fetchAndSetBalance(toCoin, setToBalance, setLoadingReceiveBalance);
     }
   }, [toCoin]);
-
+  useEffect(() => {
+    if (!walletAddress) {
+      setFromCoin(null);
+      setToCoin(null);
+      setFromAmount(undefined);
+      setToAmount(undefined);
+      setFromBalance(null);
+      setToBalance(null);
+      setFromAmountError("");
+      setToAmountError("");
+      setShowConfirmSwap(false);
+      setLoadingPayBalance(false);
+      setLoadingReceiveBalance(false);
+    }
+  }, [walletAddress]);
   return {
     fromCoin,
     setFromCoin,
@@ -122,6 +193,7 @@ const useSwapSection = () => {
     handleChangeToAmount,
     fromAmountError,
     toAmountError,
+    assistMessage,
   };
 };
 

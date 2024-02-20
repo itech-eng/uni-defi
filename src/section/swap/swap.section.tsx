@@ -36,6 +36,7 @@ const SwapSection = () => {
     handleChangeToAmount,
     fromAmountError,
     toAmountError,
+    assistMessage,
   } = useSwapSection();
 
   const renderBalance = (balance: string | number | null, loading: boolean) => {
@@ -161,14 +162,14 @@ const SwapSection = () => {
           ) : (
             <Button
               onClick={handleSwap}
-              className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
-            rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary  "
+              className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"
             >
               Swap
             </Button>
           )}
         </CardFooter>
       </Card>
+      <h1 className="text-white text-center mt-10">{assistMessage}</h1>
     </section>
   );
 };
