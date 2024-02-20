@@ -38,7 +38,7 @@ export class NetworkExplorer {
 }
 
 export class CoinData {
-  net_info: Token;
+  token_info: Token;
   basic: CoinBasic;
   is_native?: boolean;
 }

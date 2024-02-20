@@ -27,6 +27,7 @@ import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
 import { getSqrtPx96 } from "@/src/utils/uniswap/helpers";
 import { useSearchParams } from "next/navigation";
 import { getPositionInfo, getPositions } from "@/src/utils/uniswap/liquidity";
+import { getConvertedAmount } from "@/src/utils/uniswap/swap";
 
 export default async function Test() {
   // const qParams = useSearchParams();
@@ -60,13 +61,13 @@ export default async function Test() {
     const calls = [];
 
     const token0 =
-      dkft20.net_info.address < eth.net_info.address
-        ? dkft20.net_info.address
-        : eth.net_info.address;
+      dkft20.token_info.address < eth.token_info.address
+        ? dkft20.token_info.address
+        : eth.token_info.address;
     const token1 =
-      eth.net_info.address > dkft20.net_info.address
-        ? eth.net_info.address
-        : dkft20.net_info.address;
+      eth.token_info.address > dkft20.token_info.address
+        ? eth.token_info.address
+        : dkft20.token_info.address;
 
     const poolFee = qPoolFee || FeeAmount.MEDIUM;
 
@@ -74,8 +75,8 @@ export default async function Test() {
     // try {
     //   poolInfo = await getPoolInfo(
     //     network_data,
-    //     dkft20.net_info,
-    //     eth.net_info,
+    //     dkft20.token_info,
+    //     eth.token_info,
     //     poolFee,
     //   );
     // } catch (error) {
@@ -87,8 +88,8 @@ export default async function Test() {
 
     const sqrtP = noExponents(
       getSqrtPx96({
-        fromToken: eth.net_info,
-        toToken: dkft20.net_info,
+        fromToken: eth.token_info,
+        toToken: dkft20.token_info,
         price: qPrice || 25000,
       }),
     );
@@ -110,9 +111,12 @@ export default async function Test() {
     const tickUpper = getTickFromPrice(priceRange.max_price);
     const amount0Desired = convertCoinAmountToInt(
       100,
-      dkft20.net_info.decimals,
+      dkft20.token_info.decimals,
     );
-    const amount1Desired = convertCoinAmountToInt(0.004, eth.net_info.decimals); // Convert ETH to Wei
+    const amount1Desired = convertCoinAmountToInt(
+      0.004,
+      eth.token_info.decimals,
+    ); // Convert ETH to Wei
     const amount0Min = "0";
     const amount1Min = "0";
     const recipient = wallet_address;
@@ -182,14 +186,14 @@ export default async function Test() {
     const poolFee = FeeAmount.LOW;
     const sqrtP = noExponents(
       getSqrtPx96({
-        fromToken: eth.net_info,
-        toToken: dkft20.net_info,
+        fromToken: eth.token_info,
+        toToken: dkft20.token_info,
         price: 25000,
       }),
     );
     const param = [
-      dkft20.net_info.address,
-      eth.net_info.address,
+      dkft20.token_info.address,
+      eth.token_info.address,
       poolFee,
       sqrtP,
     ];
@@ -227,6 +231,28 @@ export default async function Test() {
     console.log(`position (${tokenId}) : `, positions);
   };
 
+  const handleConvertedAmount = async (e: any) => {
+    const in_amount = e.get("am");
+    const from_coin_code = String(e.get("from_coin_code"));
+    const to_coin_code = String(e.get("to_coin_code"));
+
+    const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
+    const network_data = NETWORK_DATA[network];
+
+    const inToken =
+      network_data.coin_or_token[from_coin_code.toUpperCase()].token_info;
+    const outToken =
+      network_data.coin_or_token[to_coin_code.toUpperCase()].token_info;
+    const converted_am = await getConvertedAmount(
+      inToken,
+      outToken,
+      Number(in_amount),
+      network_data,
+      provider,
+    );
+    alert(`${converted_am} ${outToken.symbol}`);
+  };
+
   return (
     <div className="flex flex-col items-center p-5">
       <Button className="text-white m-2" onClick={handleNewPositionMulticall}>
@@ -242,6 +268,26 @@ export default async function Test() {
         <input type="text" name="tokenId" placeholder="Enter Token ID"></input>
         <Button type="submit" className="text-white m-2">
           getPositionDetails
+        </Button>
+      </form>
+      <form action={handleConvertedAmount}>
+        <input
+          type="text"
+          name="from_coin_code"
+          placeholder="Enter From Coin Code"
+        ></input>
+        <input
+          type="text"
+          name="to_coin_code"
+          placeholder="Enter To Coin Code"
+        ></input>
+        <input
+          type="text"
+          name="am"
+          placeholder="Enter From Coin Amount"
+        ></input>
+        <Button type="submit" className="text-white m-2">
+          getConvertedAmount
         </Button>
       </form>
     </div>

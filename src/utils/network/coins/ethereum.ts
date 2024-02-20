@@ -6,7 +6,7 @@ export const eth_coin_data: NetworkCoinData = {
   [COIN_SLUG.ETH]: {
     is_native: true,
     basic: COIN_BAISC_DATA[COIN_SLUG.ETH],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.MAINNET,
       "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
       EVM_NATIVE_DECIMAL,
@@ -16,7 +16,7 @@ export const eth_coin_data: NetworkCoinData = {
   },
   [COIN_SLUG.WETH]: {
     basic: COIN_BAISC_DATA[COIN_SLUG.WETH],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.MAINNET,
       "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
       EVM_NATIVE_DECIMAL,
@@ -26,7 +26,7 @@ export const eth_coin_data: NetworkCoinData = {
   },
   [COIN_SLUG.USDC]: {
     basic: COIN_BAISC_DATA[COIN_SLUG.USDC],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.MAINNET,
       "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       6,

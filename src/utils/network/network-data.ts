@@ -87,7 +87,7 @@ export const NETWORK_DATA: { [slug: string]: NetworkData } = {
 
 // console.log('Goerli data: ', NETWORK_DATA[NETWORK_SLUG.GOERLI_ETH]);
 // console.log('Goerli Dkft20 using NETWORK_DATA: ', NETWORK_DATA[NETWORK_SLUG.GOERLI_ETH].coin_or_token[COIN_SLUG.DKFT20]);
-// console.log('Goerli Dkft20 NETWORK_COIN_DATA: ', NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH][COIN_SLUG.DKFT20].net_info['address']);
+// console.log('Goerli Dkft20 NETWORK_COIN_DATA: ', NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH][COIN_SLUG.DKFT20].token_info['address']);
 // console.log(
 //   "Goerli ETH NETWORK_COIN_DATA: ",
 //   NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH][COIN_SLUG.ETH],
