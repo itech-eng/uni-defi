@@ -41,6 +41,7 @@ export class CoinData {
   token_info: Token;
   basic: CoinBasic;
   is_native?: boolean;
+  is_native_wrap?: boolean;
 }
 
 export class NetworkCoinData {

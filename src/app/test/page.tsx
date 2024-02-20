@@ -27,25 +27,36 @@ import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
 import { getSqrtPx96 } from "@/src/utils/uniswap/helpers";
 import { useSearchParams } from "next/navigation";
 import { getPositionInfo, getPositions } from "@/src/utils/uniswap/liquidity";
-import { getConvertedAmount } from "@/src/utils/uniswap/swap";
+import { executeSwap, getConvertedAmount } from "@/src/utils/uniswap/swap";
+import { useEffect, useState } from "react";
 
-export default async function Test() {
+export default function Test() {
   // const qParams = useSearchParams();
   const qParams = { get: (key: string) => 0 };
   const qPoolFee = Number(qParams?.get("fee"));
   const qPrice = Number(qParams?.get("price"));
 
-  // const { wallet_address, chain_id } = useSelector(
+  const [poolFee, setPoolFee] = useState<number>(0);
+  const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
+  const [walletAddress, setWalletAddress] = useState<string>(null);
+
+  // const { walletAddress, chain_id } = useSelector(
   //   (state: IRootState) => state.wallet,
   // )
 
-  // console.log('redusx data: ', { wallet_address, chain_id });
+  // console.log('redusx data: ', { walletAddress, chain_id });
 
-  const provider = getProvider();
-  const wallet_address = await getAddress(provider);
+  useEffect(() => {
+    (async () => {
+      const provider = getProvider();
+      setProvider(provider);
+      const walletAddress = await getAddress(provider);
+      setWalletAddress(walletAddress);
+    })();
+  }, []);
 
   const handleNewPositionMulticall = async () => {
-    const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
+    const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
     const network_data = NETWORK_DATA[network];
     console.log("network_data: ", network_data);
 
@@ -119,7 +130,7 @@ export default async function Test() {
     ); // Convert ETH to Wei
     const amount0Min = "0";
     const amount1Min = "0";
-    const recipient = wallet_address;
+    const recipient = walletAddress;
     const deadline = Math.ceil((new Date().getTime() + 10 * 60 * 1000) / 1000);
 
     const mintParam = {
@@ -153,7 +164,7 @@ export default async function Test() {
     // console.log('multicallData: ', multicallData);
 
     const tx: providers.TransactionRequest = {
-      from: wallet_address,
+      from: walletAddress,
       to: network_data.contract.nonfungible_position_manager.address,
       data: multicallData,
       value: Number(amount1Desired).toString(16), //hex format
@@ -169,7 +180,7 @@ export default async function Test() {
   };
 
   const handleSinglecall = async () => {
-    const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
+    const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
     const network_data = NETWORK_DATA[network];
     console.log("network_data: ", network_data);
 
@@ -208,7 +219,7 @@ export default async function Test() {
 
     const tx: providers.TransactionRequest = {
       ...transcation,
-      from: wallet_address,
+      from: walletAddress,
     };
 
     const txHash = await sendTransactionViaExtension(tx);
@@ -236,40 +247,73 @@ export default async function Test() {
     const from_coin_code = String(e.get("from_coin_code"));
     const to_coin_code = String(e.get("to_coin_code"));
 
-    const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
+    const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
     const network_data = NETWORK_DATA[network];
 
     const inToken =
       network_data.coin_or_token[from_coin_code.toUpperCase()].token_info;
     const outToken =
       network_data.coin_or_token[to_coin_code.toUpperCase()].token_info;
-    const converted_am = await getConvertedAmount(
+    const result = await getConvertedAmount(
       inToken,
       outToken,
       Number(in_amount),
       network_data,
       provider,
     );
-    alert(`${converted_am} ${outToken.symbol}`);
+    console.log("convert result: ", result);
+    setPoolFee(result.pool_fee);
+    alert(`${result.converted_amount} ${outToken.symbol}`);
   };
 
-  return (
+  const handleSwap = async (e: any) => {
+    const from_amount = e.get("am");
+    const from_coin_code = String(e.get("from_coin_code"));
+    const to_coin_code = String(e.get("to_coin_code"));
+
+    const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
+    const network_data = NETWORK_DATA[network];
+
+    const fromCoin = network_data.coin_or_token[from_coin_code.toUpperCase()];
+    const toCoin = network_data.coin_or_token[to_coin_code.toUpperCase()];
+
+    const swapFinishCallback = (tx: any) => {
+      console.log("tx: ", tx);
+      alert("swap successful");
+    };
+
+    await executeSwap(
+      fromCoin,
+      toCoin,
+      poolFee,
+      Number(from_amount),
+      swapFinishCallback,
+      network_data,
+      provider,
+    );
+  };
+
+  return provider ? (
     <div className="flex flex-col items-center p-5">
       <Button className="text-white m-2" onClick={handleNewPositionMulticall}>
         testNewPositionMulticall
       </Button>
+
       <Button className="text-white m-2" onClick={handleSinglecall}>
         testSingleCall
       </Button>
+
       <Button className="text-white m-2" onClick={handlePositionList}>
         getPositionsInConsole
       </Button>
+
       <form action={handlePositionDetails}>
         <input type="text" name="tokenId" placeholder="Enter Token ID"></input>
         <Button type="submit" className="text-white m-2">
           getPositionDetails
         </Button>
       </form>
+
       <form action={handleConvertedAmount}>
         <input
           type="text"
@@ -290,6 +334,33 @@ export default async function Test() {
           getConvertedAmount
         </Button>
       </form>
+
+      {poolFee ? (
+        <form action={handleSwap}>
+          <input
+            type="text"
+            name="from_coin_code"
+            placeholder="Enter From Coin Code"
+          ></input>
+          <input
+            type="text"
+            name="to_coin_code"
+            placeholder="Enter To Coin Code"
+          ></input>
+          <input
+            type="text"
+            name="am"
+            placeholder="Enter From Coin Amount"
+          ></input>
+          <Button type="submit" className="text-white m-2">
+            swap
+          </Button>
+        </form>
+      ) : (
+        ""
+      )}
     </div>
+  ) : (
+    <div>Loading...</div>
   );
 }

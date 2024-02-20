@@ -1,14 +1,28 @@
-import { CurrencyAmount, Token, TradeType } from "@uniswap/sdk-core";
-import { FeeAmount, Pool, Route, SwapQuoter } from "@uniswap/v3-sdk";
-import { ethers } from "ethers";
+import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core";
+import {
+  FeeAmount,
+  Pool,
+  Route,
+  SwapOptions,
+  SwapQuoter,
+} from "@uniswap/v3-sdk";
+import { ethers, providers } from "ethers";
 import { getPoolInfo } from "./pool";
-import { getProvider } from "../wallet";
-import { NetworkData } from "../types";
+import {
+  getAddress,
+  getProvider,
+  sendTransactionViaExtension,
+  watchTransaction,
+} from "../wallet";
+import { CoinData, NetworkData } from "../types";
 import {
   convertCoinAmountToDecimal,
   convertCoinAmountToInt,
+  getNetworkData,
 } from "../corefunctions";
 import { CHAIN_SLUG_MAPPING, NETWORK_DATA } from "../network/network-data";
+import { getTokenTransferApproval } from "../eth/erc20";
+import SwapRouterABI from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
 
 export async function getConvertedAmount(
   inToken: Token,
@@ -16,7 +30,7 @@ export async function getConvertedAmount(
   inAmount: number,
   network_data?: NetworkData,
   provider?: ethers.providers.Web3Provider,
-): Promise<number> {
+): Promise<{ converted_amount: number; pool_fee: number }> {
   provider = provider ?? getProvider();
   if (!provider) {
     throw new Error("Provider required to get pool state");
@@ -65,98 +79,75 @@ export async function getConvertedAmount(
     outToken.decimals,
     6,
   );
-  return Number(outAmount);
+  return { converted_amount: Number(outAmount), pool_fee: poolInfo.fee };
 }
 
-// export async function executeTrade(
-//   trade: TokenTrade
-// ): Promise<TransactionState> {
-//   const walletAddress = getWalletAddress()
-//   const provider = getProvider()
+export async function executeSwap(
+  fromCoin: CoinData,
+  toCoin: CoinData,
+  poolFee: FeeAmount,
+  fromAmount: number | string,
+  callback: (tx: any) => void,
+  network_data?: NetworkData,
+  provider?: ethers.providers.Web3Provider,
+): Promise<string> {
+  provider = provider ?? getProvider();
+  const walletAddress = await getAddress(provider);
 
-//   if (!walletAddress || !provider) {
-//     throw new Error('Cannot execute a trade without a connected wallet')
-//   }
+  if (!walletAddress || !provider) {
+    throw new Error("Cannot execute a swap without a connected wallet");
+  }
 
-//   // Give approval to the router to spend the token
-//   const tokenApproval = await getTokenTransferApproval(CurrentConfig.tokens.in)
+  network_data = network_data ?? getNetworkData(provider);
 
-//   // Fail if transfer approvals do not go through
-//   if (tokenApproval !== TransactionState.Sent && !tokenApproval) {
-//     return TransactionState.Failed
-//   }
+  if (!fromCoin.is_native) {
+    const tokenApproval = await getTokenTransferApproval(
+      fromCoin.token_info,
+      fromAmount,
+      network_data,
+    );
 
-//   const options: SwapOptions = {
-//     // slippageTolerance: new Percent(50, 10_000), // 50 bips, or 0.50%
-//     slippageTolerance: new Percent(100, 10_000), // 50 bips, or 0.50%
-//     deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from the current Unix time
-//     recipient: walletAddress,
-//   }
+    if (!tokenApproval) {
+      throw new Error("Approval Process Failed");
+    }
+  }
 
-//   const methodParameters = SwapRouter.swapCallParameters([trade], options)
+  const swapRouter = new ethers.Contract(
+    network_data.contract.swap_router.address,
+    SwapRouterABI.abi,
+    provider,
+  );
 
-//   console.log('methodParameters.calldata: ', methodParameters.calldata)
+  const amountIn = convertCoinAmountToInt(
+    fromAmount,
+    fromCoin.token_info.decimals,
+  );
+  const transcation = await swapRouter.populateTransaction.exactInputSingle({
+    tokenIn: fromCoin.token_info.address,
+    tokenOut: toCoin.token_info.address,
+    fee: poolFee,
+    recipient: walletAddress,
+    deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from the current Unix time
+    amountIn: amountIn,
+    amountOutMinimum: 0,
+    sqrtPriceLimitX96: 0,
+  });
 
-//   const tx = {
-//     data: methodParameters.calldata,
-//     to: SWAP_ROUTER_ADDRESS,
-//     value: methodParameters.value,
-//     from: walletAddress,
-//     maxFeePerGas: MAX_FEE_PER_GAS.toString(),
-//     maxPriorityFeePerGas: MAX_PRIORITY_FEE_PER_GAS.toString(),
-//   }
+  // console.log("populated transcation: ", transcation);
 
-//   const res = await sendTransaction(tx)
+  const tx: providers.TransactionRequest = {
+    ...transcation,
+    value: fromCoin.is_native ? Number(amountIn).toString(16) : undefined,
+    from: walletAddress,
+  };
 
-//   return res
-// }
+  const txHash = await sendTransactionViaExtension(tx);
+  console.log("txHash: ", txHash);
 
-// export async function getTokenTransferApproval(
-//   token: Token
-// ): Promise<TransactionState | boolean> {
-//   const provider = getProvider()
-//   const address = getWalletAddress()
-//   if (!provider || !address) {
-//     console.log('No Provider Found')
-//     return TransactionState.Failed
-//   }
+  txHash &&
+    watchTransaction(txHash, (tx) => {
+      callback(tx);
+    });
 
-//   try {
-//     const tokenContract = new ethers.Contract(
-//       token.address,
-//       ERC20_ABI,
-//       provider
-//     )
-
-//     let approvedAmount = await tokenContract.allowance(
-//       address,
-//       SWAP_ROUTER_ADDRESS
-//     )
-//     if (approvedAmount) {
-//       approvedAmount = toReadableAmount(
-//         approvedAmount,
-//         CurrentConfig.tokens.in.decimals
-//       )
-
-//       if (approvedAmount >= TOKEN_AMOUNT_TO_APPROVE_FOR_TRANSFER) {
-//         return true
-//       }
-//     }
-
-//     const transaction = await tokenContract.populateTransaction.approve(
-//       SWAP_ROUTER_ADDRESS,
-//       fromReadableAmount(
-//         TOKEN_AMOUNT_TO_APPROVE_FOR_TRANSFER,
-//         token.decimals
-//       ).toString()
-//     )
-
-//     return sendTransaction({
-//       ...transaction,
-//       from: address,
-//     })
-//   } catch (e) {
-//     console.error(e)
-//     return TransactionState.Failed
-//   }
-// }
+  return txHash;
+}

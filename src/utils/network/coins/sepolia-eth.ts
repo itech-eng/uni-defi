@@ -15,6 +15,7 @@ export const sepolia_eth_coin_data: NetworkCoinData = {
     ),
   },
   [COIN_SLUG.WETH]: {
+    is_native_wrap: true,
     basic: COIN_BAISC_DATA[COIN_SLUG.WETH],
     token_info: new Token(
       ChainId.GOERLI,

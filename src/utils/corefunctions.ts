@@ -1,10 +1,15 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { NETWORK_COIN_DATA, NETWORK_DATA } from "./network/network-data";
+import {
+  CHAIN_SLUG_MAPPING,
+  NETWORK_COIN_DATA,
+  NETWORK_DATA,
+} from "./network/network-data";
 import { CoinData, Contract, NetworkData, NetworkExplorer } from "./types";
 import { BigNumber, ethers } from "ethers";
 import { Token } from "@uniswap/sdk-core";
 import { ORDER_DIRECTION } from "./coreconstants";
+import { getProvider } from "./wallet";
 
 Number.prototype["noExponents"] = function () {
   const data = String(this).split(/[eE]/);
@@ -233,11 +238,11 @@ export function setToLocalStorage(key: string, value: string): void {
 }
 
 export function convertCoinAmountToInt(
-  amount: number,
+  amount: number | string,
   decimals: number,
 ): BigNumber | string {
   // return ethers.utils.parseUnits(amount.toString(), decimals);
-  return noExponents(amount * 10 ** decimals).split(".")[0];
+  return noExponents(Number(amount) * 10 ** decimals).split(".")[0];
 }
 
 export function convertCoinAmountToDecimal(
@@ -344,4 +349,13 @@ export function calculatePercentRatio(
   result.value1_percent = value1 * formula_constant;
   result.value2_percent = value2 * formula_constant;
   return result;
+}
+
+export function getNetworkData(
+  provider?: ethers.providers.Web3Provider,
+): NetworkData {
+  provider = provider ?? getProvider();
+  const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
+  const network_data = NETWORK_DATA[network];
+  return network_data;
 }

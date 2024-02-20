@@ -52,8 +52,8 @@ export const sendTransactionViaExtension = async (
 ): Promise<any> => {
   try {
     const provider = getProvider();
-    const receipt = await provider?.send("eth_sendTransaction", [transaction]);
-    return receipt;
+    const txHash = await provider?.send("eth_sendTransaction", [transaction]);
+    return txHash;
   } catch (e) {
     console.error(e);
     return false;
