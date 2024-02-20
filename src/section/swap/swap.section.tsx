@@ -11,17 +11,17 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { ArrowDown } from "lucide-react";
 import useSwapSection from "@/src/hooks/useSwap";
-import SelectTokenSection from "./selectToken.section";
+import SelectCoinSection from "./selectToken.section";
 
 const SwapSection = () => {
   const {
-    payInfo,
-    setPayInfo,
-    receiveInfo,
-    setReceiveInfo,
-    payBalance,
-    receiveBalance,
-    switchTokens,
+    fromCoin,
+    setFromCoin,
+    toCoin,
+    setToCoin,
+    fromBalance,
+    toBalance,
+    switchCoins,
     handleConnectWallet,
     walletAddress,
     handleSwap,
@@ -29,11 +29,15 @@ const SwapSection = () => {
     loadingReceiveBalance,
   } = useSwapSection();
 
-  const renderBalance = (balance: string | null, loading: boolean) => {
+  const renderBalance = (balance: string | number | null, loading: boolean) => {
     if (loading) {
-      return <p className="text-white text-[10px] mt-1 mr-3">Fetching balance...</p>;
+      return (
+        <p className="text-white text-[10px] mt-1 mr-3">Fetching balance...</p>
+      );
     } else if (balance !== null) {
-      return <p className="text-white text-[10px] mt-1 mr-3">Balance : {balance}</p>;
+      return (
+        <p className="text-white text-[10px] mt-1 mr-3">Balance : {balance}</p>
+      );
     }
     return null;
   };
@@ -67,15 +71,15 @@ const SwapSection = () => {
                   />
 
                   <div className="flex flex-col items-end space-y-1.5">
-                    <SelectTokenSection info={payInfo} setInfo={setPayInfo} />
-                    {renderBalance(payBalance, loadingPayBalance)}
+                    <SelectCoinSection coin={fromCoin} setCoin={setFromCoin} />
+                    {renderBalance(fromBalance, loadingPayBalance)}
                   </div>
                 </div>
               </div>
             </div>
             <div
               className="absolute -translate-x-1/2 border-[4px] border-slate-950 -translate-y-1/2 flex w-10 h-10 bg-slate-900 rounded-xl items-center justify-center left-1/2 hover:bg-slate-800 hover:border-slate-700 cursor-pointer"
-              onClick={switchTokens}
+              onClick={switchCoins}
             >
               <ArrowDown className="mx-auto text-3xl text-white" size={15} />
             </div>
@@ -97,11 +101,8 @@ const SwapSection = () => {
                     spellCheck="false"
                   />
                   <div className="flex flex-col items-end space-y-1.5">
-                    <SelectTokenSection
-                      info={receiveInfo}
-                      setInfo={setReceiveInfo}
-                    />
-                    {renderBalance(receiveBalance, loadingReceiveBalance)}
+                    <SelectCoinSection coin={toCoin} setCoin={setToCoin} />
+                    {renderBalance(toBalance, loadingReceiveBalance)}
                   </div>
                 </div>
               </div>

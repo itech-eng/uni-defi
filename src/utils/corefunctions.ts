@@ -250,10 +250,11 @@ export function convertCoinAmountToDecimal(
 }
 
 export function formatNumber(
-  value: number,
+  value: number | string,
   decimal: number,
   abs = true,
 ): number {
+  value = Number(value);
   const result = Number(value.toFixed(decimal));
   if (!abs) return result;
   else return Math.abs(result);
