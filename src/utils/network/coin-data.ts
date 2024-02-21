@@ -18,6 +18,7 @@ export enum COIN_SLUG {
   //token
   WETH = "WETH",
   WBTC = "WBTC",
+  BTC = "BTC",
   UNI = "UNI",
   DKFT20 = "DKFT20",
   USDC = "USDC",
@@ -51,7 +52,12 @@ export const COIN_BAISC_DATA: { [slug: string]: CoinBasic } = {
   [COIN_SLUG.WBTC]: {
     code: "WBTC",
     name: "Wrapped BTC",
-    icon: "/coins/btc.svg",
+    icon: "/coins/wbtc.png",
+  },
+  [COIN_SLUG.BTC]: {
+    code: "BTC",
+    name: "Bitcoin",
+    icon: "/coins/btc.png",
   },
   [COIN_SLUG.UNI]: {
     code: "UNI",
@@ -63,7 +69,7 @@ export const COIN_BAISC_DATA: { [slug: string]: CoinBasic } = {
     name: "DK Free Token",
     icon: "/coins/dkft20.png",
   },
-  [COIN_SLUG.USDC]: { code: "USDC", name: "USD//C", icon: "/coins/eth.svg" },
+  [COIN_SLUG.USDC]: { code: "USDC", name: "USD//C", icon: "/coins/usdc.png" },
   [COIN_SLUG.USDT]: {
     code: "USDT",
     name: "Tether USD",

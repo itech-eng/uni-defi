@@ -33,12 +33,20 @@ import { useEffect, useState } from "react";
 export default function Test() {
   // const qParams = useSearchParams();
   const qParams = { get: (key: string) => 0 };
+  const qTokenA = qParams?.get("tokenA");
+  const qTokenB = qParams?.get("tokenB");
+  const qAmountA = Number(qParams?.get("amountA"));
+  const qAmountB = Number(qParams?.get("amountB"));
   const qPoolFee = Number(qParams?.get("fee"));
   const qPrice = Number(qParams?.get("price"));
 
-  const [poolFee, setPoolFee] = useState<number>(0);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
   const [walletAddress, setWalletAddress] = useState<string>(null);
+
+  //swap sepcific
+  const [poolFee, setPoolFee] = useState<number>(0);
+  const [convertedToAmount, setConvertedToAmount] = useState<number>(0);
+  const [rawConvAmount, setRawConvAmount] = useState<string>("");
 
   // const { walletAddress, chain_id } = useSelector(
   //   (state: IRootState) => state.wallet,
@@ -60,25 +68,36 @@ export default function Test() {
     const network_data = NETWORK_DATA[network];
     console.log("network_data: ", network_data);
 
-    const dkft20 = network_data.coin_or_token[COIN_SLUG.DKFT20];
-    const eth = network_data.coin_or_token[COIN_SLUG.ETH];
+    const tokenA =
+      network_data.coin_or_token[
+        qTokenA ? String(qTokenA).toUpperCase() : COIN_SLUG.DKFT20
+      ];
+    const tokenB =
+      network_data.coin_or_token[
+        qTokenB ? String(qTokenB).toUpperCase() : COIN_SLUG.ETH
+      ];
+
+    const amountA = qAmountA || 100;
+    const amountB = qAmountB || 0.004;
+    const price = qPrice || 25000;
+
+    const signer = provider.getSigner();
 
     const nftPositionManager = new ethers.Contract(
       network_data.contract.nonfungible_position_manager.address,
       NonfungiblePositionManagerABI.abi,
-      provider,
+      signer,
     );
     // console.log('nftPositionManager: ', nftPositionManager.functions);
     const calls = [];
 
     const token0 =
-      dkft20.token_info.address < eth.token_info.address
-        ? dkft20.token_info.address
-        : eth.token_info.address;
+      tokenA.token_info.address < tokenB.token_info.address ? tokenA : tokenB;
     const token1 =
-      eth.token_info.address > dkft20.token_info.address
-        ? eth.token_info.address
-        : dkft20.token_info.address;
+      tokenB.token_info.address > tokenA.token_info.address ? tokenB : tokenA;
+
+    const amount0 = tokenA.basic.code == token0.basic.code ? amountA : amountB;
+    const amount1 = tokenB.basic.code == token1.basic.code ? amountB : amountA;
 
     const poolFee = qPoolFee || FeeAmount.MEDIUM;
 
@@ -99,12 +118,17 @@ export default function Test() {
 
     const sqrtP = noExponents(
       getSqrtPx96({
-        fromToken: eth.token_info,
-        toToken: dkft20.token_info,
-        price: qPrice || 25000,
+        fromToken: tokenA.token_info,
+        toToken: tokenB.token_info,
+        price: price,
       }),
     );
-    const param = [token0, token1, poolFee, sqrtP];
+    const param = [
+      token0.token_info.address,
+      token1.token_info.address,
+      poolFee,
+      sqrtP,
+    ];
     console.log("pool create param: ", param);
 
     const calldata = nftPositionManager.interface.encodeFunctionData(
@@ -121,12 +145,12 @@ export default function Test() {
     const tickLower = getTickFromPrice(priceRange.min_price);
     const tickUpper = getTickFromPrice(priceRange.max_price);
     const amount0Desired = convertCoinAmountToInt(
-      100,
-      dkft20.token_info.decimals,
+      amount0,
+      token0.token_info.decimals,
     );
     const amount1Desired = convertCoinAmountToInt(
-      0.004,
-      eth.token_info.decimals,
+      amount1,
+      token1.token_info.decimals,
     ); // Convert ETH to Wei
     const amount0Min = "0";
     const amount1Min = "0";
@@ -134,8 +158,8 @@ export default function Test() {
     const deadline = Math.ceil((new Date().getTime() + 10 * 60 * 1000) / 1000);
 
     const mintParam = {
-      token0,
-      token1,
+      token0: token0.token_info.address,
+      token1: token1.token_info.address,
       tickLower,
       tickUpper,
       amount0Desired,
@@ -156,27 +180,48 @@ export default function Test() {
     calls.push(mintCalldata);
     // console.log('calls: ', calls);
 
-    // Encode function calls and parameters
-    const multicallData = nftPositionManager.interface.encodeFunctionData(
-      "multicall",
-      [calls],
-    );
-    // console.log('multicallData: ', multicallData);
+    // // Encode function calls and parameters
+    // const multicallData = nftPositionManager.interface.encodeFunctionData(
+    //   "multicall",
+    //   [calls],
+    // );
+    // // console.log('multicallData: ', multicallData);
 
-    const tx: providers.TransactionRequest = {
-      from: walletAddress,
-      to: network_data.contract.nonfungible_position_manager.address,
-      data: multicallData,
-      value: Number(amount1Desired).toString(16), //hex format
-    };
+    // const tx: providers.TransactionRequest = {
+    //   from: walletAddress,
+    //   to: network_data.contract.nonfungible_position_manager.address,
+    //   data: multicallData,
+    //   // value: Number(amount1Desired).toString(16), //hex format
+    //   value: ethers.utils.parseEther('0.004'), //hex format
+    // };
 
-    const txHash = await sendTransactionViaExtension(tx);
-    console.log("txHash: ", txHash);
+    const ethValue = token0.is_native
+      ? amount0
+      : token1.is_native
+        ? amount1
+        : undefined;
 
-    txHash &&
-      watchTransaction(txHash, (tx) => {
-        console.log("tx: ", tx);
-      });
+    try {
+      const txRes: providers.TransactionResponse =
+        await nftPositionManager.multicall(calls, {
+          value: ethValue
+            ? ethers.utils.parseEther(String(ethValue))
+            : undefined,
+        });
+
+      // const txRes = await signer.sendTransaction(tx);
+      await txRes.wait();
+    } catch (e) {
+      // console.log(e);
+    }
+
+    // const txHash = await sendTransactionViaExtension(tx);
+    // console.log("txHash: ", txHash);
+
+    // txHash &&
+    //   watchTransaction(txHash, (tx) => {
+    //     console.log("tx: ", tx);
+    //   });
   };
 
   const handleSinglecall = async () => {
@@ -187,10 +232,13 @@ export default function Test() {
     const dkft20 = network_data.coin_or_token[COIN_SLUG.DKFT20];
     const eth = network_data.coin_or_token[COIN_SLUG.ETH];
 
+    const signer = provider.getSigner();
+    console.log("signer address: ", await signer.getAddress());
+
     const nftPositionManager = new ethers.Contract(
       network_data.contract.nonfungible_position_manager.address,
       NonfungiblePositionManagerABI.abi,
-      provider,
+      signer,
     );
     // console.log('nftPositionManager: ', nftPositionManager.functions);
 
@@ -210,25 +258,29 @@ export default function Test() {
     ];
 
     console.log("pool create param: ", param);
-    const transcation =
-      await nftPositionManager.populateTransaction.createAndInitializePoolIfNecessary(
-        ...param,
-      );
+    // const transcation =
+    //   await nftPositionManager.populateTransaction.createAndInitializePoolIfNecessary(
+    //     ...param,
+    //   );
+    const transcation: providers.TransactionResponse =
+      await nftPositionManager.createAndInitializePoolIfNecessary(...param);
 
     console.log("populated transcation: ", transcation);
 
-    const tx: providers.TransactionRequest = {
-      ...transcation,
-      from: walletAddress,
-    };
+    await transcation.wait();
 
-    const txHash = await sendTransactionViaExtension(tx);
-    console.log("txHash: ", txHash);
+    // const tx: providers.TransactionRequest = {
+    //   ...transcation,
+    //   from: walletAddress,
+    // };
 
-    txHash &&
-      watchTransaction(txHash, (tx) => {
-        console.log("tx: ", tx);
-      });
+    // const txHash = await sendTransactionViaExtension(tx);
+    // console.log("txHash: ", txHash);
+
+    // txHash &&
+    //   watchTransaction(txHash, (tx) => {
+    //     console.log("tx: ", tx);
+    //   });
   };
 
   const handlePositionList = async () => {
@@ -243,54 +295,58 @@ export default function Test() {
   };
 
   const handleConvertedAmount = async (e: any) => {
-    const in_amount = e.get("am");
-    const from_coin_code = String(e.get("from_coin_code"));
-    const to_coin_code = String(e.get("to_coin_code"));
+    try {
+      const in_amount = e.get("am");
+      const from_coin_code = String(e.get("from_coin_code"));
+      const to_coin_code = String(e.get("to_coin_code"));
 
-    const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
-    const network_data = NETWORK_DATA[network];
+      const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
+      const network_data = NETWORK_DATA[network];
 
-    const inToken =
-      network_data.coin_or_token[from_coin_code.toUpperCase()].token_info;
-    const outToken =
-      network_data.coin_or_token[to_coin_code.toUpperCase()].token_info;
-    const result = await getConvertedAmount(
-      inToken,
-      outToken,
-      Number(in_amount),
-      network_data,
-      provider,
-    );
-    console.log("convert result: ", result);
-    setPoolFee(result.pool_fee);
-    alert(`${result.converted_amount} ${outToken.symbol}`);
+      const inCoin = network_data.coin_or_token[from_coin_code.toUpperCase()];
+      const outCoin = network_data.coin_or_token[to_coin_code.toUpperCase()];
+      const result = await getConvertedAmount(
+        inCoin,
+        outCoin,
+        Number(in_amount),
+        network_data,
+        provider,
+      );
+      console.log("convert result: ", result);
+      setPoolFee(result.pool_fee);
+      setConvertedToAmount(result.converted_amount);
+      setRawConvAmount(result.raw_conv_amount);
+      alert(`${result.converted_amount} ${outCoin.basic.code}`);
+    } catch (e) {
+      alert(`ERROR: ${e.message}`);
+    }
   };
 
   const handleSwap = async (e: any) => {
-    const from_amount = e.get("am");
-    const from_coin_code = String(e.get("from_coin_code"));
-    const to_coin_code = String(e.get("to_coin_code"));
+    try {
+      const from_amount = e.get("am");
+      const from_coin_code = String(e.get("from_coin_code"));
+      const to_coin_code = String(e.get("to_coin_code"));
 
-    const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
-    const network_data = NETWORK_DATA[network];
+      const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
+      const network_data = NETWORK_DATA[network];
 
-    const fromCoin = network_data.coin_or_token[from_coin_code.toUpperCase()];
-    const toCoin = network_data.coin_or_token[to_coin_code.toUpperCase()];
+      const fromCoin = network_data.coin_or_token[from_coin_code.toUpperCase()];
+      const toCoin = network_data.coin_or_token[to_coin_code.toUpperCase()];
 
-    const swapFinishCallback = (tx: any) => {
-      console.log("tx: ", tx);
-      alert("swap successful");
-    };
+      await executeSwap(
+        fromCoin,
+        toCoin,
+        poolFee,
+        Number(from_amount),
+        network_data,
+        provider,
+      );
 
-    await executeSwap(
-      fromCoin,
-      toCoin,
-      poolFee,
-      Number(from_amount),
-      swapFinishCallback,
-      network_data,
-      provider,
-    );
+      alert(`Swap Successful`);
+    } catch (e) {
+      alert(`ERROR: ${e.message}`);
+    }
   };
 
   return provider ? (

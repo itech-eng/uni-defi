@@ -35,4 +35,24 @@ export const goerli_eth_coin_data: NetworkCoinData = {
       COIN_BAISC_DATA[COIN_SLUG.DKFT20].name,
     ),
   },
+  [COIN_SLUG.BTC]: {
+    basic: COIN_BAISC_DATA[COIN_SLUG.BTC],
+    token_info: new Token(
+      ChainId.GOERLI,
+      "0x2B09F2115bcC45Ee32aD44C88344F97dE5f74E95",
+      EVM_NATIVE_DECIMAL,
+      COIN_BAISC_DATA[COIN_SLUG.BTC].code,
+      COIN_BAISC_DATA[COIN_SLUG.BTC].name,
+    ),
+  },
+  [COIN_SLUG.USDT]: {
+    basic: COIN_BAISC_DATA[COIN_SLUG.USDT],
+    token_info: new Token(
+      ChainId.GOERLI,
+      "0xa04D8fe28a8b17Ba33eC0d861aa9Ba78836Cf90C",
+      EVM_NATIVE_DECIMAL,
+      COIN_BAISC_DATA[COIN_SLUG.USDT].code,
+      COIN_BAISC_DATA[COIN_SLUG.USDT].name,
+    ),
+  },
 };

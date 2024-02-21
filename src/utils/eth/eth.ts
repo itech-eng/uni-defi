@@ -1,12 +1,17 @@
+import { providers } from "ethers";
 import { formatNumber } from "../corefunctions";
 import { CoinData } from "../types";
 import { getProvider, getAddress, getBalance } from "../wallet";
 import { getERC20Balance } from "./erc20";
 
-export const getCoinBalance = async (coin: CoinData): Promise<number> => {
+export const getCoinBalance = async (
+  coin: CoinData,
+  wallet_address?: string,
+  provider?: providers.Web3Provider,
+): Promise<number> => {
   let balance = 0;
-  const provider = getProvider();
-  const wallet_address = await getAddress(provider);
+  provider = provider ?? getProvider();
+  wallet_address = wallet_address ?? (await getAddress(provider));
   if (coin) {
     if (coin.is_native) {
       const local_balance = await getBalance(
@@ -16,7 +21,7 @@ export const getCoinBalance = async (coin: CoinData): Promise<number> => {
 
       balance = formatNumber(local_balance, 2);
     } else {
-      balance = await getERC20Balance(wallet_address, coin.token_info);
+      balance = await getERC20Balance(coin.token_info);
     }
     return balance;
   }
