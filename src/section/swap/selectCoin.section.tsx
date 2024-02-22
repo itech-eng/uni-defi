@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -10,10 +9,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { ChevronDown, Search, X } from "lucide-react";
 import { getNetworkCoins } from "@/src/utils/corefunctions";
-import {
-  CHAIN_SLUG_MAPPING,
-  NETWORK_SLUG,
-} from "@/src/utils/network/network-data";
+import { CHAIN_SLUG_MAPPING } from "@/src/utils/network/network-data";
 import { IRootState } from "@/store";
 import { useSelector } from "react-redux";
 import { CoinData } from "@/src/utils/types";
@@ -30,11 +26,10 @@ const SelectCoinSection = ({
   walletAddress: string;
 }) => {
   const [open, setOpen] = useState(false);
-  const { wallet_address, chain_id } = useSelector(
-    (state: IRootState) => state.wallet,
-  );
+  const { chain_id } = useSelector((state: IRootState) => state.wallet);
 
   const [coins, setCoins] = useState<CoinData[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     chain_id && setCoins(getNetworkCoins(CHAIN_SLUG_MAPPING[chain_id]));
@@ -44,6 +39,12 @@ const SelectCoinSection = ({
     setCoin(coin);
     setOpen(false);
   };
+
+  const filteredCoins = coins.filter(
+    (coin) =>
+      coin.basic.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      coin.basic.code.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <Dialog
@@ -81,12 +82,14 @@ const SelectCoinSection = ({
               type="text"
               placeholder="Search names or code"
               className="bg-slate-950 border border-gray-800 w-full h-10 text-white pl-10 pr-4 rounded-2xl focus:outline-none focus:ring focus:border-primary"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
         <div className="max-h-[350px] overflow-y-auto mt-4">
           <h1 className="text-white text-sm ">Available Coins</h1>
-          {coins.map((c) => (
+          {filteredCoins.map((c) => (
             <div
               key={c.basic.code}
               className={`${
