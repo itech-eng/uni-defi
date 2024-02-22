@@ -27,7 +27,7 @@ export async function wrapETH(
   return txReceipt;
 }
 
-export async function unwrapETH(
+export async function unwrapWETH(
   weth_amount?: number | string,
   raw_weth_amount?: string,
   provider?: providers.Web3Provider,
@@ -44,7 +44,7 @@ export async function unwrapETH(
 
   let wad = "";
   if (weth_amount) {
-    convertCoinAmountToInt(weth_amount, EVM_NATIVE_DECIMAL);
+    wad = String(convertCoinAmountToInt(weth_amount, EVM_NATIVE_DECIMAL));
   } else if (raw_weth_amount) {
     wad = raw_weth_amount;
   } else {

@@ -24,7 +24,7 @@ import {
 import { CHAIN_SLUG_MAPPING, NETWORK_DATA } from "../network/network-data";
 import { getTokenTransferApproval } from "../eth/erc20";
 import SwapRouterABI from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
-import { unwrapETH, wrapETH } from "../eth/weth";
+import { unwrapWETH, wrapETH } from "../eth/weth";
 
 export async function getConvertedAmount(
   inCoin: CoinData,
@@ -151,7 +151,7 @@ export async function executeSwap(
     if (fromCoin.is_native) {
       return await wrapETH(fromAmount, provider, network_data);
     } else if (toCoin.is_native) {
-      return await unwrapETH(fromAmount, null, provider, network_data);
+      return await unwrapWETH(fromAmount, null, provider, network_data);
     }
   }
 
@@ -185,10 +185,10 @@ export async function executeSwap(
     sqrtPriceLimitX96: 0,
   };
 
-  let convertedAmount = await swapRouter.callStatic.exactInputSingle(swapParam);
-  convertedAmount = noExponents(Number(convertedAmount));
+  // let convertedAmount = await swapRouter.callStatic.exactInputSingle(swapParam);
+  // convertedAmount = noExponents(Number(convertedAmount));
+  // swapParam.amountOutMinimum = convertedAmount;
 
-  swapParam.amountOutMinimum = convertedAmount;
   console.log("swapParam: ", swapParam);
 
   const swapCalldata = swapRouter.interface.encodeFunctionData(
@@ -213,7 +213,9 @@ export async function executeSwap(
   const txReceipt = await tx.wait();
 
   if (toCoin.is_native) {
-    await unwrapETH(null, convertedAmount, provider, network_data);
+    const convertedAmount = txReceipt.logs[0].data;
+    // console.log('convertedAmount: ', convertedAmount);
+    await unwrapWETH(null, convertedAmount, provider, network_data);
   }
   return txReceipt;
 }
