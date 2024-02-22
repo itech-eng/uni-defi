@@ -16,7 +16,7 @@ const LayoutWithHeader = ({ children }: { children: React.ReactNode }) => {
     provider && provider.off("block");
     provider &&
       provider.on("block", async (blockNumber: number) => {
-        console.log(`New block mined: ${blockNumber}`);
+        // console.log(`New block mined: ${blockNumber}`);
         dispatch(setWallet<walletSliceType>({ block_number: blockNumber }));
       });
   }, [chain_id]);

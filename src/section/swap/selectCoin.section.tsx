@@ -79,7 +79,7 @@ const SelectCoinSection = ({
             <Search className="text-white absolute left-3" size={20} />
             <input
               type="text"
-              placeholder="Search names or paste address"
+              placeholder="Search names or code"
               className="bg-slate-950 border border-gray-800 w-full h-10 text-white pl-10 pr-4 rounded-2xl focus:outline-none focus:ring focus:border-primary"
             />
           </div>
