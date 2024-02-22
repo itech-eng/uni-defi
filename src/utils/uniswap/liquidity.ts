@@ -6,7 +6,9 @@ import {
   calculatePercentRatio,
   convertCoinAmountToDecimal,
   formatNumber,
+  getNetworkData,
   getTokenByAddress,
+  sleep,
   sortObjectArray,
 } from "../corefunctions";
 import { FeeAmount, Pool, Position, TICK_SPACINGS } from "@uniswap/v3-sdk";
@@ -56,6 +58,7 @@ export interface PositionOtherDetails {
 
 export async function getPositions(
   provider?: ethers.providers.Web3Provider,
+  network_data?: NetworkData,
 ): Promise<PositionInfo[]> {
   provider = provider ?? getProvider();
   const address = await getAddress(provider);
@@ -65,8 +68,7 @@ export async function getPositions(
   }
 
   // console.log('provider: ', provider._network.chainId);
-  const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
-  const network_data = NETWORK_DATA[network];
+  network_data = network_data ?? (await getNetworkData(provider));
 
   const positionContract = new ethers.Contract(
     network_data.contract.nonfungible_position_manager.address,
@@ -106,10 +108,7 @@ export async function getPositionInfo(
     throw new Error("No provider available");
   }
 
-  if (!network_data) {
-    const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
-    network_data = NETWORK_DATA[network];
-  }
+  network_data = network_data ?? (await getNetworkData(provider));
 
   const positionContract = new ethers.Contract(
     network_data.contract.nonfungible_position_manager.address,

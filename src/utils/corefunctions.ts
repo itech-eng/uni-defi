@@ -1,10 +1,15 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { NETWORK_COIN_DATA, NETWORK_DATA } from "./network/network-data";
+import {
+  CHAIN_SLUG_MAPPING,
+  NETWORK_COIN_DATA,
+  NETWORK_DATA,
+} from "./network/network-data";
 import { CoinData, Contract, NetworkData, NetworkExplorer } from "./types";
 import { BigNumber, ethers } from "ethers";
 import { Token } from "@uniswap/sdk-core";
 import { ORDER_DIRECTION } from "./coreconstants";
+import { getProvider } from "./wallet";
 
 Number.prototype["noExponents"] = function () {
   const data = String(this).split(/[eE]/);
@@ -233,28 +238,36 @@ export function setToLocalStorage(key: string, value: string): void {
 }
 
 export function convertCoinAmountToInt(
-  amount: number,
+  amount: number | string,
   decimals: number,
 ): BigNumber | string {
   // return ethers.utils.parseUnits(amount.toString(), decimals);
-  return noExponents(amount * 10 ** decimals);
+  return noExponents(Number(amount) * 10 ** decimals).split(".")[0];
 }
 
 export function convertCoinAmountToDecimal(
   rawAmount: number,
   decimals: number,
   toFixed = 5,
+  abs = true,
 ): BigNumber | string {
   // return ethers.utils.formatUnits(rawAmount, decimals).slice(0, toFixed);
-  return noExponents((rawAmount / 10 ** decimals).toFixed(toFixed));
+  let out = formatNumber(Number(rawAmount / 10 ** decimals), toFixed);
+  if (abs) {
+    out = Math.abs(Number(out));
+  }
+  return noExponents(out);
 }
 
 export function formatNumber(
-  value: number,
+  value: number | string,
   decimal: number,
   abs = true,
 ): number {
-  const result = Number(value.toFixed(decimal));
+  value = Number(value);
+  // const result = Number(value.toFixed(decimal));
+  const numOfZeros = 10 ** decimal;
+  const result = Math.floor(value * numOfZeros) / numOfZeros;
   if (!abs) return result;
   else return Math.abs(result);
 }
@@ -279,7 +292,8 @@ export function getTokenByAddress(
 ): Token {
   const coins = network_data.coin_or_token;
   for (const slug in coins) {
-    if (coins[slug].net_info.address == address) return coins[slug].net_info;
+    if (coins[slug].token_info.address == address)
+      return coins[slug].token_info;
   }
 }
 
@@ -337,4 +351,14 @@ export function calculatePercentRatio(
   result.value1_percent = value1 * formula_constant;
   result.value2_percent = value2 * formula_constant;
   return result;
+}
+
+export async function getNetworkData(
+  provider?: ethers.providers.Web3Provider,
+): Promise<NetworkData> {
+  provider = provider ?? getProvider();
+  await sleep(200);
+  const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
+  const network_data = NETWORK_DATA[network];
+  return network_data;
 }

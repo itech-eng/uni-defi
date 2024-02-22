@@ -92,7 +92,7 @@ export const useWallet = (): WalletHookReturnType => {
     };
 
     const handleAccountsChanged = async (accounts: string[]) => {
-      console.log("Wallet address changed: ", accounts);
+      // console.log("Wallet address changed: ", accounts);
       if (!accounts[0]) {
         disconnect();
         return;

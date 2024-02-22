@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "format": "pretty-quick",
     "format:build": "pretty-quick && next build"
   },
   "dependencies": {

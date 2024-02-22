@@ -6,7 +6,7 @@ export const goerli_eth_coin_data: NetworkCoinData = {
   [COIN_SLUG.ETH]: {
     is_native: true,
     basic: COIN_BAISC_DATA[COIN_SLUG.ETH],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.GOERLI,
       "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
       EVM_NATIVE_DECIMAL,
@@ -15,8 +15,9 @@ export const goerli_eth_coin_data: NetworkCoinData = {
     ),
   },
   [COIN_SLUG.WETH]: {
+    is_native_wrap: true,
     basic: COIN_BAISC_DATA[COIN_SLUG.WETH],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.GOERLI,
       "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
       EVM_NATIVE_DECIMAL,
@@ -26,12 +27,32 @@ export const goerli_eth_coin_data: NetworkCoinData = {
   },
   [COIN_SLUG.DKFT20]: {
     basic: COIN_BAISC_DATA[COIN_SLUG.DKFT20],
-    net_info: new Token(
+    token_info: new Token(
       ChainId.GOERLI,
       "0x2b669B8dF849a250CB3D228C80CcF21D02F4C5dF",
       EVM_NATIVE_DECIMAL,
       COIN_BAISC_DATA[COIN_SLUG.DKFT20].code,
       COIN_BAISC_DATA[COIN_SLUG.DKFT20].name,
+    ),
+  },
+  [COIN_SLUG.BTC]: {
+    basic: COIN_BAISC_DATA[COIN_SLUG.BTC],
+    token_info: new Token(
+      ChainId.GOERLI,
+      "0x2B09F2115bcC45Ee32aD44C88344F97dE5f74E95",
+      EVM_NATIVE_DECIMAL,
+      COIN_BAISC_DATA[COIN_SLUG.BTC].code,
+      COIN_BAISC_DATA[COIN_SLUG.BTC].name,
+    ),
+  },
+  [COIN_SLUG.USDT]: {
+    basic: COIN_BAISC_DATA[COIN_SLUG.USDT],
+    token_info: new Token(
+      ChainId.GOERLI,
+      "0xa04D8fe28a8b17Ba33eC0d861aa9Ba78836Cf90C",
+      EVM_NATIVE_DECIMAL,
+      COIN_BAISC_DATA[COIN_SLUG.USDT].code,
+      COIN_BAISC_DATA[COIN_SLUG.USDT].name,
     ),
   },
 };
