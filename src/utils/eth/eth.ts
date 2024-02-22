@@ -18,11 +18,11 @@ export const getCoinBalance = async (
         wallet_address,
         coin.token_info.decimals,
       );
-
-      balance = formatNumber(local_balance, 2);
+      balance = Number(local_balance);
     } else {
       balance = await getERC20Balance(coin.token_info);
     }
+    balance = formatNumber(balance, 5);
     return balance;
   }
 };

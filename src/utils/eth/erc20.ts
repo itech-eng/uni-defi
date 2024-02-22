@@ -38,13 +38,14 @@ export const getERC20Balance = async (
   const decimals = token
     ? token.decimals
     : Number(await tokenContract.decimals());
-  const token_balance = convertCoinAmountToDecimal(balance, decimals, 2);
+  const token_balance = convertCoinAmountToDecimal(balance, decimals);
   return Number(token_balance);
 };
 
 export async function getTokenTransferApproval(
   token: Token,
   min_amount: number | string,
+  setInfo?: (msg: string) => void,
   network_data?: NetworkData,
   provider?: ethers.providers.Web3Provider,
 ): Promise<providers.TransactionReceipt | boolean> {
@@ -55,7 +56,7 @@ export async function getTokenTransferApproval(
   }
 
   const signer = provider.getSigner();
-  network_data = network_data ?? getNetworkData(provider);
+  network_data = network_data ?? (await getNetworkData(provider));
 
   try {
     const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
@@ -76,11 +77,15 @@ export async function getTokenTransferApproval(
       }
     }
 
+    setInfo && setInfo("Approval needed!! Confirm the transaction.");
+
     const transaction: providers.TransactionResponse =
       await tokenContract.approve(
         network_data.contract.swap_router.address,
         MAX_APPROVE_AMOUNT_INT,
       );
+
+    setInfo && setInfo("Wait for Approval process completion...");
 
     const txReceipt = await transaction.wait();
 

@@ -11,7 +11,7 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { ArrowDown } from "lucide-react";
 import useSwapSection from "@/src/hooks/useSwap";
-import SelectCoinSection from "./selectToken.section";
+import SelectCoinSection from "./selectCoin.section";
 import ConfirmSwapSection from "./confirmSwap.section";
 
 const SwapSection = () => {
@@ -32,6 +32,10 @@ const SwapSection = () => {
     setShowConfirmSwap,
     fromAmount,
     toAmount,
+    fromAmountDisabled,
+    setFromAmountDisabled,
+    toAmountDisabled,
+    setToAmountDisabled,
     handleChangeFromAmount,
     handleChangeToAmount,
     fromAmountError,
@@ -41,16 +45,20 @@ const SwapSection = () => {
   } = useSwapSection();
 
   const renderBalance = (balance: string | number | null, loading: boolean) => {
-    if (loading) {
-      return (
-        <p className="text-white text-[10px] mt-1 mr-3">Fetching balance...</p>
-      );
-    } else if (balance !== null) {
-      return (
-        <p className="text-white text-[10px] mt-1 mr-3">Balance : {balance}</p>
-      );
-    }
-    return null;
+    // if (loading) {
+    //   return (
+    //     <p className="text-white text-[10px] mt-1 mr-3">Fetching balance...</p>
+    //   );
+    // } else if (balance !== null) {
+    //   return (
+    //     <p className="text-white text-[10px] mt-1 mr-3">Balance : {balance}</p>
+    //   );
+    // }
+    return (
+      <p className="text-white text-[10px] mt-1 mr-3">
+        Balance : {balance ?? "N/A"}
+      </p>
+    );
   };
 
   return (
@@ -71,7 +79,7 @@ const SwapSection = () => {
             toAmount={toAmount}
             confirmSwap={confirmSwap}
           />
-          <form>
+          <form name="swap-form" id="swap-form">
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
                 <Label htmlFor="name" className="text-gray-400">
@@ -81,9 +89,9 @@ const SwapSection = () => {
                   <div className="flex flex-col items-end space-y-1.5">
                     <Input
                       id="youPay"
-                      type="number"
-                      step="any"
-                      disabled={!walletAddress}
+                      type="text"
+                      // step="any"
+                      disabled={!walletAddress || fromAmountDisabled}
                       className={`bg-transparent p-0 border ${
                         fromAmountError ? "border-red-500" : "border-none"
                       } text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none`}
@@ -93,9 +101,7 @@ const SwapSection = () => {
                       autoCapitalize="off"
                       spellCheck="false"
                       value={fromAmount}
-                      onChange={(e) =>
-                        handleChangeFromAmount(parseFloat(e.target.value))
-                      }
+                      onChange={(e) => handleChangeFromAmount(e.target.value)}
                     />
                     {fromAmountError && (
                       <p className="text-red-500 text-[10px] mt-1 mr-3">
@@ -131,10 +137,10 @@ const SwapSection = () => {
                   <div className="flex flex-col items-end space-y-1.5">
                     <Input
                       id="youReceive"
-                      type="number"
-                      step="any"
-                      inputMode="decimal"
-                      disabled={!walletAddress}
+                      type="text"
+                      // step="any"
+                      // inputMode="decimal"
+                      disabled={!walletAddress || toAmountDisabled}
                       className={`bg-transparent p-0 border ${
                         toAmountError ? "border-red-500" : "border-none"
                       } text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none`}
@@ -144,9 +150,7 @@ const SwapSection = () => {
                       autoCapitalize="off"
                       spellCheck="false"
                       value={toAmount}
-                      onChange={(e) =>
-                        handleChangeToAmount(parseFloat(e.target.value))
-                      }
+                      onChange={(e) => handleChangeToAmount(e.target.value)}
                     />
                     {toAmountError && (
                       <p className="text-red-500 text-[10px] mt-1 mr-3">

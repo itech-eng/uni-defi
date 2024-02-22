@@ -63,7 +63,7 @@ const SelectCoinSection = ({
             <ChevronDown className="ml-2" size={18} />
           </Button>
         ) : (
-          <Button className="text-md cursor-pointer font-semibold text-white bg-primary w-auto h-10 flex items-center justify-center px-1 py-1 rounded-3xl">
+          <Button className="text-md cursor-pointer font-semibold text-white bg-primary w-auto h-10 flex items-center justify-center px-3 py-1 rounded-3xl">
             {"Select Coin"}
             <ChevronDown className="ml-2" size={18} />
           </Button>

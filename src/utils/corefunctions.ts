@@ -252,7 +252,7 @@ export function convertCoinAmountToDecimal(
   abs = true,
 ): BigNumber | string {
   // return ethers.utils.formatUnits(rawAmount, decimals).slice(0, toFixed);
-  let out = Number((rawAmount / 10 ** decimals).toFixed(toFixed));
+  let out = formatNumber(Number(rawAmount / 10 ** decimals), toFixed);
   if (abs) {
     out = Math.abs(Number(out));
   }
@@ -265,7 +265,9 @@ export function formatNumber(
   abs = true,
 ): number {
   value = Number(value);
-  const result = Number(value.toFixed(decimal));
+  // const result = Number(value.toFixed(decimal));
+  const numOfZeros = 10 ** decimal;
+  const result = Math.floor(value * numOfZeros) / numOfZeros;
   if (!abs) return result;
   else return Math.abs(result);
 }
@@ -351,10 +353,11 @@ export function calculatePercentRatio(
   return result;
 }
 
-export function getNetworkData(
+export async function getNetworkData(
   provider?: ethers.providers.Web3Provider,
-): NetworkData {
+): Promise<NetworkData> {
   provider = provider ?? getProvider();
+  await sleep(200);
   const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
   const network_data = NETWORK_DATA[network];
   return network_data;

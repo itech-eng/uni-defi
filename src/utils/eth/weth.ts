@@ -11,7 +11,7 @@ export async function wrapETH(
   network_data?: NetworkData,
 ): Promise<providers.TransactionReceipt> {
   provider = provider ?? getProvider();
-  network_data = network_data ?? getNetworkData(provider);
+  network_data = network_data ?? (await getNetworkData(provider));
   const signer = provider.getSigner();
   const wethContract = new ethers.Contract(
     network_data.coin_or_token[COIN_SLUG.WETH].token_info.address,
@@ -34,7 +34,7 @@ export async function unwrapWETH(
   network_data?: NetworkData,
 ): Promise<providers.TransactionReceipt> {
   provider = provider ?? getProvider();
-  network_data = network_data ?? getNetworkData(provider);
+  network_data = network_data ?? (await getNetworkData(provider));
   const signer = provider.getSigner();
   const wethContract = new ethers.Contract(
     network_data.coin_or_token[COIN_SLUG.WETH].token_info.address,

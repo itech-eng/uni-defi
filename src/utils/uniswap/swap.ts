@@ -1,19 +1,8 @@
-import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core";
-import {
-  FeeAmount,
-  Pool,
-  Route,
-  SwapOptions,
-  SwapQuoter,
-} from "@uniswap/v3-sdk";
+import { CurrencyAmount, TradeType } from "@uniswap/sdk-core";
+import { FeeAmount, Pool, Route, SwapQuoter } from "@uniswap/v3-sdk";
 import { ethers, providers } from "ethers";
 import { getPoolInfo } from "./pool";
-import {
-  getAddress,
-  getProvider,
-  sendTransactionViaExtension,
-  watchTransaction,
-} from "../wallet";
+import { getAddress, getProvider } from "../wallet";
 import { CoinData, NetworkData } from "../types";
 import {
   convertCoinAmountToDecimal,
@@ -21,7 +10,6 @@ import {
   getNetworkData,
   noExponents,
 } from "../corefunctions";
-import { CHAIN_SLUG_MAPPING, NETWORK_DATA } from "../network/network-data";
 import { getTokenTransferApproval } from "../eth/erc20";
 import SwapRouterABI from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
 import { unwrapWETH, wrapETH } from "../eth/weth";
@@ -46,10 +34,7 @@ export async function getConvertedAmount(
     throw new Error("Provider required to get pool state");
   }
 
-  if (!network_data) {
-    const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
-    network_data = NETWORK_DATA[network];
-  }
+  network_data = network_data ?? (await getNetworkData(provider));
 
   if (
     (inCoin.is_native || outCoin.is_native) &&
@@ -114,6 +99,7 @@ export async function executeSwap(
   toCoin: CoinData,
   poolFee: FeeAmount,
   fromAmount: number | string,
+  setInfo?: (msg: string) => void,
   network_data?: NetworkData,
   provider?: ethers.providers.Web3Provider,
 ): Promise<providers.TransactionReceipt> {
@@ -129,12 +115,13 @@ export async function executeSwap(
   }
 
   const signer = provider.getSigner();
-  network_data = network_data ?? getNetworkData(provider);
+  network_data = network_data ?? (await getNetworkData(provider));
 
   if (!fromCoin.is_native) {
     const tokenApproval = await getTokenTransferApproval(
       fromCoin.token_info,
       fromAmount,
+      setInfo,
       network_data,
       provider,
     );
@@ -144,13 +131,17 @@ export async function executeSwap(
     }
   }
 
+  setInfo && setInfo("Swap process in progress...");
+
   if (
     (fromCoin.is_native || toCoin.is_native) &&
     (fromCoin.is_native_wrap || toCoin.is_native_wrap)
   ) {
     if (fromCoin.is_native) {
+      setInfo && setInfo("Wait for transaction completion...");
       return await wrapETH(fromAmount, provider, network_data);
     } else if (toCoin.is_native) {
+      setInfo && setInfo("Wait for transaction completion...");
       return await unwrapWETH(fromAmount, null, provider, network_data);
     }
   }
@@ -189,7 +180,7 @@ export async function executeSwap(
   // convertedAmount = noExponents(Number(convertedAmount));
   // swapParam.amountOutMinimum = convertedAmount;
 
-  console.log("swapParam: ", swapParam);
+  // console.log("swapParam: ", swapParam);
 
   const swapCalldata = swapRouter.interface.encodeFunctionData(
     "exactInputSingle",
@@ -210,12 +201,18 @@ export async function executeSwap(
       : undefined,
   });
 
+  setInfo && setInfo("Wait for transaction completion...");
   const txReceipt = await tx.wait();
 
   if (toCoin.is_native) {
+    if (setInfo) {
+      setInfo("Need to unwrap WETH to ETH!! Confirm the transaction.");
+      setTimeout(() => setInfo(""), 10000);
+    }
     const convertedAmount = txReceipt.logs[0].data;
     // console.log('convertedAmount: ', convertedAmount);
     await unwrapWETH(null, convertedAmount, provider, network_data);
   }
+  // setInfo && setInfo('Congratulations!! Swap Successful');
   return txReceipt;
 }

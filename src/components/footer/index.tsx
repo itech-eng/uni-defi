@@ -5,19 +5,19 @@ import React from "react";
 const Footer = () => {
   const footerNavs = [
     {
-      href: "javascript:void()",
+      href: "#",
       name: "Terms",
     },
     {
-      href: "javascript:void()",
+      href: "#",
       name: "License",
     },
     {
-      href: "javascript:void()",
+      href: "#",
       name: "Privacy",
     },
     {
-      href: "javascript:void()",
+      href: "#",
       name: "About us",
     },
   ];
@@ -34,20 +34,23 @@ const Footer = () => {
             >
               Let's get started
             </Link>
-            <a
+            {/* <a
               href="javascript:void(0)"
               className="flex items-center justify-center gap-x-2 py-3 px-6 text-white hover:text-white font-medium duration-150 active:bg-white border border-slate-800 rounded-lg md:inline-flex"
             >
               Connect Wallet
               <MoveRight size={20} />
-            </a>
+            </a> */}
           </div>
         </div>
         <div className="mt-10 py-10 border-t border-slate-800 items-center justify-between sm:flex">
           <p>© {new Date().getFullYear()} Uni Defi. All rights reserved.</p>
           <ul className="flex flex-wrap items-center gap-4 mt-6 sm:text-sm sm:mt-0">
             {footerNavs.map((item, idx) => (
-              <li className="text-white hover:text-white duration-150">
+              <li
+                key={idx}
+                className="text-white hover:text-white duration-150"
+              >
                 <a key={idx} href={item.href}>
                   {item.name}
                 </a>
