@@ -272,6 +272,25 @@ export function formatNumber(
   else return Math.abs(result);
 }
 
+export function beautifyNumber(value: number): number {
+  if (value >= 100) {
+    value = Math.ceil(value);
+  } else if (value >= 0.01 && value <= 99) {
+    value = formatNumber(value, 4);
+  } else if (value >= 0.0001 && value < 0.009) {
+    value = formatNumber(value, 6);
+  } else if (value >= 0.000001 && value < 0.00009) {
+    value = formatNumber(value, 8);
+  } else if (value >= 0.00000001 && value < 0.0000009) {
+    value = formatNumber(value, 10);
+  } else if (value >= 0.0000000001 && value < 0.000000009) {
+    value = formatNumber(value, 12);
+  } else if (value >= 0.000000000001 && value < 0.00000000009) {
+    value = formatNumber(value, 14);
+  }
+  return value;
+}
+
 export function decodeMulticall(abi: ReadonlyArray<any>, calls: string[]) {
   const abiInterface = new ethers.utils.Interface(abi);
   return calls.map((call) => {

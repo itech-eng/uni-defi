@@ -3,24 +3,23 @@ import { getAddress, getProvider } from "../wallet";
 import NonfungiblePositionManagerABI from "@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json";
 import { NetworkData } from "../types";
 import {
+  beautifyNumber,
   calculatePercentRatio,
   convertCoinAmountToDecimal,
   formatNumber,
   getNetworkData,
   getTokenByAddress,
-  sleep,
   sortObjectArray,
 } from "../corefunctions";
 import { FeeAmount, Pool, Position, TICK_SPACINGS } from "@uniswap/v3-sdk";
 import { getPriceFromTick } from "./maths";
-import { getPrice } from "./helpers";
+import { getPrice, parseTokenURItoJson } from "./helpers";
 import { Token } from "@uniswap/sdk-core";
 import {
   INFINITY_TEXT,
   LIQUIDITY_PRICE_RANGE,
   ORDER_DIRECTION,
 } from "../coreconstants";
-import { CHAIN_SLUG_MAPPING, NETWORK_DATA } from "../network/network-data";
 import { getPoolInfo } from "./pool";
 
 export interface PositionInfo {
@@ -54,6 +53,7 @@ export interface PositionOtherDetails {
   token0UnclaimedFee: number;
   token1UnclaimedFee: number;
   tokenURI: string;
+  imgSrc: string;
 }
 
 export async function getPositions(
@@ -87,8 +87,12 @@ export async function getPositions(
 
   let positions: PositionInfo[] = [];
   for (let i = 0; i < tokenIds.length; i++) {
-    const pos = await getPositionInfo(tokenIds[i], provider, network_data);
-    positions.push(pos);
+    try {
+      const pos = await getPositionInfo(tokenIds[i], provider, network_data);
+      positions.push(pos);
+    } catch (e) {
+      console.log(`tokenId (${tokenIds[i]}) Err: ${e.message}`);
+    }
   }
 
   positions = sortObjectArray("closed", ORDER_DIRECTION.ASC, positions);
@@ -149,6 +153,9 @@ export async function getPositionInfo(
   if (include_other_details) {
     position = await getPositionAmounts(network_data, position);
     position.other_details.tokenURI = await positionContract.tokenURI(token_id);
+    position.other_details.imgSrc = parseTokenURItoJson(
+      position.other_details.tokenURI,
+    ).image;
   }
   return position;
 }
@@ -160,30 +167,28 @@ async function getPosULCPrice(
 ): Promise<PositionInfo> {
   const token0 = getTokenByAddress(network_data, position.token0Address);
   const token1 = getTokenByAddress(network_data, position.token1Address);
+  if (!token0 || !token1) {
+    throw new Error(
+      "This Position's Tokens are not not available in our system",
+    );
+  }
+
   position.token0 = token0;
   position.token1 = token1;
 
-  position.maxPrice = formatNumber(
-    1 / getPriceFromTick(Number(position.tickLower)),
-    2,
-  );
-  position.minPrice = formatNumber(
-    1 / getPriceFromTick(Number(position.tickUpper)),
-    2,
-  );
-  position.currentPrice =
-    1 /
-    (await getPrice({
-      network_data: network_data,
-      fromToken: token0,
-      toToken: token1,
-      fee: position.fee,
-    }));
-  position.currentPrice = Math.round(position.currentPrice);
+  position.maxPrice = getPriceFromTick(Number(position.tickUpper));
+  position.minPrice = getPriceFromTick(Number(position.tickLower));
+
+  position.currentPrice = await getPrice({
+    network_data: network_data,
+    fromToken: token0,
+    toToken: token1,
+    fee: position.fee,
+  });
 
   if (
-    position.minPrice <= position.currentPrice &&
-    position.currentPrice >= position.maxPrice
+    position.currentPrice >= Number(position.minPrice) &&
+    position.currentPrice <= Number(position.maxPrice)
   ) {
     position.inRange = true;
   }
@@ -242,7 +247,7 @@ async function getPositionAmounts(
     tickUpper: Number(positionInfo.tickUpper),
   });
 
-  console.log("pos_data: ", pos_data);
+  // console.log("pos_data: ", pos_data);
 
   // liquidity token amount
   // console.log("amount0:", pos_data.amount0.toSignificant(6));
@@ -278,7 +283,7 @@ async function getPositionAmounts(
   const token1Amount = Number(pos_data.amount1.toSignificant(6));
   const percentRatio = calculatePercentRatio(
     token0Amount,
-    position.currentPrice * token1Amount,
+    (1 / position.currentPrice) * token1Amount,
   );
   position.other_details = <PositionOtherDetails>{
     token0Amount: token0Amount,

@@ -3,6 +3,7 @@ import { getPriceFromSqrtPx96, getSqrtPx96FromPrice } from "./maths";
 import { empty, formatNumber } from "../corefunctions";
 import { getPoolInfo } from "./pool";
 import { NetworkData } from "../types";
+import { EVM_NATIVE_DECIMAL } from "../network/coin-data";
 
 export async function getPrice(params: {
   fromToken: Token;
@@ -29,7 +30,7 @@ export async function getPrice(params: {
   if (params.fromToken.address > params.toToken.address) {
     price = 1 / price;
   }
-  price = formatNumber(price, 5);
+  price = formatNumber(price, EVM_NATIVE_DECIMAL);
   return price;
 }
 
@@ -43,4 +44,19 @@ export function getSqrtPx96(params: {
   }
   const sqrtPx96 = getSqrtPx96FromPrice(params.price);
   return sqrtPx96;
+}
+
+export function parseTokenURItoJson(tokenURI: string): {
+  description: string;
+  name: string;
+  image: string;
+} {
+  tokenURI = tokenURI.split(",")[1];
+  const jsonData = atob(tokenURI);
+  const decodedData: {
+    description: string;
+    name: string;
+    image: string;
+  } = JSON.parse(jsonData);
+  return decodedData;
 }
