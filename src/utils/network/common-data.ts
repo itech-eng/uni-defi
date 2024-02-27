@@ -2,7 +2,7 @@ import { Contract, NetworkExplorer } from "../types";
 
 //Eth Mainnet, Goerli, Arbitrum, Optimism, Polygon
 export const CommonContractData: Contract = {
-  quoter: {
+  quoter_v3: {
     address: "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
   },
   quoter_v2: {
@@ -16,6 +16,9 @@ export const CommonContractData: Contract = {
   },
   nonfungible_position_manager: {
     address: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+  },
+  universal_router: {
+    address: "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
   },
 };
 

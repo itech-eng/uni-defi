@@ -76,6 +76,7 @@ export const NETWORK_DATA: { [slug: string]: NetworkData } = {
       "0x5502365e486Ed7F5a62E80e8035aE1635dEd4Fa6",
       "0x2b669B8dF849a250CB3D228C80CcF21D02F4C5dF",
       "0x1238536071E1c677A632429e3655c799b22cDA52",
+      "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
     ),
     coin_or_token: NETWORK_COIN_DATA[NETWORK_SLUG.SPOLIA_ETH],
     explorer_info: {

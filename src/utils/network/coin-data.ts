@@ -61,8 +61,8 @@ export const COIN_BAISC_DATA: { [slug: string]: CoinBasic } = {
   },
   [COIN_SLUG.UNI]: {
     code: "UNI",
-    name: "Uniswap Coin",
-    icon: "/coins/eth.svg",
+    name: "Uniswap",
+    icon: "/coins/uni.png",
   },
   [COIN_SLUG.DKFT20]: {
     code: "DKFT20",

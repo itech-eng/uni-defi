@@ -8,9 +8,10 @@ export class ContractData {
 export class Contract {
   v3_factory: ContractData;
   nonfungible_position_manager: ContractData;
-  quoter: ContractData;
+  quoter_v3: ContractData;
   quoter_v2: ContractData;
   swap_router: ContractData;
+  universal_router: ContractData;
 }
 
 export class CoinBasic {

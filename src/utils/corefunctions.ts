@@ -188,14 +188,15 @@ export async function sleep(delay_in_milisec: number) {
 
 export function loadContractObject(
   v3_factory: string,
-  quoter: string,
+  quoter_v3: string,
   quoter_v2: string,
   swap_router: string,
   nonfungible_position_manager: string,
+  universal_router: string,
 ): Contract {
   return {
-    quoter: {
-      address: quoter,
+    quoter_v3: {
+      address: quoter_v3,
     },
     quoter_v2: {
       address: quoter_v2,
@@ -208,6 +209,9 @@ export function loadContractObject(
     },
     nonfungible_position_manager: {
       address: nonfungible_position_manager,
+    },
+    universal_router: {
+      address: universal_router,
     },
   };
 }

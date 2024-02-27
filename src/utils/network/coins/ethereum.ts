@@ -35,4 +35,14 @@ export const eth_coin_data: NetworkCoinData = {
       COIN_BAISC_DATA[COIN_SLUG.USDC].name,
     ),
   },
+  [COIN_SLUG.UNI]: {
+    basic: COIN_BAISC_DATA[COIN_SLUG.UNI],
+    token_info: new Token(
+      ChainId.MAINNET,
+      "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+      EVM_NATIVE_DECIMAL,
+      COIN_BAISC_DATA[COIN_SLUG.UNI].code,
+      COIN_BAISC_DATA[COIN_SLUG.UNI].name,
+    ),
+  },
 };
