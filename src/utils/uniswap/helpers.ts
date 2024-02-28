@@ -79,7 +79,7 @@ export function getTickNPrice(
   }
 
   const tick_spacing = TICK_SPACINGS[fee];
-  console.log("tick_spacing: ", tick_spacing);
+  // console.log("tick_spacing: ", tick_spacing);
 
   price = price ?? getPriceFromTick(tick);
   tick = tick || getTickFromPrice(price, "ceil");
