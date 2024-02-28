@@ -59,7 +59,7 @@ export async function getPoolInfo(
         poolContract.slot0(),
       ]);
 
-    if (Number(liquidity)) {
+    if (poolFee || Number(liquidity)) {
       return {
         token0,
         token1,
