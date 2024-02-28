@@ -1,7 +1,7 @@
 import { BigNumber, ethers } from "ethers";
 import { getAddress, getProvider } from "../wallet";
 import NonfungiblePositionManagerABI from "@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json";
-import { NetworkData } from "../types";
+import { CoinData, NetworkData } from "../types";
 import {
   beautifyNumber,
   calculatePercentRatio,
@@ -309,4 +309,59 @@ export function getRoundedTickPrice(price: number, fee: FeeAmount): number {
   price = formatNumber(uniswap_price_factor ** rounded_next_tick, 7);
   console.log("final price input: ", price);
   return price;
+}
+
+export function getConvertedAmountForLiqDeposit(
+  tokenA: Token,
+  tokenB: Token,
+  priceAtoB: number,
+  minPriceAtoB: number,
+  maxPriceAtoB: number,
+  amountA?: number,
+  amountB?: number,
+): { amountA: number; amountB: number } {
+  if (!amountA && !amountB) {
+    throw new Error("amountA or amountB must required");
+  }
+
+  const price = Number(priceAtoB);
+  const price_low = Number(minPriceAtoB);
+  const price_high = Number(maxPriceAtoB);
+
+  if (price_low == price_high) {
+    //no deposit amount needed for tokenA, tokenB
+    throw new Error("No deposit allowed of any token for this price range");
+  } else if (price < price_low) {
+    //no deposit amount needed for tokenB
+    throw new Error(
+      `No deposit allowed of ${tokenB.symbol} for this price range`,
+    );
+  } else if (price > price_high) {
+    //no deposit amount needed for tokenA
+    throw new Error(
+      `No deposit allowed of ${tokenA.symbol} for this price range`,
+    );
+  }
+
+  if (!amountB) {
+    const Liquidity =
+      (amountA * Math.sqrt(price) * Math.sqrt(price_high)) /
+      (Math.sqrt(price_high) - Math.sqrt(price));
+    // console.log('Liquidity: ', Liquidity);
+
+    amountB = Liquidity * (Math.sqrt(price) - Math.sqrt(price_low));
+    amountB = beautifyNumber(amountB, 5);
+  } else if (!amountA) {
+    const Liquidity = amountB / (Math.sqrt(price) - Math.sqrt(price_low));
+    // console.log('Liquidity: ', Liquidity);
+
+    amountA =
+      Liquidity /
+      ((Math.sqrt(price) * Math.sqrt(price_high)) /
+        (Math.sqrt(price_high) - Math.sqrt(price)));
+    amountA = beautifyNumber(amountA, 5);
+  }
+
+  console.log("deposit amounts: ", { amountA, amountB });
+  return { amountA, amountB };
 }
