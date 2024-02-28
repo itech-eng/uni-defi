@@ -1,9 +1,15 @@
 import { Token } from "@uniswap/sdk-core";
-import { getPriceFromSqrtPx96, getSqrtPx96FromPrice } from "./maths";
-import { empty, formatNumber } from "../corefunctions";
+import {
+  getPriceFromSqrtPx96,
+  getPriceFromTick,
+  getSqrtPx96FromPrice,
+  getTickFromPrice,
+} from "./maths";
+import { beautifyNumber, empty, formatNumber } from "../corefunctions";
 import { getPoolInfo } from "./pool";
 import { NetworkData } from "../types";
 import { EVM_NATIVE_DECIMAL } from "../network/coin-data";
+import { FeeAmount, TICK_SPACINGS } from "@uniswap/v3-sdk";
 
 export async function getPrice(params: {
   fromToken: Token;
@@ -59,4 +65,38 @@ export function parseTokenURItoJson(tokenURI: string): {
     image: string;
   } = JSON.parse(jsonData);
   return decodedData;
+}
+
+export function getTickNPrice(
+  output_type: "rounded" | "next" | "prev",
+  fee: FeeAmount,
+  price?: number,
+  tick?: number,
+  rounded_formula: "floor" | "ceil" = "floor",
+): { price: number; tick: number } {
+  if (!price && !tick) {
+    throw new Error("price or tick must required");
+  }
+
+  const tick_spacing = TICK_SPACINGS[fee];
+  console.log("tick_spacing: ", tick_spacing);
+
+  price = price ?? getPriceFromTick(tick);
+  tick = tick || getTickFromPrice(price, "ceil");
+
+  if (output_type == "rounded") {
+    const multiplier_of_tick_space = Math[rounded_formula](tick / tick_spacing);
+    // console.log('multiplier_of_tick_space: ', multiplier_of_tick_space);
+    const rounded_next_tick = multiplier_of_tick_space * tick_spacing;
+    tick = rounded_next_tick;
+  } else if (output_type == "next") {
+    tick += tick_spacing;
+  } else if (output_type == "prev") {
+    tick -= tick_spacing;
+  }
+  // console.log('tick: ', tick);
+
+  price = formatNumber(getPriceFromTick(tick), 6);
+  // console.log("tick n price: ", { price, tick });
+  return { price, tick };
 }

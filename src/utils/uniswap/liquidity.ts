@@ -12,7 +12,7 @@ import {
   sortObjectArray,
 } from "../corefunctions";
 import { FeeAmount, Pool, Position, TICK_SPACINGS } from "@uniswap/v3-sdk";
-import { getPriceFromTick } from "./maths";
+import { getPriceFromTick, getTickFromPrice } from "./maths";
 import { getPrice, parseTokenURItoJson } from "./helpers";
 import { Token } from "@uniswap/sdk-core";
 import {
@@ -295,20 +295,6 @@ async function getPositionAmounts(
   };
 
   return position;
-}
-
-export function getRoundedTickPrice(price: number, fee: FeeAmount): number {
-  const uniswap_price_factor = 1.0001;
-  const tick_spacing = TICK_SPACINGS[fee]; // assuming fee 1%, so tick space is 200 fixed by uniswap
-  const tick = Math.log(10) / Math.log(uniswap_price_factor);
-  // console.log('tick: ', tick);
-  const multiplier_of_tick_space = Math.floor(tick / tick_spacing);
-  // console.log('multiplier_of_tick_space: ', multiplier_of_tick_space);
-  const rounded_next_tick = multiplier_of_tick_space * tick_spacing;
-  // console.log('rounded_next_tick: ', rounded_next_tick);
-  price = formatNumber(uniswap_price_factor ** rounded_next_tick, 7);
-  console.log("final price input: ", price);
-  return price;
 }
 
 export function getConvertedAmountForLiqDeposit(

@@ -24,7 +24,7 @@ import {
 import { LIQUIDITY_PRICE_RANGE } from "@/src/utils/coreconstants";
 import { FeeAmount } from "@uniswap/v3-sdk";
 import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
-import { getSqrtPx96 } from "@/src/utils/uniswap/helpers";
+import { getSqrtPx96, getTickNPrice } from "@/src/utils/uniswap/helpers";
 import { useSearchParams } from "next/navigation";
 import {
   getConvertedAmountForLiqDeposit,
@@ -408,8 +408,25 @@ export default function Test() {
     }
   };
 
+  const getRoundedNextPrevTickPrice = (e: any) => {
+    const price = Number(e.get("price"));
+    const fee = Number(e.get("fee"));
+    const rounded = getTickNPrice("rounded", fee, price);
+    const next = getTickNPrice("next", fee, null, rounded.tick);
+    const prev = getTickNPrice("prev", fee, null, rounded.tick);
+    console.log("tick n price: ", { rounded, next, prev });
+  };
+
   return provider ? (
     <div className="flex flex-col items-center p-5">
+      <form action={getRoundedNextPrevTickPrice}>
+        <input type="text" name="price" placeholder="Enter Price"></input>
+        <input type="text" name="fee" placeholder="Enter Fee"></input>
+        <Button type="submit" className="text-white m-2">
+          getRoundedNextPrevTickPrice
+        </Button>
+      </form>
+
       <Button className="text-white m-2" onClick={handleNewPositionMulticall}>
         testNewPositionMulticall
       </Button>
