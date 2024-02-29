@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber, ethers, providers } from "ethers";
 import { getAddress, getProvider } from "../wallet";
 import NonfungiblePositionManagerABI from "@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json";
 import { CoinData, NetworkData } from "../types";
@@ -6,14 +6,16 @@ import {
   beautifyNumber,
   calculatePercentRatio,
   convertCoinAmountToDecimal,
+  convertCoinAmountToInt,
   formatNumber,
   getNetworkData,
   getTokenByAddress,
+  noExponents,
   sortObjectArray,
 } from "../corefunctions";
 import { FeeAmount, Pool, Position, TICK_SPACINGS } from "@uniswap/v3-sdk";
 import { getPriceFromTick, getTickFromPrice } from "./maths";
-import { getPrice, parseTokenURItoJson } from "./helpers";
+import { getPrice, getSqrtPx96, parseTokenURItoJson } from "./helpers";
 import { Token } from "@uniswap/sdk-core";
 import {
   INFINITY_TEXT,
@@ -21,6 +23,8 @@ import {
   ORDER_DIRECTION,
 } from "../coreconstants";
 import { getPoolInfo } from "./pool";
+import { COIN_SLUG } from "../network/coin-data";
+import { getTokenTransferApproval } from "../eth/erc20";
 
 export interface PositionInfo {
   tokenId: number | string;
@@ -298,8 +302,8 @@ async function getPositionAmounts(
 }
 
 export function getConvertedAmountForLiqDeposit(
-  tokenA: Token,
-  tokenB: Token,
+  coinA: CoinData,
+  coinB: CoinData,
   priceAtoB: number,
   minPriceAtoB: number,
   maxPriceAtoB: number,
@@ -315,17 +319,17 @@ export function getConvertedAmountForLiqDeposit(
   const price_high = Number(maxPriceAtoB);
 
   if (price_low == price_high) {
-    //no deposit amount needed for tokenA, tokenB
+    //no deposit amount needed for coinA, coinB
     throw new Error("No deposit allowed of any token for this price range");
   } else if (price < price_low) {
-    //no deposit amount needed for tokenB
+    //no deposit amount needed for coinB
     throw new Error(
-      `No deposit allowed of ${tokenB.symbol} for this price range`,
+      `No deposit allowed of ${coinB.basic.code} for this price range`,
     );
   } else if (price > price_high) {
-    //no deposit amount needed for tokenA
+    //no deposit amount needed for coinA
     throw new Error(
-      `No deposit allowed of ${tokenA.symbol} for this price range`,
+      `No deposit allowed of ${coinA.basic.code} for this price range`,
     );
   }
 
@@ -350,4 +354,145 @@ export function getConvertedAmountForLiqDeposit(
 
   console.log("deposit amounts: ", { amountA, amountB });
   return { amountA, amountB };
+}
+
+export async function createAndAddLiquidity(
+  coinA: CoinData,
+  coinB: CoinData,
+  poolFee: number,
+  amountA: number,
+  amountB: number,
+  price: number,
+  tickLower: number,
+  tickUpper: number,
+  setInfo?: (msg: string) => void,
+  provider?: providers.Web3Provider,
+  network_data?: NetworkData,
+): Promise<providers.TransactionReceipt> {
+  provider = provider ?? getProvider();
+  const signer = provider.getSigner();
+  const walletAddress = await signer.getAddress();
+  if (!walletAddress || !provider) {
+    throw new Error("Cannot add liquidity without a connected wallet");
+  }
+
+  network_data = network_data ?? (await getNetworkData(provider));
+
+  if (!coinA.is_native) {
+    const tokenApproval = await getTokenTransferApproval(
+      coinA.token_info,
+      amountA,
+      setInfo,
+      network_data,
+      provider,
+    );
+
+    if (!tokenApproval) {
+      throw new Error("Approval Process Failed");
+    }
+  }
+
+  if (!coinB.is_native) {
+    const tokenApproval = await getTokenTransferApproval(
+      coinB.token_info,
+      amountB,
+      setInfo,
+      network_data,
+      provider,
+    );
+
+    if (!tokenApproval) {
+      throw new Error("Approval Process Failed");
+    }
+  }
+
+  const nftPositionManager = new ethers.Contract(
+    network_data.contract.nonfungible_position_manager.address,
+    NonfungiblePositionManagerABI.abi,
+    signer,
+  );
+  // console.log('nftPositionManager: ', nftPositionManager.functions);
+
+  const calls = [];
+
+  const coin0 =
+    coinA.token_info.address < coinB.token_info.address ? coinA : coinB;
+  const coin1 =
+    coinB.token_info.address > coinA.token_info.address ? coinB : coinA;
+
+  const amount0 = coinA.basic.code == coin0.basic.code ? amountA : amountB;
+  const amount1 = coinB.basic.code == coin1.basic.code ? amountB : amountA;
+
+  // Prepare data for create new pool if not exists
+  const sqrtP = noExponents(
+    getSqrtPx96({
+      fromToken: coinA.token_info,
+      toToken: coinB.token_info,
+      price: price,
+    }),
+  );
+
+  const createPoolParam = [
+    coin0.token_info.address,
+    coin1.token_info.address,
+    poolFee,
+    sqrtP,
+  ];
+  console.log("pool create param: ", createPoolParam);
+
+  const calldata = nftPositionManager.interface.encodeFunctionData(
+    "createAndInitializePoolIfNecessary",
+    createPoolParam,
+  );
+  calls.push(calldata);
+
+  // Prepare data for adding new position
+  const fee = poolFee;
+  const amount0Desired = convertCoinAmountToInt(
+    amount0,
+    coin0.token_info.decimals,
+  );
+  const amount1Desired = convertCoinAmountToInt(
+    amount1,
+    coin1.token_info.decimals,
+  );
+  const amount0Min = "0";
+  const amount1Min = "0";
+  const recipient = walletAddress;
+  const deadline = Math.ceil(new Date().getTime() / 1000 + 60 * 10); // 10 minutes
+
+  const mintParam = {
+    token0: coin0.token_info.address,
+    token1: coin1.token_info.address,
+    tickLower,
+    tickUpper,
+    amount0Desired,
+    amount1Desired,
+    fee,
+    amount0Min,
+    amount1Min,
+    recipient,
+    deadline,
+  };
+
+  console.log("mintParam: ", mintParam);
+
+  const mintCalldata = nftPositionManager.interface.encodeFunctionData("mint", [
+    mintParam,
+  ]);
+  calls.push(mintCalldata);
+
+  const ethValue = coin0.is_native
+    ? amount0
+    : coin1.is_native
+      ? amount1
+      : undefined;
+
+  const txRes: providers.TransactionResponse =
+    await nftPositionManager.multicall(calls, {
+      value: ethValue ? ethers.utils.parseEther(String(ethValue)) : undefined,
+    });
+
+  const tx = await txRes.wait();
+  return tx;
 }

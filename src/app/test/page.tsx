@@ -263,8 +263,8 @@ export default function Test() {
       }
 
       const outAmounts = getConvertedAmountForLiqDeposit(
-        tokenA.token_info,
-        tokenB.token_info,
+        tokenA,
+        tokenB,
         price,
         minPrice,
         maxPrice,
