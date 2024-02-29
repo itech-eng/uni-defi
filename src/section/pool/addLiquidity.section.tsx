@@ -49,6 +49,9 @@ const AddLiquiditySection = () => {
     setSelectedFee(fee);
   };
 
+  const isCoinSelected = fromCoin && toCoin;
+  const isPoolFeeSelected = selectedFee !== null;
+  const isAllSelected = isCoinSelected && isPoolFeeSelected;
   return (
     <div className="flex flex-col container mt-36 rounded-xl max-w-2xl border border-slate-800 py-6  ">
       <div className="flex items-center justify-between mb-6">
@@ -74,11 +77,16 @@ const AddLiquiditySection = () => {
             />
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-4 mt-4">
+        <div
+          className={`grid grid-cols-3 gap-4 mt-4 ${!isCoinSelected && "pointer-events-none opacity-50"}`}
+        >
           {POOL_FEES.map((fees) => (
             <div
+              key={fees}
               className={`text-white flex flex-col gap-2 border border-slate-800 p-4 rounded-md relative ${selectedFee === fees ? "border-purple-500" : ""}`}
-              onClick={() => setSelectedFee(fees)}
+              onClick={() => {
+                handleFeeSelection(fees);
+              }}
             >
               {selectedFee === fees && (
                 <span className="absolute top-0 right-0 h-6 w-6 flex items-center justify-center bg-primary rounded-full text-white">
@@ -91,169 +99,173 @@ const AddLiquiditySection = () => {
             </div>
           ))}
         </div>
-        <div className="my-5">
+        <div
+          className={`my-5 ${!isAllSelected && "pointer-events-none opacity-50"}`}
+        >
+          <div className={`my-5`}>
+            <div className="flex items-center justify-between text-white mb-6">
+              <h1>Set Price Range</h1>
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-slate-400" />
+                <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
+                  Full Range
+                </div>
+                <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
+                  Uni
+                </div>
+                <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
+                  Eth
+                </div>
+              </div>
+            </div>
+            <div className="grid w-full items-center gap-4 mb-4">
+              <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
+                <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
+                  Low Price
+                </label>
+                <div className="flex items-center justify-between space-x-2 ">
+                  <div className="flex flex-col items-end space-y-1.5">
+                    <input
+                      type="text"
+                      pattern="^[0-9]*[.,]?[0-9]*$"
+                      className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
+                      id="youPay"
+                      placeholder="0"
+                      value={lowPrice}
+                      onChange={(e) => handleLowPriceChange(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col items-start space-y-1.5 text-white">
+                    <button
+                      onClick={() => setLowPrice(lowPrice + 1)}
+                      className="h-7 w-7 bg-slate-800 rounded-full text-white"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={() => setLowPrice(lowPrice - 1)}
+                      className="h-7 w-7 bg-slate-800 rounded-full text-white"
+                    >
+                      -
+                    </button>
+                  </div>
+                </div>
+                <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
+                  Uni per ETH
+                </label>
+              </div>
+            </div>
+            <div className="grid w-full items-center  gap-4">
+              <div className="flex flex-col bg-slate-900  space-y-1.5 px-3 py-5 rounded-2xl">
+                <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
+                  High Price
+                </label>
+                <div className="flex items-center justify-between space-x-2 ">
+                  <div className="flex flex-col items-end space-y-1.5">
+                    <input
+                      type="text"
+                      pattern="^[0-9]*[.,]?[0-9]*$"
+                      className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
+                      id="youPay"
+                      placeholder="0"
+                      value={highPrice}
+                      onChange={(e) => handleHighPriceChange(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col items-start space-y-1.5 text-white">
+                    <button
+                      className="h-7 w-7 bg-slate-800 rounded-full text-white"
+                      onClick={() => setLowPrice(lowPrice + 1)}
+                    >
+                      +
+                    </button>
+                    <button
+                      className="h-7 w-7 bg-slate-800 rounded-full text-white"
+                      onClick={() => setLowPrice(lowPrice - 1)}
+                    >
+                      -
+                    </button>
+                  </div>
+                </div>
+                <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
+                  Uni per ETH
+                </label>
+              </div>
+            </div>
+          </div>
           <div className="flex items-center justify-between text-white mb-6">
-            <h1>Set Price Range</h1>
-            <div className="flex items-center gap-2">
-              <div className="text-xs text-slate-400" />
-              <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
-                Full Range
-              </div>
-              <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
-                Uni
-              </div>
-              <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
-                Eth
-              </div>
+            <div>
+              <h1 className="text-sm font-medium">Current Price</h1>
+              <p className="text-xl text-slate-400">0.00000000</p>
+              <h1 className="text-sm font-medium">Eth per dkf</h1>
             </div>
           </div>
-          <div className="grid w-full items-center gap-4 mb-4">
-            <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
-              <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                Low Price
-              </label>
-              <div className="flex items-center justify-between space-x-2 ">
-                <div className="flex flex-col items-end space-y-1.5">
-                  <input
-                    type="text"
-                    pattern="^[0-9]*[.,]?[0-9]*$"
-                    className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
-                    id="youPay"
-                    placeholder="0"
-                    value={lowPrice}
-                    onChange={(e) => handleLowPriceChange(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col items-start space-y-1.5 text-white">
-                  <button
-                    onClick={() => setLowPrice(lowPrice + 1)}
-                    className="h-7 w-7 bg-slate-800 rounded-full text-white"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => setLowPrice(lowPrice - 1)}
-                    className="h-7 w-7 bg-slate-800 rounded-full text-white"
-                  >
-                    -
-                  </button>
-                </div>
-              </div>
-              <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                Uni per ETH
-              </label>
+          <div className="my-2">
+            <div className="flex items-center justify-between text-white mb-6">
+              <h1 className="text-xs font-medium">Deposit Amount</h1>
             </div>
           </div>
-          <div className="grid w-full items-center  gap-4">
-            <div className="flex flex-col bg-slate-900  space-y-1.5 px-3 py-5 rounded-2xl">
-              <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                High Price
-              </label>
-              <div className="flex items-center justify-between space-x-2 ">
-                <div className="flex flex-col items-end space-y-1.5">
-                  <input
-                    type="text"
-                    pattern="^[0-9]*[.,]?[0-9]*$"
-                    className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
-                    id="youPay"
-                    placeholder="0"
-                    value={highPrice}
-                    onChange={(e) => handleHighPriceChange(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col items-start space-y-1.5 text-white">
-                  <button
-                    className="h-7 w-7 bg-slate-800 rounded-full text-white"
-                    onClick={() => setLowPrice(lowPrice + 1)}
-                  >
-                    +
-                  </button>
-                  <button
-                    className="h-7 w-7 bg-slate-800 rounded-full text-white"
-                    onClick={() => setLowPrice(lowPrice - 1)}
-                  >
-                    -
-                  </button>
-                </div>
-              </div>
-              <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                Uni per ETH
-              </label>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-between text-white mb-6">
           <div>
-            <h1 className="text-sm font-medium">Current Price</h1>
-            <p className="text-xl text-slate-400">0.00000000</p>
-            <h1 className="text-sm font-medium">Eth per dkf</h1>
-          </div>
-        </div>
-        <div className="my-2">
-          <div className="flex items-center justify-between text-white mb-6">
-            <h1 className="text-xs font-medium">Deposit Amount</h1>
-          </div>
-        </div>
-        <div>
-          <div className="grid w-full items-center gap-4 mb-4">
-            <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
-              <div className="flex items-center justify-between space-x-2 ">
-                <div className="flex flex-col items-start space-y-1.5">
-                  <input
-                    type="text"
-                    pattern="^[0-9]*[.,]?[0-9]*$"
-                    className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
-                    id="youPay"
-                    placeholder="0"
-                    value={lowPrice}
-                    onChange={(e) => handleLowPriceChange(e.target.value)}
-                  />
-                  <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                    -
-                  </label>
-                </div>
-                <div className="flex flex-col items-end gap-2 space-y-1.5 text-white">
-                  <div className="flex items-center space-x-2 bg-slate-800 rounded-full px-2 py-1">
-                    <img src="/coins/btc.png" className="w-7 h-7" alt="" />
-                    <h1>BTC</h1>
+            <div className="grid w-full items-center gap-4 mb-4">
+              <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
+                <div className="flex items-center justify-between space-x-2 ">
+                  <div className="flex flex-col items-start space-y-1.5">
+                    <input
+                      type="text"
+                      pattern="^[0-9]*[.,]?[0-9]*$"
+                      className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
+                      id="youPay"
+                      placeholder="0"
+                      value={lowPrice}
+                      onChange={(e) => handleLowPriceChange(e.target.value)}
+                    />
+                    <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
+                      -
+                    </label>
                   </div>
-                  <div>
-                    <span>Balance : 0</span>
-                    <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
-                      Max
-                    </span>
+                  <div className="flex flex-col items-end gap-2 space-y-1.5 text-white">
+                    <div className="flex items-center space-x-2 bg-slate-800 rounded-full px-2 py-1">
+                      <img src="/coins/btc.png" className="w-7 h-7" alt="" />
+                      <h1>BTC</h1>
+                    </div>
+                    <div>
+                      <span>Balance : 0</span>
+                      <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
+                        Max
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="grid w-full items-center gap-4 mb-4">
-            <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
-              <div className="flex items-center justify-between space-x-2 ">
-                <div className="flex flex-col items-start space-y-1.5">
-                  <input
-                    type="text"
-                    pattern="^[0-9]*[.,]?[0-9]*$"
-                    className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
-                    id="youPay"
-                    placeholder="0"
-                    value={lowPrice}
-                    onChange={(e) => handleLowPriceChange(e.target.value)}
-                  />
-                  <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                    -
-                  </label>
-                </div>
-                <div className="flex flex-col items-end gap-2 space-y-1.5 text-white">
-                  <div className="flex items-center space-x-2 bg-slate-800 rounded-full px-2 py-1">
-                    <img src="/coins/btc.png" className="w-7 h-7" alt="" />
-                    <h1>BTC</h1>
+            <div className="grid w-full items-center gap-4 mb-4">
+              <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
+                <div className="flex items-center justify-between space-x-2 ">
+                  <div className="flex flex-col items-start space-y-1.5">
+                    <input
+                      type="text"
+                      pattern="^[0-9]*[.,]?[0-9]*$"
+                      className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
+                      id="youPay"
+                      placeholder="0"
+                      value={lowPrice}
+                      onChange={(e) => handleLowPriceChange(e.target.value)}
+                    />
+                    <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
+                      -
+                    </label>
                   </div>
-                  <div>
-                    <span>Balance : 0</span>
-                    <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
-                      Max
-                    </span>
+                  <div className="flex flex-col items-end gap-2 space-y-1.5 text-white">
+                    <div className="flex items-center space-x-2 bg-slate-800 rounded-full px-2 py-1">
+                      <img src="/coins/btc.png" className="w-7 h-7" alt="" />
+                      <h1>BTC</h1>
+                    </div>
+                    <div>
+                      <span>Balance : 0</span>
+                      <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
+                        Max
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
