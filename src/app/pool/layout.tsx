@@ -1,7 +1,7 @@
 import LayoutWithHeader from "@/src/components/layouts/layoutWithHeader";
 import React from "react";
 
-export default function SwapLayout({
+export default function PoolLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

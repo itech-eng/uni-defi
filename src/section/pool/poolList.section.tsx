@@ -25,7 +25,7 @@ const PoolListSection = () => {
     <div className="container text-white mt-36 px-72">
       <div className="flex justify-between items-center mb-6">
         <div className="text-4xl font-bold">Positions</div>
-        <Link href={"/add"}>
+        <Link href={"/pool/add"}>
           <button className="bg-primary text-white font-bold py-2 px-4 rounded-full flex flex-row items-center">
             <Plus className="h-5 w-5 mr-2" /> New Position
           </button>

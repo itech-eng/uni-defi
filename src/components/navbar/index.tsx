@@ -68,7 +68,7 @@ export default function Navbar() {
       <div className="px-4 py-3 grid grid-cols-3 z-10  items-center justify-center">
         <div className="flex items-center">
           <Link className="text-3xl font-bold font-heading" href="/">
-            <img className="h-9" src="logo.webp" alt="logo" />
+            <img className="h-9" src="/logo.webp" alt="logo" />
           </Link>
           <ul className="hidden lg:flex gap-4 ml-10">
             <li>
@@ -77,19 +77,9 @@ export default function Navbar() {
               </Link>
             </li>
             <li>
-              <a className="hover:text-gray-200" href="#">
+              <Link className="hover:text-gray-200" href="/pool">
                 Pool
-              </a>
-            </li>
-            <li>
-              <a className="hover:text-gray-200" href="#">
-                Liquidity
-              </a>
-            </li>
-            <li>
-              <a className="hover:text-gray-200" href="#">
-                Governance
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -98,7 +88,7 @@ export default function Navbar() {
             <Search className="text-white absolute left-3" size={20} />
             <input
               type="text"
-              placeholder="Search Tokens and NFT collections"
+              placeholder="Search Coins..."
               className="bg-slate-950 border border-gray-800 w-full h-10 text-white pl-10 pr-4 rounded-2xl focus:outline-none focus:ring focus:border-primary"
             />
           </div>
