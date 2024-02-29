@@ -388,6 +388,11 @@ const AddLiquiditySection = () => {
           confirmSwap={() => {
             setPreview(false);
           }}
+          handleSwapCoin={handleSwapCoin}
+          selectedCoin={selectedCoin}
+          setSelectedCoin={setSelectedCoin}
+          lowPrice={lowPrice}
+          highPrice={highPrice}
         />
         {!walletAddress ? (
           <Button
@@ -398,9 +403,10 @@ const AddLiquiditySection = () => {
             Connect Wallet
           </Button>
         ) : (
-            <Button className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"
-              onClick={() => setPreview(true)}
-            >
+          <Button
+            className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"
+            onClick={() => setPreview(true)}
+          >
             Preview
           </Button>
         )}
