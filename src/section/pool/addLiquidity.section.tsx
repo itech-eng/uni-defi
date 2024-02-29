@@ -10,16 +10,19 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const AddLiquiditySection = () => {
   const [fromCoin, setFromCoin] = useState<CoinData>(null);
+  const [toCoin, setToCoin] = useState<CoinData>(null);
+  const [fromDepositAmount, setFromDepositAmount] = useState<number>(0);
+  const [toDepositAmount, setToDepositAmount] = useState<number>(0);
+  const [lowPrice, setLowPrice] = useState(0);
+  const [highPrice, setHighPrice] = useState(0);
+  const [selectedFee, setSelectedFee] = useState(null);
+  const dispatch = useDispatch();
+
   const {
     wallet_address: walletAddress,
     chain_id,
     block_number,
   } = useSelector((state: IRootState) => state.wallet);
-  const [lowPrice, setLowPrice] = useState(0);
-  const [highPrice, setHighPrice] = useState(0);
-  const [toCoin, setToCoin] = useState<CoinData>(null);
-  const [selectedFee, setSelectedFee] = useState(null);
-  const dispatch = useDispatch();
 
   const handleConnectWallet = () => {
     try {
@@ -35,6 +38,10 @@ const AddLiquiditySection = () => {
   const handleAddLiquidity = (e) => {
     e.preventDefault();
     console.log("Selected Fee:", selectedFee);
+    console.log("From Coin:", fromCoin);
+    console.log("To Coin:", toCoin);
+    console.log("Low Price:", lowPrice);
+    console.log("High Price:", highPrice);
   };
 
   const handleLowPriceChange = (value) => {
@@ -47,6 +54,14 @@ const AddLiquiditySection = () => {
 
   const handleFeeSelection = (fee) => {
     setSelectedFee(fee);
+  };
+
+  const handleFromDepositAmountChange = (value) => {
+    setFromDepositAmount(Number(value));
+  };
+
+  const handleToDepositAmountChange = (value) => {
+    setToDepositAmount(Number(value));
   };
 
   const isCoinSelected = fromCoin && toCoin;
@@ -110,12 +125,16 @@ const AddLiquiditySection = () => {
                 <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
                   Full Range
                 </div>
-                <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
-                  Uni
-                </div>
-                <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
-                  Eth
-                </div>
+                {fromCoin?.token_info.symbol && (
+                  <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
+                    {fromCoin?.token_info.symbol}
+                  </div>
+                )}
+                {toCoin?.token_info.symbol && (
+                  <div className="text-xs text-slate-400 px-2 py-1 rounded-md border border-slate-800">
+                    {toCoin?.token_info.symbol}
+                  </div>
+                )}
               </div>
             </div>
             <div className="grid w-full items-center gap-4 mb-4">
@@ -216,8 +235,10 @@ const AddLiquiditySection = () => {
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
                       id="youPay"
                       placeholder="0"
-                      value={lowPrice}
-                      onChange={(e) => handleLowPriceChange(e.target.value)}
+                      value={fromDepositAmount}
+                      onChange={(e) =>
+                        handleFromDepositAmountChange(e.target.value)
+                      }
                     />
                     <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
                       -
@@ -248,8 +269,10 @@ const AddLiquiditySection = () => {
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
                       id="youPay"
                       placeholder="0"
-                      value={lowPrice}
-                      onChange={(e) => handleLowPriceChange(e.target.value)}
+                      value={toDepositAmount}
+                      onChange={(e) =>
+                        handleToDepositAmountChange(e.target.value)
+                      }
                     />
                     <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
                       -
