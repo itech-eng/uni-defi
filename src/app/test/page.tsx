@@ -24,27 +24,39 @@ import {
 import { LIQUIDITY_PRICE_RANGE } from "@/src/utils/coreconstants";
 import { FeeAmount } from "@uniswap/v3-sdk";
 import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
-import { getSqrtPx96 } from "@/src/utils/uniswap/helpers";
+import { getSqrtPx96, getTickNPrice } from "@/src/utils/uniswap/helpers";
 import { useSearchParams } from "next/navigation";
-import { getPositionInfo, getPositions } from "@/src/utils/uniswap/liquidity";
+import {
+  getConvertedAmountForLiqDeposit,
+  getPositionInfo,
+  getPositions,
+} from "@/src/utils/uniswap/liquidity";
 import { executeSwap, getConvertedAmount } from "@/src/utils/uniswap/swap";
 import { useEffect, useState } from "react";
 
 export default function Test() {
-  // const qParams = useSearchParams();
-  const qParams = { get: (key: string) => 0 };
+  const url = global.window?.location?.href || "";
+  const qParams = new URLSearchParams(url);
+  // const qParams = { get: (key: string) => 0 };
+
   const qTokenA = qParams?.get("tokenA");
   const qTokenB = qParams?.get("tokenB");
+
   const qAmountA = Number(qParams?.get("amountA"));
   const qAmountB = Number(qParams?.get("amountB"));
-  const qPoolFee = Number(qParams?.get("fee"));
+
   const qPrice = Number(qParams?.get("price"));
+  const qMinPrice = Number(qParams?.get("minPrice"));
+  const qMaxPrice = Number(qParams?.get("maxPrice"));
+
+  const qPoolFee = Number(qParams?.get("fee"));
 
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
   const [walletAddress, setWalletAddress] = useState<string>(null);
 
   //swap sepcific
   const [poolFee, setPoolFee] = useState<number>(0);
+  const [swapTokenPath, setSwapTokenPath] = useState<string>("");
   const [convertedToAmount, setConvertedToAmount] = useState<number>(0);
   const [rawConvAmount, setRawConvAmount] = useState<string>("");
 
@@ -224,6 +236,52 @@ export default function Test() {
     //   });
   };
 
+  const handleLiqConvDepositAm = async () => {
+    try {
+      const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
+      const network_data = NETWORK_DATA[network];
+
+      const tokenA =
+        network_data.coin_or_token[
+          qTokenA ? String(qTokenA).toUpperCase() : COIN_SLUG.DKFT20
+        ];
+      const tokenB =
+        network_data.coin_or_token[
+          qTokenB ? String(qTokenB).toUpperCase() : COIN_SLUG.ETH
+        ];
+
+      const amountA = qAmountA;
+      const amountB = qAmountB;
+      let minPrice = qMinPrice;
+      let maxPrice = qMaxPrice;
+      const price = qPrice;
+
+      if (qPoolFee) {
+        const { min_price, max_price } = LIQUIDITY_PRICE_RANGE[qPoolFee];
+        minPrice = min_price;
+        maxPrice = max_price;
+      }
+
+      const outAmounts = getConvertedAmountForLiqDeposit(
+        tokenA.token_info,
+        tokenB.token_info,
+        price,
+        minPrice,
+        maxPrice,
+        amountA,
+        amountB,
+      );
+      alert(
+        amountA
+          ? `${outAmounts.amountB} ${tokenB.basic.code}`
+          : `${outAmounts.amountA} ${tokenA.basic.code}`,
+      );
+    } catch (e) {
+      alert(e.message);
+      console.log(e);
+    }
+  };
+
   const handleSinglecall = async () => {
     const network = CHAIN_SLUG_MAPPING[provider?._network.chainId];
     const network_data = NETWORK_DATA[network];
@@ -350,10 +408,31 @@ export default function Test() {
     }
   };
 
+  const getRoundedNextPrevTickPrice = (e: any) => {
+    const price = Number(e.get("price"));
+    const fee = Number(e.get("fee"));
+    const rounded = getTickNPrice("rounded", fee, price);
+    const next = getTickNPrice("next", fee, null, rounded.tick);
+    const prev = getTickNPrice("prev", fee, null, rounded.tick);
+    console.log("tick n price: ", { rounded, next, prev });
+  };
+
   return provider ? (
     <div className="flex flex-col items-center p-5">
+      <form action={getRoundedNextPrevTickPrice}>
+        <input type="text" name="price" placeholder="Enter Price"></input>
+        <input type="text" name="fee" placeholder="Enter Fee"></input>
+        <Button type="submit" className="text-white m-2">
+          getRoundedNextPrevTickPrice
+        </Button>
+      </form>
+
       <Button className="text-white m-2" onClick={handleNewPositionMulticall}>
         testNewPositionMulticall
+      </Button>
+
+      <Button className="text-white m-2" onClick={handleLiqConvDepositAm}>
+        testLiqConvDepositAm
       </Button>
 
       <Button className="text-white m-2" onClick={handleSinglecall}>

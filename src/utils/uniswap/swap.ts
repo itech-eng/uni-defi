@@ -49,7 +49,21 @@ export async function getConvertedAmount(
     return { converted_amount: inAmount, raw_conv_amount: "0", pool_fee: 0 };
   }
 
-  const pools = await processPoolData(inCoin, outCoin, network_data);
+  // const pools = await processPoolData(inCoin, outCoin, network_data);
+  const poolInfo = await getPoolInfo(
+    network_data,
+    inCoin.token_info,
+    outCoin.token_info,
+  );
+  const pool = new Pool(
+    inCoin.token_info,
+    outCoin.token_info,
+    poolInfo.fee,
+    poolInfo.sqrtPriceX96.toString(),
+    poolInfo.liquidity.toString(),
+    poolInfo.tick,
+  );
+  const pools = [pool];
 
   const swapRoute = new Route(pools, inCoin.token_info, outCoin.token_info);
 

@@ -276,21 +276,39 @@ export function formatNumber(
   else return Math.abs(result);
 }
 
-export function beautifyNumber(value: number): number {
+export function beautifyNumber(value: number, non_zero_decimal = 4): number {
+  const decimal_inc = non_zero_decimal - 4;
+  const right_number = String(value).split(".")[1];
+  if (right_number && right_number[0] == "9") {
+    return Math.ceil(value);
+  }
+
   if (value >= 100) {
     value = Math.ceil(value);
-  } else if (value >= 0.01 && value <= 99) {
-    value = formatNumber(value, 4);
-  } else if (value >= 0.0001 && value < 0.009) {
-    value = formatNumber(value, 6);
-  } else if (value >= 0.000001 && value < 0.00009) {
-    value = formatNumber(value, 8);
-  } else if (value >= 0.00000001 && value < 0.0000009) {
-    value = formatNumber(value, 10);
-  } else if (value >= 0.0000000001 && value < 0.000000009) {
-    value = formatNumber(value, 12);
-  } else if (value >= 0.000000000001 && value < 0.00000000009) {
-    value = formatNumber(value, 14);
+  } else if (value >= 0.1 && value <= 99) {
+    value = formatNumber(value, 4 + decimal_inc);
+  } else if (value >= 0.01 && value <= 0.09) {
+    value = formatNumber(value, 5 + decimal_inc);
+  } else if (value >= 0.001 && value <= 0.009) {
+    value = formatNumber(value, 6 + decimal_inc);
+  } else if (value >= 0.0001 && value < 0.0009) {
+    value = formatNumber(value, 7 + decimal_inc);
+  } else if (value >= 0.00001 && value < 0.00009) {
+    value = formatNumber(value, 8 + decimal_inc);
+  } else if (value >= 0.000001 && value < 0.000009) {
+    value = formatNumber(value, 9 + decimal_inc);
+  } else if (value >= 0.0000001 && value < 0.0000009) {
+    value = formatNumber(value, 10 + decimal_inc);
+  } else if (value >= 0.00000001 && value < 0.00000009) {
+    value = formatNumber(value, 11 + decimal_inc);
+  } else if (value >= 0.000000001 && value < 0.000000009) {
+    value = formatNumber(value, 12 + decimal_inc);
+  } else if (value >= 0.0000000001 && value < 0.0000000009) {
+    value = formatNumber(value, 13 + decimal_inc);
+  } else if (value >= 0.00000000001 && value < 0.00000000009) {
+    value = formatNumber(value, 14 + decimal_inc);
+  } else if (value >= 0.000000000001 && value < 0.000000000009) {
+    value = formatNumber(value, 15 + decimal_inc);
   }
   return value;
 }
