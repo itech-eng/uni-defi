@@ -49,6 +49,7 @@ const AddLiquiditySection = () => {
     isCoinSelected,
     isPoolFeeSelected,
     isAllSelected,
+    handleClearAll,
   } = useAddLiquidity();
   return (
     <div className="flex flex-col container mt-36 rounded-xl max-w-2xl border border-slate-800 py-6  ">
@@ -58,7 +59,9 @@ const AddLiquiditySection = () => {
           onClick={() => router.back()}
         />
         <h1 className="text-xl text-white  font-bold ">Add Liquidity</h1>
-        <div className="text-xs text-slate-400">Clear All</div>
+        <div className="text-xs text-slate-400" onClick={handleClearAll}>
+          Clear All
+        </div>
       </div>
       <form onSubmit={handleAddLiquidity} className="w-full">
         <div>

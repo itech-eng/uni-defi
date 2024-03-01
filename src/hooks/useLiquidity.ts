@@ -9,8 +9,8 @@ export const useAddLiquidity = () => {
   const [preview, setPreview] = useState(false);
   const [fromCoin, setFromCoin] = useState<CoinData>(null);
   const [toCoin, setToCoin] = useState<CoinData>(null);
-  const [fromDepositAmount, setFromDepositAmount] = useState<number>(0);
-  const [toDepositAmount, setToDepositAmount] = useState<number>(0);
+  const [fromDepositAmount, setFromDepositAmount] = useState("");
+  const [toDepositAmount, setToDepositAmount] = useState("");
   const [lowPrice, setLowPrice] = useState("");
   const [highPrice, setHighPrice] = useState("");
   const [selectedFee, setSelectedFee] = useState(null);
@@ -26,10 +26,19 @@ export const useAddLiquidity = () => {
     block_number,
   } = useSelector((state: IRootState) => state.wallet);
 
-  const handleAssistantionMessageCheckings = () => {
-    // setAssistanceMessage(e.target.value);
+  const handleAssistantionMessageCheckings = () => {};
+  const handleClearAll = () => {
+    setPreview(false);
+    setFromCoin(null);
+    setToCoin(null);
+    setFromDepositAmount("");
+    setToDepositAmount("");
+    setLowPrice("");
+    setHighPrice("");
+    setSelectedFee(null);
+    setSelectedCoin("");
+    setAssistanceMessage("");
   };
-
   useEffect(() => {
     handleAssistantionMessageCheckings();
   }, [
@@ -90,11 +99,11 @@ export const useAddLiquidity = () => {
   };
 
   const handleFromDepositAmountChange = (value) => {
-    setFromDepositAmount(Number(value));
+    setFromDepositAmount(value);
   };
 
   const handleToDepositAmountChange = (value) => {
-    setToDepositAmount(Number(value));
+    setToDepositAmount(value);
   };
 
   const handleHighPriceIncrease = () => {};
@@ -147,5 +156,6 @@ export const useAddLiquidity = () => {
     isCoinSelected,
     isPoolFeeSelected,
     isAllSelected,
+    handleClearAll,
   };
 };
