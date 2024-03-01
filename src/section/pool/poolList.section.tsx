@@ -1,5 +1,6 @@
 "use client";
 import { PoolFeeText } from "@/src/utils/coreconstants";
+import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
 import { getPositions } from "@/src/utils/uniswap/liquidity";
 import { IRootState } from "@/store";
 import { Plus, Rows3 } from "lucide-react";
@@ -18,6 +19,7 @@ const PoolListSection = () => {
       const positions = await getPositions();
       setPositions(positions);
       setLoading(false);
+      console.log(positions, "positions");
     } catch (error) {
       setLoading(false);
     }
@@ -50,12 +52,12 @@ const PoolListSection = () => {
                 <div className="flex items-center mb-2">
                   <div className="relative">
                     <img
-                      src={position.token0.icon}
+                      src={COIN_BAISC_DATA[position.token0.symbol].icon}
                       className="h-7 w-7 ml-[20] rounded-full"
                       alt=""
                     />
                     <img
-                      src={position.token1.icon}
+                      src={COIN_BAISC_DATA[position.token1.symbol].icon}
                       className="h-7 w-7 top-0 absolute left-2  rounded-full"
                       alt=""
                     />
