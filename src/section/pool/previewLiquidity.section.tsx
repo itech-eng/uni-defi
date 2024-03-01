@@ -24,6 +24,8 @@ const PreviewLiquidity = ({
   setSelectedCoin,
   lowPrice,
   highPrice,
+  firstCoin,
+  secondCoin,
 }: {
   openStatus: boolean;
   setOpenStatus: any;
@@ -32,11 +34,13 @@ const PreviewLiquidity = ({
   fromAmount: string;
   toAmount: string;
   confirmSwap: () => void;
-  handleSwapCoin: (fromCoin: CoinData, toCoin: CoinData) => void;
   selectedCoin: string;
   setSelectedCoin: any;
   lowPrice: string;
   highPrice: string;
+  firstCoin: CoinData;
+  secondCoin: CoinData;
+  handleSwapCoin: () => void;
 }) => {
   return (
     <Dialog open={openStatus}>
@@ -115,34 +119,34 @@ const PreviewLiquidity = ({
           <div className="flex items-center gap-2">
             <div className="text-xs text-slate-400" />
 
-            {fromCoin?.token_info.symbol && (
+            {firstCoin && (
               <div
                 className={`text-xs cursor-pointer text-slate-400 px-2 py-1 rounded-md border border-slate-800 ${
-                  selectedCoin === fromCoin?.token_info.symbol
+                  selectedCoin === firstCoin.token_info.symbol
                     ? "border border-white text-white"
                     : ""
                 }`}
                 onClick={() => {
-                  handleSwapCoin(fromCoin, toCoin);
-                  setSelectedCoin(fromCoin?.token_info.symbol);
+                  handleSwapCoin();
+                  setSelectedCoin(firstCoin.token_info.symbol);
                 }}
               >
-                {fromCoin?.token_info.symbol}
+                {firstCoin.token_info.symbol}
               </div>
             )}
-            {toCoin?.token_info.symbol && (
+            {secondCoin && (
               <div
                 className={`text-xs cursor-pointer text-slate-400 px-2 py-1 rounded-md border border-slate-800 ${
-                  selectedCoin === toCoin?.token_info.symbol
+                  selectedCoin === secondCoin.token_info.symbol
                     ? "border border-white text-white"
                     : ""
                 }`}
                 onClick={() => {
-                  handleSwapCoin(toCoin, fromCoin);
-                  setSelectedCoin(toCoin?.token_info.symbol);
+                  handleSwapCoin();
+                  setSelectedCoin(secondCoin.token_info.symbol);
                 }}
               >
-                {toCoin?.token_info.symbol}
+                {secondCoin.token_info.symbol}
               </div>
             )}
           </div>

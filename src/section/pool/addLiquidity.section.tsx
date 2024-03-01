@@ -6,6 +6,7 @@ import { PoolFeeText } from "@/src/utils/coreconstants";
 import { Button } from "@/src/components/ui/button";
 import PreviewLiquidity from "./previewLiquidity.section";
 import { useAddLiquidity } from "@/src/hooks/useLiquidity";
+import LoadingModal from "@/src/components/loader/loader.section";
 
 const AddLiquiditySection = () => {
   const {
@@ -106,7 +107,7 @@ const AddLiquiditySection = () => {
                   &#10003;
                 </span>
               )}
-              <h1 className="text-base font-medium">{PoolFeeText[fees]}</h1>
+              <h1 className="text-base font-medium">{PoolFeeText[fees]}%</h1>
               <p className="text-xs text-slate-400">Best for stable pairs</p>
               <div className="text-sm ">0% Select</div>
             </div>
@@ -159,6 +160,7 @@ const AddLiquiditySection = () => {
                 )}
               </div>
             </div>
+            <LoadingModal openStatus={false} setOpenStatus={() => {}} />
             <div className="grid w-full items-center gap-4 mb-4">
               <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
                 <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
@@ -352,6 +354,8 @@ const AddLiquiditySection = () => {
           setSelectedCoin={setSelectedCoin}
           lowPrice={lowPrice}
           highPrice={highPrice}
+          firstCoin={firstCoin}
+          secondCoin={secondCoin}
         />
         {!walletAddress ? (
           <Button
