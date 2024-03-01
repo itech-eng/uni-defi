@@ -1,26 +1,30 @@
 "use client";
+import { PoolFeeText } from "@/src/utils/coreconstants";
 import { getPositions } from "@/src/utils/uniswap/liquidity";
-import { Plus } from "lucide-react";
+import { IRootState } from "@/store";
+import { Plus, Rows3 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
 
 const PoolListSection = () => {
   const [positions, setPositions] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const { wallet_address: walletAddress } = useSelector(
+    (state: IRootState) => state.wallet,
+  );
   const handlePositionList = async () => {
     try {
       const positions = await getPositions();
       setPositions(positions);
       setLoading(false);
-      console.log("positions: ", positions);
     } catch (error) {
-      console.log("error: ", error);
       setLoading(false);
     }
   };
   useEffect(() => {
     handlePositionList();
-  }, []);
+  }, [walletAddress]);
   return (
     <div className="container text-white mt-36 px-72">
       <div className="flex justify-between items-center mb-6">
@@ -38,32 +42,44 @@ const PoolListSection = () => {
       ) : (
         <div className="border border-slate-800 rounded-lg py-4  flex flex-col">
           <div className="mb-4 border-b border-slate-800 pb-4 px-4">
-            <h2 className="text-lg font-bold">Position Details</h2>
+            <h2 className="text-xs ">Your positions ({positions.length})</h2>
           </div>
           {positions.map((position) => (
             <div className="flex flex-row items-center justify-between px-4">
               <div className="">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 rounded-full mr-4 bg-primary"></div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-medium text-white">
+                <div className="flex items-center mb-2">
+                  <div className="relative">
+                    <img
+                      src={position.token0.icon}
+                      className="h-7 w-7 ml-[20] rounded-full"
+                      alt=""
+                    />
+                    <img
+                      src={position.token1.icon}
+                      className="h-7 w-7 top-0 absolute left-2  rounded-full"
+                      alt=""
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 ml-5">
+                    <h3 className="text-[16px] font-medium text-white">
                       {position.token0.symbol} / {position.token1.symbol}
                     </h3>
-                    <span className="text-sm text-gray-200">
-                      {position.fee}%
+                    <span className="text-sm text-gray-400">
+                      {PoolFeeText[position.fee]}%
                     </span>
                   </div>
                 </div>
 
-                <div>
-                  <span className="font-bold mr-2 text-gray-500">
+                <div className="text-[14px]">
+                  <span className=" mr-2 text-gray-500">
                     Min:{" "}
                     <span className="text-white">
                       {position.minPrice} {position.token0.symbol} per{" "}
                       {position.token1.symbol}
                     </span>
                   </span>
-                  <span className="font-bold text-gray-500 ">
+                  ... {"  "}
+                  <span className=" text-gray-500 ">
                     Max:{" "}
                     <span className="text-white">
                       {position.maxPrice} {position.token0.symbol} per{" "}
@@ -79,6 +95,12 @@ const PoolListSection = () => {
               </div>
             </div>
           ))}
+          {positions.length === 0 && (
+            <div className="text-center mt-4 text-gray-500">
+              <Rows3 className="h-20 w-20 mx-auto" />
+              <span className="">No positions to show</span>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { PoolFeeText } from "@/src/utils/coreconstants";
 import { Button } from "@/src/components/ui/button";
 import PreviewLiquidity from "./previewLiquidity.section";
+import { useRouter } from "next/navigation";
 
 const AddLiquiditySection = () => {
   const [preview, setPreview] = useState(false);
@@ -54,7 +55,7 @@ const AddLiquiditySection = () => {
     selectedFee,
     selectedCoin,
   ]);
-
+  const router = useRouter();
   const handleConnectWallet = () => {
     try {
       dispatch(setWallet<walletSliceType>({ open_wallet_sidebar: true }));
@@ -109,7 +110,10 @@ const AddLiquiditySection = () => {
   return (
     <div className="flex flex-col container mt-36 rounded-xl max-w-2xl border border-slate-800 py-6  ">
       <div className="flex items-center justify-between mb-6">
-        <ArrowLeft className="text-white text-2xl " />
+        <ArrowLeft
+          className="text-white text-2xl "
+          onClick={() => router.back()}
+        />
         <h1 className="text-xl text-white  font-bold ">Add Liquidity</h1>
         <div className="text-xs text-slate-400">Clear All</div>
       </div>
