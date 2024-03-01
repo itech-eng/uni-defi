@@ -59,7 +59,10 @@ const AddLiquiditySection = () => {
           onClick={() => router.back()}
         />
         <h1 className="text-xl text-white  font-bold ">Add Liquidity</h1>
-        <div className="text-xs text-slate-400" onClick={handleClearAll}>
+        <div
+          className="text-xs text-slate-400 cursor-pointer"
+          onClick={handleClearAll}
+        >
           Clear All
         </div>
       </div>
