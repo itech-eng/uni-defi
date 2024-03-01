@@ -19,11 +19,13 @@ const SelectCoinSection = ({
   setCoin,
   handleConnectWallet,
   walletAddress,
+  setSecondarayCoin,
 }: {
   coin: CoinData;
   setCoin: (coin: CoinData) => void;
   handleConnectWallet: () => void;
   walletAddress: string;
+  setSecondarayCoin?: (coin: CoinData) => void;
 }) => {
   const [open, setOpen] = useState(false);
   const { chain_id } = useSelector((state: IRootState) => state.wallet);
@@ -37,6 +39,7 @@ const SelectCoinSection = ({
 
   const handleCoinSelect = (coin: CoinData) => {
     setCoin(coin);
+    setSecondarayCoin && setSecondarayCoin(coin);
     setOpen(false);
   };
 

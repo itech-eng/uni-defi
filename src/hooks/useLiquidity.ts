@@ -14,6 +14,8 @@ export const useAddLiquidity = () => {
   const [lowPrice, setLowPrice] = useState("");
   const [highPrice, setHighPrice] = useState("");
   const [selectedFee, setSelectedFee] = useState(null);
+  const [firstCoin, setFirstCoin] = useState<CoinData>();
+  const [secondCoin, setSecondCoin] = useState<CoinData>();
   const [selectedCoin, setSelectedCoin] = useState<string>();
   const [assistanceMessage, setAssistanceMessage] = useState<string>(
     "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Eligendi,perferendis fuga deserunt officiis eum eveniet consectetur ab quos expedita provident quaerat veritatis neque excepturi sed natus.Officia sunt nostrum suscipit.",
@@ -71,10 +73,15 @@ export const useAddLiquidity = () => {
     }
   };
 
-  const handleSwapCoin = (from, to) => {
-    setFromCoin(from);
-    setToCoin(to);
+  const handleSwapCoin = () => {
+    const temp = fromCoin;
+    setFromCoin(toCoin);
+    setToCoin(temp);
+    const tempAmount = fromDepositAmount;
+    setFromDepositAmount(toDepositAmount);
+    setToDepositAmount(tempAmount);
   };
+
 
   const handleAddLiquidity = (e) => {
     e.preventDefault();
@@ -157,5 +164,9 @@ export const useAddLiquidity = () => {
     isPoolFeeSelected,
     isAllSelected,
     handleClearAll,
+    firstCoin,
+    setFirstCoin,
+    secondCoin,
+    setSecondCoin,
   };
 };

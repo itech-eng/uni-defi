@@ -47,7 +47,7 @@ const PoolListSection = () => {
             <h2 className="text-xs ">Your positions ({positions.length})</h2>
           </div>
           {positions.map((position) => (
-            <div className="flex flex-row items-center justify-between px-4">
+            <div className="flex rounded-lg py-5 flex-row items-center justify-between px-4">
               <div className="">
                 <div className="flex items-center mb-2">
                   <div className="relative">
@@ -91,8 +91,13 @@ const PoolListSection = () => {
                 </div>
               </div>
               <div>
-                <span className="font-bold mr-2 text-green-300">
-                  {position.inRange ? "In Range" : "Out of Range"}
+                <span className="font-medium text-[14px] text-gray-400 mr-2">
+                  {position.inRange && !closed ? (
+                    <span className="text-green-500">In Range</span>
+                  ) : (
+                    <span className="text-red-500">Out of Range</span>
+                  )}
+                  {closed && <span className="text-red-500">Closed</span>}
                 </span>
               </div>
             </div>
