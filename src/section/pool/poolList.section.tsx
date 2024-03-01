@@ -11,22 +11,22 @@ import { useSelector } from "react-redux";
 const PoolListSection = () => {
   const [positions, setPositions] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const { wallet_address: walletAddress } = useSelector(
+  const { wallet_address: walletAddress, chain_id } = useSelector(
     (state: IRootState) => state.wallet,
   );
   const handlePositionList = async () => {
     try {
+      setLoading(true);
       const positions = await getPositions();
       setPositions(positions);
       setLoading(false);
-      console.log(positions, "positions");
     } catch (error) {
       setLoading(false);
     }
   };
   useEffect(() => {
     handlePositionList();
-  }, [walletAddress]);
+  }, [walletAddress, chain_id]);
   return (
     <div className="container text-white mt-36 px-72">
       <div className="flex justify-between items-center mb-6">
@@ -95,9 +95,10 @@ const PoolListSection = () => {
                   {position.inRange && !closed ? (
                     <span className="text-green-500">In Range</span>
                   ) : (
-                    <span className="text-red-500">Out of Range</span>
+                    <span className="text-red-500">
+                      {closed ? "Closed" : "Out of Range"}
+                    </span>
                   )}
-                  {closed && <span className="text-red-500">Closed</span>}
                 </span>
               </div>
             </div>

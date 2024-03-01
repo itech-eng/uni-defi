@@ -92,7 +92,7 @@ const AddLiquiditySection = () => {
           </div>
         </div>
         <div
-          className={`grid grid-cols-3 gap-4 mt-4 ${!isCoinSelected && "pointer-events-none opacity-50"}`}
+          className={`grid cursor-pointer grid-cols-3 gap-4 mt-4 ${!isCoinSelected && "pointer-events-none opacity-50"}`}
         >
           {POOL_FEES.map((fees) => (
             <div
