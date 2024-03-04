@@ -182,7 +182,7 @@ export async function getConvertedAmountNew(
   );
 
   return {
-    converted_amount: beautifyNumber(Number(outAmount)),
+    converted_amount: Number(outAmount),
     raw_conv_amount,
     pool_fee: pools[0].fee,
     path: encodedPath,

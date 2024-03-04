@@ -279,12 +279,12 @@ export function formatNumber(
 export function beautifyNumber(
   value: number | string,
   non_zero_decimal = 4,
-): number {
+): string {
   value = Number(value);
   const decimal_inc = non_zero_decimal - 4;
   const right_number = String(value).split(".")[1];
   if (right_number && right_number[0] == "9") {
-    return Math.ceil(value);
+    return String(Math.ceil(value));
   }
 
   if (value >= 100) {
@@ -314,7 +314,7 @@ export function beautifyNumber(
   } else if (value >= 0.000000000001 && value < 0.00000000001) {
     value = formatNumber(value, 15 + decimal_inc);
   }
-  return value;
+  return noExponents(value);
 }
 
 export function decodeMulticall(abi: ReadonlyArray<any>, calls: string[]) {

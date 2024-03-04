@@ -10,6 +10,7 @@ import { getPoolInfo } from "./pool";
 import { NetworkData } from "../types";
 import { EVM_NATIVE_DECIMAL } from "../network/coin-data";
 import { FeeAmount, TICK_SPACINGS } from "@uniswap/v3-sdk";
+import { INFINITY_TEXT, LIQUIDITY_PRICE_RANGE } from "../coreconstants";
 
 export async function getPrice(params: {
   fromToken: Token;
