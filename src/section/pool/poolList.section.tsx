@@ -1,7 +1,8 @@
 "use client";
-import { PoolFeeText } from "@/src/utils/coreconstants";
+import { INFINITY_TEXT, PoolFeeText } from "@/src/utils/coreconstants";
+import { beautifyNumber } from "@/src/utils/corefunctions";
 import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
-import { getPositions } from "@/src/utils/uniswap/liquidity";
+import { PositionInfo, getPositions } from "@/src/utils/uniswap/liquidity";
 import { IRootState } from "@/store";
 import { Plus, Rows3 } from "lucide-react";
 import Link from "next/link";
@@ -9,7 +10,7 @@ import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 
 const PoolListSection = () => {
-  const [positions, setPositions] = React.useState([]);
+  const [positions, setPositions] = React.useState<PositionInfo[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { wallet_address: walletAddress, chain_id } = useSelector(
     (state: IRootState) => state.wallet,
@@ -17,7 +18,7 @@ const PoolListSection = () => {
   const handlePositionList = async () => {
     try {
       setLoading(true);
-      const positions = await getPositions();
+      const positions = walletAddress ? await getPositions() : [];
       setPositions(positions);
       setLoading(false);
     } catch (error) {
@@ -46,8 +47,11 @@ const PoolListSection = () => {
           <div className="mb-4 border-b border-slate-800 pb-4 px-4">
             <h2 className="text-xs ">Your positions ({positions.length})</h2>
           </div>
-          {positions.map((position) => (
-            <div className="flex rounded-lg py-5 flex-row items-center justify-between px-4">
+          {positions.map((position, idx) => (
+            <div
+              key={idx}
+              className="flex rounded-lg py-5 flex-row items-center justify-between px-4"
+            >
               <div className="">
                 <div className="flex items-center mb-2">
                   <div className="relative">
@@ -76,28 +80,30 @@ const PoolListSection = () => {
                   <span className=" mr-2 text-gray-500">
                     Min:{" "}
                     <span className="text-white">
-                      {position.minPrice} {position.token0.symbol} per{" "}
-                      {position.token1.symbol}
+                      {beautifyNumber(position.minPrice)}{" "}
+                      {position.token1.symbol} per {position.token0.symbol}
                     </span>
                   </span>
                   ... {"  "}
                   <span className=" text-gray-500 ">
                     Max:{" "}
                     <span className="text-white">
-                      {position.maxPrice} {position.token0.symbol} per{" "}
-                      {position.token1.symbol}
+                      {position.maxPrice != INFINITY_TEXT
+                        ? beautifyNumber(position.maxPrice)
+                        : position.maxPrice}{" "}
+                      {position.token1.symbol} per {position.token0.symbol}
                     </span>
                   </span>
                 </div>
               </div>
               <div>
                 <span className="font-medium text-[14px] text-gray-400 mr-2">
-                  {position.inRange && !closed ? (
+                  {position.closed ? (
+                    <span className="text-grey-500">Closed</span>
+                  ) : position.inRange ? (
                     <span className="text-green-500">In Range</span>
                   ) : (
-                    <span className="text-red-500">
-                      {closed ? "Closed" : "Out of Range"}
-                    </span>
+                    <span className="text-yellow-500">Out of Range</span>
                   )}
                 </span>
               </div>
