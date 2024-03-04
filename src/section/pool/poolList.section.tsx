@@ -1,7 +1,8 @@
 "use client";
-import { PoolFeeText } from "@/src/utils/coreconstants";
+import { INFINITY_TEXT, PoolFeeText } from "@/src/utils/coreconstants";
+import { beautifyNumber } from "@/src/utils/corefunctions";
 import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
-import { getPositions } from "@/src/utils/uniswap/liquidity";
+import { PositionInfo, getPositions } from "@/src/utils/uniswap/liquidity";
 import { IRootState } from "@/store";
 import { Plus, Rows3 } from "lucide-react";
 import Link from "next/link";
@@ -9,7 +10,7 @@ import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 
 const PoolListSection = () => {
-  const [positions, setPositions] = React.useState([]);
+  const [positions, setPositions] = React.useState<PositionInfo[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { wallet_address: walletAddress, chain_id } = useSelector(
     (state: IRootState) => state.wallet,
@@ -17,7 +18,7 @@ const PoolListSection = () => {
   const handlePositionList = async () => {
     try {
       setLoading(true);
-      const positions = await getPositions();
+      const positions = walletAddress ? await getPositions() : [];
       setPositions(positions);
       console.log(positions, "positions");
       setLoading(false);
@@ -48,48 +49,42 @@ const PoolListSection = () => {
           <div className="mb-4 border-b border-slate-800 pb-4 px-4">
             <h2 className="text-xs ">Your positions ({positions.length})</h2>
           </div>
-          {positions.map((position) => (
-            <Link href={`/pool/${position.tokenId}`}>
-              <div className="flex py-5 flex-row items-center justify-between px-4 hover:bg-slate-900 cursor-pointer">
-                <div className="">
-                  <div className="flex items-center mb-2">
-                    <div className="relative">
-                      <img
-                        src={COIN_BAISC_DATA[position.token0.symbol].icon}
-                        className="h-7 w-7 ml-[20] rounded-full"
-                        alt=""
-                      />
-                      <img
-                        src={COIN_BAISC_DATA[position.token1.symbol].icon}
-                        className="h-7 w-7 top-0 absolute left-2  rounded-full"
-                        alt=""
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 ml-5">
-                      <h3 className="text-[16px] sm:text-[14px] font-medium text-white">
-                        {position.token0.symbol} / {position.token1.symbol}
-                      </h3>
-                      <span className="text-sm sm:text-xs text-gray-400">
-                        {PoolFeeText[position.fee]}%
-                      </span>
-                    </div>
+          {positions.map((position, idx) => (
+            <div
+              key={idx}
+              className="flex rounded-lg py-5 flex-row items-center justify-between px-4"
+            >
+              <div className="">
+                <div className="flex items-center mb-2">
+                  <div className="relative">
+                    <img
+                      src={COIN_BAISC_DATA[position.token0.symbol].icon}
+                      className="h-7 w-7 ml-[20] rounded-full"
+                      alt=""
+                    />
+                    <img
+                      src={COIN_BAISC_DATA[position.token1.symbol].icon}
+                      className="h-7 w-7 top-0 absolute left-2  rounded-full"
+                      alt=""
+                    />
                   </div>
 
-                  <div className="text-[14px] sm:text-[12px]">
-                    <span className=" mr-2 text-gray-500">
-                      Min:{" "}
-                      <span className="text-white">
-                        {position.minPrice} {position.token0.symbol} per{" "}
-                        {position.token1.symbol}
-                      </span>
+                <div className="text-[14px]">
+                  <span className=" mr-2 text-gray-500">
+                    Min:{" "}
+                    <span className="text-white">
+                      {beautifyNumber(position.minPrice)}{" "}
+                      {position.token1.symbol} per {position.token0.symbol}
                     </span>
-                    ... {"  "}
-                    <span className=" text-gray-500 ">
-                      Max:{" "}
-                      <span className="text-white">
-                        {position.maxPrice} {position.token0.symbol} per{" "}
-                        {position.token1.symbol}
-                      </span>
+                  </span>
+                  ... {"  "}
+                  <span className=" text-gray-500 ">
+                    Max:{" "}
+                    <span className="text-white">
+                      {position.maxPrice != INFINITY_TEXT
+                        ? beautifyNumber(position.maxPrice)
+                        : position.maxPrice}{" "}
+                      {position.token1.symbol} per {position.token0.symbol}
                     </span>
                   </div>
                 </div>
@@ -105,7 +100,18 @@ const PoolListSection = () => {
                   </span>
                 </div>
               </div>
-            </Link>
+              <div>
+                <span className="font-medium text-[14px] text-gray-400 mr-2">
+                  {position.closed ? (
+                    <span className="text-grey-500">Closed</span>
+                  ) : position.inRange ? (
+                    <span className="text-green-500">In Range</span>
+                  ) : (
+                    <span className="text-yellow-500">Out of Range</span>
+                  )}
+                </span>
+              </div>
+            </div>
           ))}
           {positions.length === 0 && (
             <div className="text-center mt-4 text-gray-500">
