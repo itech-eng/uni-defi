@@ -3,12 +3,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getPositionInfo } from "../utils/uniswap/liquidity";
 
-const usePoolDetails = () => {
+const useIncreaseLiquidity = () => {
   const [selectedCoin, setSelectedCoin] = useState<string>();
   const { tokenId } = useParams<{ tokenId: string }>();
   const [token0, setToken0] = useState<any>(null);
   const [token1, setToken1] = useState<any>(null);
-  console.log(tokenId, "params");
   const [positionDetails, setPositionDetails] = useState<any>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -45,7 +44,6 @@ const usePoolDetails = () => {
     secondCoin,
     selectedCoin,
     setSelectedCoin,
-    tokenId,
   };
 };
-export default usePoolDetails;
+export default useIncreaseLiquidity;
