@@ -11,7 +11,7 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { ArrowDown } from "lucide-react";
 import useSwapSection from "@/src/hooks/useSwap";
-import SelectCoinSection from "./selectCoin.section";
+import SelectCoinSection from "../global/selectCoin.section";
 import ConfirmSwapSection from "./confirmSwap.section";
 
 const SwapSection = () => {

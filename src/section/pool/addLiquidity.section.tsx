@@ -1,15 +1,24 @@
 import React from "react";
-import SelectCoinSection from "../swap/selectCoin.section";
+import SelectCoinSection from "../global/selectCoin.section";
 import { POOL_FEES } from "@/src/utils/corearrays";
 import { ArrowLeft } from "lucide-react";
-import { PoolFeeText } from "@/src/utils/coreconstants";
+import {
+  INFINITY_TEXT,
+  LIQUIDITY_PRICE_RANGE,
+  PoolFeeText,
+} from "@/src/utils/coreconstants";
 import { Button } from "@/src/components/ui/button";
 import PreviewLiquidity from "./previewLiquidity.section";
-import { useAddLiquidity } from "@/src/hooks/useLiquidity";
+import { useAddLiquidity } from "@/src/hooks/useAddLiquidity";
 import LoadingModal from "@/src/components/loader/loader.section";
+import { beautifyNumber, noExponents } from "@/src/utils/corefunctions";
 
 const AddLiquiditySection = () => {
   const {
+    pool,
+    price,
+    handlePriceSet,
+    formReady,
     preview,
     setPreview,
     fromCoin,
@@ -17,9 +26,13 @@ const AddLiquiditySection = () => {
     toCoin,
     setToCoin,
     fromDepositAmount,
-    setFromDepositAmount,
     toDepositAmount,
-    setToDepositAmount,
+    fromBalance,
+    fromAmountError,
+    toBalance,
+    toAmountError,
+    fromDepositShow,
+    toDepositShow,
     lowPrice,
     setLowPrice,
     highPrice,
@@ -28,14 +41,14 @@ const AddLiquiditySection = () => {
     setSelectedFee,
     selectedCoin,
     setSelectedCoin,
-    assistanceMessage,
-    setAssistanceMessage,
+    assistMessage,
+    setAssistMessage,
     walletAddress,
     chain_id,
     block_number,
     router,
     handleConnectWallet,
-    handleSwapCoin,
+    handleSwitchCoins,
     handleAddLiquidity,
     handleFullRange,
     handleLowPriceChange,
@@ -56,6 +69,22 @@ const AddLiquiditySection = () => {
     secondCoin,
     setSecondCoin,
   } = useAddLiquidity();
+
+  const renederRangePrice = (price: string): string => {
+    if (!selectedFee) return price;
+    if (price == String(LIQUIDITY_PRICE_RANGE[selectedFee].min_price)) {
+      return "0";
+    } else if (price == String(LIQUIDITY_PRICE_RANGE[selectedFee].max_price)) {
+      return INFINITY_TEXT;
+    }
+    return price ? noExponents(beautifyNumber(price)) : price;
+  };
+
+  const renederDepositAmount = (amount: string): string => {
+    return amount;
+    // return amount ? noExponents(beautifyNumber(amount)) : amount;
+  };
+
   return (
     <div className="flex flex-col container mt-36 rounded-xl max-w-2xl border border-slate-800 py-6  ">
       <div className="flex items-center justify-between mb-6">
@@ -94,20 +123,20 @@ const AddLiquiditySection = () => {
         <div
           className={`grid cursor-pointer grid-cols-3 gap-4 mt-4 ${!isCoinSelected && "pointer-events-none opacity-50"}`}
         >
-          {POOL_FEES.map((fees) => (
+          {POOL_FEES.map((fee, idx) => (
             <div
-              key={fees}
-              className={`text-white flex flex-col gap-2 border border-slate-800 p-4 rounded-md relative ${selectedFee === fees ? "border-purple-500" : ""}`}
+              key={idx}
+              className={`text-white flex flex-col gap-2 border border-slate-800 p-4 rounded-md relative ${selectedFee === fee ? "border-purple-500" : ""}`}
               onClick={() => {
-                handleFeeSelection(fees);
+                handleFeeSelection(fee);
               }}
             >
-              {selectedFee === fees && (
+              {selectedFee === fee && (
                 <span className="absolute top-0 right-0 h-6 w-6 flex items-center justify-center bg-primary rounded-full text-white">
                   &#10003;
                 </span>
               )}
-              <h1 className="text-base font-medium">{PoolFeeText[fees]}%</h1>
+              <h1 className="text-base font-medium">{PoolFeeText[fee]}%</h1>
               <p className="text-xs text-slate-400">Best for stable pairs</p>
               <div className="text-sm ">0% Select</div>
             </div>
@@ -136,7 +165,7 @@ const AddLiquiditySection = () => {
                         : ""
                     }`}
                     onClick={() => {
-                      handleSwapCoin();
+                      handleSwitchCoins();
                       setSelectedCoin(firstCoin.token_info.symbol);
                     }}
                   >
@@ -151,7 +180,7 @@ const AddLiquiditySection = () => {
                         : ""
                     }`}
                     onClick={() => {
-                      handleSwapCoin();
+                      handleSwitchCoins();
                       setSelectedCoin(secondCoin.token_info.symbol);
                     }}
                   >
@@ -174,7 +203,7 @@ const AddLiquiditySection = () => {
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
                       id="youPay"
                       placeholder="0"
-                      value={lowPrice}
+                      value={renederRangePrice(lowPrice)}
                       onChange={(e) => handleLowPriceChange(e.target.value)}
                     />
                   </div>
@@ -194,7 +223,7 @@ const AddLiquiditySection = () => {
                   </div>
                 </div>
                 <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                  Uni per ETH
+                  {toCoin?.basic.code} per {fromCoin?.basic.code}
                 </label>
               </div>
             </div>
@@ -211,7 +240,7 @@ const AddLiquiditySection = () => {
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
                       id="youPay"
                       placeholder="0"
-                      value={highPrice}
+                      value={renederRangePrice(highPrice)}
                       onChange={(e) => handleHighPriceChange(e.target.value)}
                     />
                   </div>
@@ -231,33 +260,53 @@ const AddLiquiditySection = () => {
                   </div>
                 </div>
                 <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                  Uni per ETH
+                  {toCoin?.basic.code} per {fromCoin?.basic.code}
                 </label>
               </div>
             </div>
           </div>
-          <div className="w-full bg-primary/25 text-gray-500 text-xs mb-4 rounded-2xl p-3">
-            {assistanceMessage}
-          </div>
-          <div className="flex items-center justify-between text-white mb-6">
-            <div>
-              <h1 className="text-sm font-medium">Current Price</h1>
-              <p className="text-xl text-slate-400">0.00000000</p>
-              <h1 className="text-sm font-medium">Eth per dkf</h1>
-            </div>
-          </div>
-          <div className="flex items-center justify-between w-full text-white mb-6">
-            <div className="flex items-center justify-between w-full space-x-2 bg-slate-900 px-3 py-5 rounded-2xl">
-              <input type="text" className="bg-slate-950 text-white w-full " />
-            </div>
-          </div>
+          {pool
+            ? selectedFee && (
+                <div className="flex items-center justify-between text-white mb-6">
+                  <div>
+                    <h1 className="text-sm font-medium">Current Price</h1>
+                    <p className="text-xl text-slate-400">
+                      {beautifyNumber(price, 3)}
+                    </p>
+                    <h1 className="text-sm font-medium">
+                      {toCoin?.basic.code} per {fromCoin?.basic.code}
+                    </h1>
+                  </div>
+                </div>
+              )
+            : selectedFee && (
+                <div>
+                  <div className="w-full bg-primary/25 text-gray-500 text-xs mb-4 rounded-2xl p-3">
+                    This pool must be initialized before you can add liquidity.
+                    To initialize, select a starting price for the pool. Then,
+                    enter your liquidity price range and deposit amount. Gas
+                    fees will be higher than usual due to the initialization
+                    transaction.
+                    {/* {assistMessage} */}
+                  </div>
+                  <div className="flex items-center justify-between w-full text-white mb-6">
+                    <div className="flex items-center justify-between w-full space-x-2 bg-slate-900 px-3 py-5 rounded-2xl">
+                      <input
+                        type="text"
+                        className="bg-slate-950 text-white w-full "
+                        onChange={handlePriceSet}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
           <div className="my-2">
             <div className="flex items-center justify-between text-white mb-6">
               <h1 className="text-xs font-medium">Deposit Amount</h1>
             </div>
           </div>
           <div>
-            {fromCoin && (
+            {fromCoin && fromDepositShow && (
               <div className="grid w-full items-center gap-4 mb-4">
                 <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
                   <div className="flex items-center justify-between space-x-2 ">
@@ -265,17 +314,28 @@ const AddLiquiditySection = () => {
                       <input
                         type="text"
                         pattern="^[0-9]*[.,]?[0-9]*$"
-                        className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
+                        className={`flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 
+                        file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 
+                        focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 
+                        bg-transparent p-0 border ${
+                          fromAmountError ? "border-red-500" : "border-none"
+                        } text-white placeholder:text-gray-400 text-xl 
+                        placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none`}
                         id="youPay"
                         placeholder="0"
-                        value={fromDepositAmount}
+                        value={renederDepositAmount(fromDepositAmount)}
                         onChange={(e) =>
                           handleFromDepositAmountChange(e.target.value)
                         }
                       />
-                      <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
+                      {fromAmountError && (
+                        <p className="text-red-500 text-[10px] mt-1 mr-3">
+                          {fromAmountError}
+                        </p>
+                      )}
+                      {/* <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
                         -
-                      </label>
+                      </label> */}
                     </div>
                     <div className="flex flex-col items-end gap-2 space-y-1.5 text-white">
                       <div className="flex items-center space-x-2 bg-slate-800 rounded-full px-2 py-1">
@@ -287,17 +347,17 @@ const AddLiquiditySection = () => {
                         <h1>{fromCoin?.token_info?.symbol}</h1>
                       </div>
                       <div>
-                        <span>Balance : 0</span>
-                        <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
+                        <span>Balance: {beautifyNumber(fromBalance)}</span>
+                        {/* <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
                           Max
-                        </span>
+                        </span> */}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             )}
-            {toCoin && (
+            {toCoin && toDepositShow && (
               <div className="grid w-full items-center gap-4 mb-4">
                 <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
                   <div className="flex items-center justify-between space-x-2 ">
@@ -305,17 +365,28 @@ const AddLiquiditySection = () => {
                       <input
                         type="text"
                         pattern="^[0-9]*[.,]?[0-9]*$"
-                        className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
+                        className={`flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 
+                        file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 
+                        focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 
+                        bg-transparent p-0 border ${
+                          toAmountError ? "border-red-500" : "border-none"
+                        } text-white placeholder:text-gray-400 text-xl 
+                        placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none`}
                         id="youPay"
                         placeholder="0"
-                        value={toDepositAmount}
+                        value={renederDepositAmount(toDepositAmount)}
                         onChange={(e) =>
                           handleToDepositAmountChange(e.target.value)
                         }
                       />
-                      <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
+                      {toAmountError && (
+                        <p className="text-red-500 text-[10px] mt-1 mr-3">
+                          {toAmountError}
+                        </p>
+                      )}
+                      {/* <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
                         -
-                      </label>
+                      </label> */}
                     </div>
                     <div className="flex flex-col items-end gap-2 space-y-1.5 text-white">
                       <div className="flex items-center space-x-2 bg-slate-800 rounded-full px-2 py-1">
@@ -327,10 +398,10 @@ const AddLiquiditySection = () => {
                         <h1>{toCoin?.token_info?.symbol}</h1>
                       </div>
                       <div>
-                        <span>Balance : 0</span>
-                        <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
+                        <span>Balance: {beautifyNumber(toBalance)}</span>
+                        {/* <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
                           Max
-                        </span>
+                        </span> */}
                       </div>
                     </div>
                   </div>
@@ -339,6 +410,7 @@ const AddLiquiditySection = () => {
             )}
           </div>
         </div>
+
         <PreviewLiquidity
           openStatus={preview}
           setOpenStatus={setPreview}
@@ -349,7 +421,7 @@ const AddLiquiditySection = () => {
           confirmSwap={() => {
             setPreview(false);
           }}
-          handleSwapCoin={handleSwapCoin}
+          handleSwitchCoins={handleSwitchCoins}
           selectedCoin={selectedCoin}
           setSelectedCoin={setSelectedCoin}
           lowPrice={lowPrice}
@@ -367,7 +439,9 @@ const AddLiquiditySection = () => {
           </Button>
         ) : (
           <Button
-            className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"
+            disabled={!formReady}
+            className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold rounded-2xl 
+            w-full hover:text-white hover:bg-primary hover:border-primary"
             onClick={() => setPreview(true)}
           >
             Preview

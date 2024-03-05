@@ -19,7 +19,7 @@ const PreviewLiquidity = ({
   fromAmount,
   toAmount,
   confirmSwap,
-  handleSwapCoin,
+  handleSwitchCoins,
   selectedCoin,
   setSelectedCoin,
   lowPrice,
@@ -40,7 +40,7 @@ const PreviewLiquidity = ({
   highPrice: string;
   firstCoin: CoinData;
   secondCoin: CoinData;
-  handleSwapCoin: () => void;
+  handleSwitchCoins: () => void;
 }) => {
   return (
     <Dialog open={openStatus}>
@@ -127,7 +127,7 @@ const PreviewLiquidity = ({
                     : ""
                 }`}
                 onClick={() => {
-                  handleSwapCoin();
+                  handleSwitchCoins();
                   setSelectedCoin(firstCoin.token_info.symbol);
                 }}
               >
@@ -142,7 +142,7 @@ const PreviewLiquidity = ({
                     : ""
                 }`}
                 onClick={() => {
-                  handleSwapCoin();
+                  handleSwitchCoins();
                   setSelectedCoin(secondCoin.token_info.symbol);
                 }}
               >

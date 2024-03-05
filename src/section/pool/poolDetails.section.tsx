@@ -4,7 +4,7 @@ import { ArrowLeft, MoveHorizontal } from "lucide-react";
 
 import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
 import { PoolFeeText } from "@/src/utils/coreconstants";
-import { usePoolDetails } from "@/src/hooks/useLiquidity";
+import usePoolDetails from "@/src/hooks/useDetailsLiquidity";
 const PoolDetailsSection = () => {
   const {
     token0,

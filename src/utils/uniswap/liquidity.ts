@@ -320,17 +320,20 @@ export function getConvertedAmountForLiqDeposit(
 
   if (price_low == price_high) {
     //no deposit amount needed for coinA, coinB
-    throw new Error("No deposit allowed of any token for this price range");
+    // throw new Error("No deposit allowed of any token for this price range");
+    return { amountA: 0, amountB: 0 };
   } else if (price < price_low) {
     //no deposit amount needed for coinB
-    throw new Error(
-      `No deposit allowed of ${coinB.basic.code} for this price range`,
-    );
+    // throw new Error(
+    //   `No deposit allowed of ${coinB.basic.code} for this price range`,
+    // );
+    return { amountA, amountB: 0 };
   } else if (price > price_high) {
     //no deposit amount needed for coinA
-    throw new Error(
-      `No deposit allowed of ${coinA.basic.code} for this price range`,
-    );
+    // throw new Error(
+    //   `No deposit allowed of ${coinA.basic.code} for this price range`,
+    // );
+    return { amountA: 0, amountB };
   }
 
   if (!amountB) {
@@ -340,7 +343,6 @@ export function getConvertedAmountForLiqDeposit(
     // console.log('Liquidity: ', Liquidity);
 
     amountB = Liquidity * (Math.sqrt(price) - Math.sqrt(price_low));
-    amountB = beautifyNumber(amountB, 5);
   } else if (!amountA) {
     const Liquidity = amountB / (Math.sqrt(price) - Math.sqrt(price_low));
     // console.log('Liquidity: ', Liquidity);
@@ -349,10 +351,9 @@ export function getConvertedAmountForLiqDeposit(
       Liquidity /
       ((Math.sqrt(price) * Math.sqrt(price_high)) /
         (Math.sqrt(price_high) - Math.sqrt(price)));
-    amountA = beautifyNumber(amountA, 5);
   }
 
-  console.log("deposit amounts: ", { amountA, amountB });
+  // console.log("deposit amounts: ", { amountA, amountB });
   return { amountA, amountB };
 }
 
