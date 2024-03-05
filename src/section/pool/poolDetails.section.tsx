@@ -5,6 +5,7 @@ import { ArrowLeft, MoveHorizontal } from "lucide-react";
 import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
 import { PoolFeeText } from "@/src/utils/coreconstants";
 import usePoolDetails from "@/src/hooks/useDetailsLiquidity";
+import Link from "next/link";
 const PoolDetailsSection = () => {
   const {
     token0,
@@ -64,12 +65,16 @@ const PoolDetailsSection = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="px-3 rounded-3xl py-2 text-sm text-gray-400 border border-slate-800">
-                  Increase Liquidity
-                </div>
-                <div className="bg-primary px-3 rounded-3xl py-2 text-sm text-white font-bold">
-                  Remove Liquidity
-                </div>
+                <Link href={`/add/${token0?.symbol}`}>
+                  <div className="px-3 rounded-3xl py-2 text-sm text-gray-400 border border-slate-800">
+                    Increase Liquidity
+                  </div>
+                </Link>
+                <Link href={`/remove/${token0?.symbol}`}>
+                  <div className="bg-primary px-3 rounded-3xl py-2 text-sm text-white font-bold">
+                    Remove Liquidity
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
