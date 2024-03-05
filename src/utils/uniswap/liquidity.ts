@@ -120,8 +120,8 @@ export async function getPositionInfo(
   network_data = network_data ?? (await getNetworkData(provider));
 
   const positionContract = new ethers.Contract(
-    network_data.contract.nonfungible_position_manager.address,
-    NonfungiblePositionManagerABI.abi,
+    network_data?.contract.nonfungible_position_manager?.address,
+    NonfungiblePositionManagerABI?.abi,
     provider,
   );
 

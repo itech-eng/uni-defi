@@ -403,7 +403,7 @@ export async function getNetworkData(
 ): Promise<NetworkData> {
   provider = provider ?? getProvider();
   await sleep(200);
-  const network = CHAIN_SLUG_MAPPING[provider._network.chainId];
+  const network = CHAIN_SLUG_MAPPING[provider._network?.chainId];
   const network_data = NETWORK_DATA[network];
   return network_data;
 }
