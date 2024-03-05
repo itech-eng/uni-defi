@@ -7,6 +7,7 @@ import {
   calculatePercentRatio,
   convertCoinAmountToDecimal,
   convertCoinAmountToInt,
+  empty,
   formatNumber,
   getNetworkData,
   getTokenByAddress,
@@ -310,8 +311,12 @@ export function getConvertedAmountForLiqDeposit(
   amountA?: number,
   amountB?: number,
 ): { amountA: number; amountB: number } {
-  if (!amountA && !amountB) {
+  if (empty(amountA) && empty(amountB)) {
     throw new Error("amountA or amountB must required");
+  }
+
+  if (amountA == 0 || amountB == 0) {
+    return { amountA: 0, amountB: 0 };
   }
 
   const price = Number(priceAtoB);

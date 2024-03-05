@@ -56,7 +56,7 @@ const useSwapSection = () => {
     setFromBalance(toBalance);
     setToBalance(tempToBalance);
 
-    const tempToAmount = fromAmount;
+    // const tempToAmount = fromAmount;
     // setFromAmount(toAmount);
     // setToAmount(tempToAmount);
     resetAmounts();
@@ -69,8 +69,7 @@ const useSwapSection = () => {
         return;
       }
       if (amount === "" || amount === null) {
-        setFromAmount("");
-        setFromAmountError("");
+        resetAmounts();
       } else {
         const parsedAmount = parseFloat(amount);
         if (!isNaN(parsedAmount)) {
@@ -110,8 +109,7 @@ const useSwapSection = () => {
         return;
       }
       if (amount === "" || amount === null) {
-        setToAmount("");
-        setToAmountError("");
+        resetAmounts();
       } else {
         const parsedAmount = parseFloat(amount);
         if (!isNaN(parsedAmount)) {

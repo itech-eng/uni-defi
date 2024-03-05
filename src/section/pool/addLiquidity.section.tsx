@@ -77,7 +77,7 @@ const AddLiquiditySection = () => {
     } else if (price == String(LIQUIDITY_PRICE_RANGE[selectedFee].max_price)) {
       return INFINITY_TEXT;
     }
-    return price ? noExponents(beautifyNumber(price)) : price;
+    return price;
   };
 
   const renederDepositAmount = (amount: string): string => {
@@ -126,7 +126,8 @@ const AddLiquiditySection = () => {
           {POOL_FEES.map((fee, idx) => (
             <div
               key={idx}
-              className={`text-white flex flex-col gap-2 border border-slate-800 p-4 rounded-md relative ${selectedFee === fee ? "border-purple-500" : ""}`}
+              className={`text-white flex flex-col gap-2 border border-slate-800 p-4 
+              rounded-md relative ${selectedFee === fee ? "border-purple-500" : ""}`}
               onClick={() => {
                 handleFeeSelection(fee);
               }}
@@ -199,12 +200,17 @@ const AddLiquiditySection = () => {
                   <div className="flex flex-col items-end space-y-1.5">
                     <input
                       type="text"
-                      pattern="^[0-9]*[.,]?[0-9]*$"
+                      // pattern="^[0-9]*[.,]?[0-9]*$"
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
                       id="youPay"
                       placeholder="0"
                       value={renederRangePrice(lowPrice)}
-                      onChange={(e) => handleLowPriceChange(e.target.value)}
+                      onChange={(e) =>
+                        handleLowPriceChange(e.target.value, "change")
+                      }
+                      onBlur={(e) =>
+                        handleLowPriceChange(e.target.value, "blur")
+                      }
                     />
                   </div>
                   <div className="flex flex-col items-start space-y-1.5 text-white">
@@ -236,12 +242,17 @@ const AddLiquiditySection = () => {
                   <div className="flex flex-col items-end space-y-1.5">
                     <input
                       type="text"
-                      pattern="^[0-9]*[.,]?[0-9]*$"
+                      // pattern="^[0-9]*[.,]?[0-9]*$"
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
                       id="youPay"
                       placeholder="0"
                       value={renederRangePrice(highPrice)}
-                      onChange={(e) => handleHighPriceChange(e.target.value)}
+                      onChange={(e) =>
+                        handleHighPriceChange(e.target.value, "change")
+                      }
+                      onBlur={(e) =>
+                        handleHighPriceChange(e.target.value, "blur")
+                      }
                     />
                   </div>
                   <div className="flex flex-col items-start space-y-1.5 text-white">
@@ -281,7 +292,7 @@ const AddLiquiditySection = () => {
               )
             : selectedFee && (
                 <div>
-                  <div className="w-full bg-primary/25 text-gray-500 text-xs mb-4 rounded-2xl p-3">
+                  <div className="w-full bg-primary/50 text-white text-xs mb-4 rounded-2xl p-3">
                     This pool must be initialized before you can add liquidity.
                     To initialize, select a starting price for the pool. Then,
                     enter your liquidity price range and deposit amount. Gas
@@ -293,18 +304,31 @@ const AddLiquiditySection = () => {
                     <div className="flex items-center justify-between w-full space-x-2 bg-slate-900 px-3 py-5 rounded-2xl">
                       <input
                         type="text"
+                        placeholder="0"
                         className="bg-slate-950 text-white w-full "
                         onChange={handlePriceSet}
                       />
                     </div>
                   </div>
+                  <div className="flex justify-between w-full text-gray-400 mb-6">
+                    <div>Starting {fromCoin?.basic.code} Price:</div>
+                    {price ? (
+                      <div>
+                        {price} {toCoin?.basic.code} per {fromCoin?.basic.code}
+                      </div>
+                    ) : (
+                      <div>-</div>
+                    )}
+                  </div>
                 </div>
               )}
-          <div className="my-2">
-            <div className="flex items-center justify-between text-white mb-6">
-              <h1 className="text-xs font-medium">Deposit Amount</h1>
+          {(fromDepositShow || toDepositShow) && (
+            <div className="my-2">
+              <div className="flex items-center justify-between text-white mb-6">
+                <h1 className="text-xs font-medium">Deposit Amount</h1>
+              </div>
             </div>
-          </div>
+          )}
           <div>
             {fromCoin && fromDepositShow && (
               <div className="grid w-full items-center gap-4 mb-4">

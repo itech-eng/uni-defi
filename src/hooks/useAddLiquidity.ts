@@ -8,7 +8,13 @@ import { useRouter } from "next/navigation";
 import { getCoinBalance } from "../utils/eth/eth";
 import { PoolInfo, getPoolInfo } from "../utils/uniswap/pool";
 import { getProvider } from "../utils/wallet";
-import { getNetworkData, noExponents, sleep } from "../utils/corefunctions";
+import {
+  beautifyNumber,
+  empty,
+  getNetworkData,
+  noExponents,
+  sleep,
+} from "../utils/corefunctions";
 import { getPriceFromSqrtPx96, getTickFromPrice } from "../utils/uniswap/maths";
 import { getConvertedAmountForLiqDeposit } from "../utils/uniswap/liquidity";
 import { getTickNPrice } from "../utils/uniswap/helpers";
@@ -37,8 +43,8 @@ export const useAddLiquidity = () => {
 
   const [fromDepositAmount, setFromDepositAmount] = useState("");
   const [toDepositAmount, setToDepositAmount] = useState("");
-  const [fromDepositShow, setFromDepositShow] = useState(true);
-  const [toDepositShow, setToDepositShow] = useState(true);
+  const [fromDepositShow, setFromDepositShow] = useState(false);
+  const [toDepositShow, setToDepositShow] = useState(false);
   const [fromBalance, setFromBalance] = useState<string | number | null>(null);
   const [toBalance, setToBalance] = useState<string | number | null>(null);
   const [fromAmountError, setFromAmountError] = useState<string>("");
@@ -64,40 +70,65 @@ export const useAddLiquidity = () => {
     fetchAndSetBalance(toCoin, setToBalance);
   }, [block_number]);
 
+  // all dependencis
   useEffect(() => {
     // assistantMessage();
+
+    // console.log({
+    //   fromCoin,
+    //   toCoin,
+    //   selectedFee,
+    //   price,
+    //   tickLower,
+    //   tickUpper,
+    //   fromDepositAmount,
+    //   toDepositAmount,
+    //   fromAmountError,
+    //   toAmountError,
+    // });
+
     if (
       fromCoin &&
       toCoin &&
       selectedFee &&
       Number(price) &&
-      tickLower &&
-      tickUpper &&
-      fromDepositAmount &&
-      toDepositAmount &&
+      !empty(tickLower) &&
+      !empty(tickUpper) &&
+      (Number(fromDepositAmount) || Number(toDepositAmount)) &&
       !fromAmountError &&
       !toAmountError
     ) {
       setFormReady(true);
+    } else {
+      setFormReady(false);
     }
   }, [
-    selectedCoin,
-    assistMessage,
-    lowPrice,
-    highPrice,
-    selectedFee,
-    fromDepositAmount,
-    toDepositAmount,
     fromCoin,
     toCoin,
-    walletAddress,
-    chain_id,
-    block_number,
+    selectedCoin,
     selectedFee,
+    price,
+    lowPrice,
+    highPrice,
+    fromDepositAmount,
+    toDepositAmount,
   ]);
 
   useEffect(() => {
-    assistantMessage();
+    (async () => {
+      try {
+        await processPriceRangeCondition(tickUpper, tickLower);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+        });
+      }
+    })();
+  }, [tickLower, tickUpper]);
+
+  useEffect(() => {
+    // assistantMessage();
     if (Number(fromDepositAmount) > Number(fromBalance)) {
       setFromAmountError("Insufficient balance");
     } else {
@@ -112,11 +143,12 @@ export const useAddLiquidity = () => {
   }, [fromDepositAmount, toDepositAmount, walletAddress]);
 
   useEffect(() => {
+    clearData("coin_change");
     if (fromCoin) {
       if (
-        fromCoin.basic.code == toCoin?.basic.code ||
-        (fromCoin.is_native && toCoin?.is_native_wrap) ||
-        (fromCoin.is_native_wrap && toCoin?.is_native)
+        fromCoin?.basic.code == toCoin?.basic.code ||
+        (fromCoin?.is_native && toCoin?.is_native_wrap) ||
+        (fromCoin?.is_native_wrap && toCoin?.is_native)
       ) {
         setFromCoin(null);
         setFromBalance(null);
@@ -125,14 +157,16 @@ export const useAddLiquidity = () => {
       fetchAndSetBalance(fromCoin, setFromBalance);
       resetAmounts();
     }
+    processCoinToggleSection();
   }, [fromCoin]);
 
   useEffect(() => {
+    clearData("coin_change");
     if (toCoin) {
       if (
-        fromCoin.basic.code == toCoin?.basic.code ||
-        (fromCoin.is_native && toCoin?.is_native_wrap) ||
-        (fromCoin.is_native_wrap && toCoin?.is_native)
+        fromCoin?.basic.code == toCoin?.basic.code ||
+        (fromCoin?.is_native && toCoin?.is_native_wrap) ||
+        (fromCoin?.is_native_wrap && toCoin?.is_native)
       ) {
         setToCoin(null);
         setToBalance(null);
@@ -141,6 +175,7 @@ export const useAddLiquidity = () => {
       fetchAndSetBalance(toCoin, setToBalance);
       resetAmounts();
     }
+    processCoinToggleSection();
   }, [toCoin]);
   /*  */
 
@@ -163,16 +198,19 @@ export const useAddLiquidity = () => {
   };
 
   const clearData = (
-    action: "clear_all" | "fee_change" | "switch_coin" = "clear_all",
+    action: "clear_all" | "fee_change" | "coin_change" = "clear_all",
   ) => {
     if (action == "clear_all") {
       setFromCoin(null);
       setToCoin(null);
-
       setFirstCoin(null);
       setSecondCoin(null);
       setSelectedCoin(null);
+      setFromBalance("");
+      setToBalance("");
+    }
 
+    if (action == "clear_all" || action == "coin_change") {
       setSelectedFee(null);
     }
 
@@ -184,10 +222,8 @@ export const useAddLiquidity = () => {
     setTickLower(null);
     setTickUpper(null);
 
-    setFromDepositShow(true);
-    setToDepositShow(true);
-    setFromBalance("");
-    setToBalance("");
+    setFromDepositShow(false);
+    setToDepositShow(false);
     setFromDepositAmount("");
     setToDepositAmount("");
     setFromAmountError("");
@@ -220,6 +256,13 @@ export const useAddLiquidity = () => {
     }
   };
 
+  const processAndSetPriceAtoB = (price: number) => {
+    if (fromCoin.token_info.address > toCoin.token_info.address) {
+      price = 1 / price;
+    }
+    setPrice(noExponents(beautifyNumber(price)));
+  };
+
   const resetAmounts = (fromAmount = "", toAmount = "") => {
     setFromDepositAmount(fromAmount);
     setFromAmountError("");
@@ -228,30 +271,96 @@ export const useAddLiquidity = () => {
   };
 
   const processPriceRangeCondition = async (tickH: number, tickL: number) => {
-    await sleep(100);
-    if (tickH && tickL && Number(price)) {
-      if (tickL < tickH) {
+    // await sleep(5);
+    // console.log({tickL, tickH});
+
+    resetAmounts();
+
+    if (!empty(tickH) && !empty(tickL) && Number(price)) {
+      if (tickL > tickH) {
         throw new Error("Price Low cannot be greater than Price High!!");
       }
       const currentTick = getTickFromPrice(Number(price));
+
+      // console.log("currentTick: ", currentTick);
+
       if (tickH == tickL) {
         //no deposit amount needed for coinA, coinB
         setFromDepositShow(false);
         setToDepositShow(false);
       } else if (currentTick < tickL) {
         //no deposit amount needed for coinB
+
+        setFromDepositShow(true);
         setToDepositShow(false);
       } else if (currentTick > tickH) {
         //no deposit amount needed for coinA
+        setToDepositShow(true);
         setFromDepositShow(false);
+      } else {
+        setFromDepositShow(true);
+        setToDepositShow(true);
       }
+    } else {
+      setFromDepositShow(false);
+      setToDepositShow(false);
+    }
+  };
+
+  const processCoinToggleSection = () => {
+    if (
+      fromCoin &&
+      fromCoin.basic.code != firstCoin?.basic.code &&
+      fromCoin.basic.code != secondCoin?.basic.code
+    ) {
+      setFirstCoin(fromCoin);
+      setSelectedCoin(toCoin.basic.code);
+    } else if (
+      toCoin &&
+      toCoin.basic.code != firstCoin?.basic.code &&
+      toCoin.basic.code != secondCoin?.basic.code
+    ) {
+      setSecondCoin(toCoin);
+      setSelectedCoin(toCoin.basic.code);
+    } else if (toCoin && fromCoin) {
+      setSelectedCoin(toCoin.basic.code);
+      // setSelectedCoin((prev) => {
+      //   if (!prev) {
+      //     return toCoin.basic.code;
+      //   }
+      // });
+    } else if (!toCoin && !fromCoin) {
+      setFirstCoin(null);
+      setSecondCoin(null);
+      setSelectedCoin(null);
+    } else {
+      if (
+        (!toCoin && firstCoin?.basic.code != fromCoin.basic.code) ||
+        (!fromCoin && firstCoin?.basic.code != toCoin.basic.code)
+      ) {
+        setFirstCoin(null);
+      }
+      if (
+        (!toCoin && secondCoin?.basic.code != fromCoin.basic.code) ||
+        (!fromCoin && secondCoin?.basic.code != toCoin.basic.code)
+      ) {
+        setSecondCoin(null);
+      }
+      setSelectedCoin(null);
     }
   };
   /*  */
 
   /* Handlers */
   const handleClearAll = () => {
-    clearData();
+    try {
+      clearData();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
   };
 
   const handleConnectWallet = () => {
@@ -265,17 +374,9 @@ export const useAddLiquidity = () => {
     }
   };
 
-  const handleSwitchCoins = () => {
-    const temp = fromCoin;
-    setFromCoin(toCoin);
-    setToCoin(temp);
-    const tempAmount = fromDepositAmount;
-    setFromDepositAmount(toDepositAmount);
-    setToDepositAmount(tempAmount);
-  };
-
   const handleFeeSelection = async (fee: number) => {
     try {
+      clearData("fee_change");
       setSelectedFee(fee);
       const provider = getProvider();
       const network_data = await getNetworkData(provider);
@@ -288,8 +389,8 @@ export const useAddLiquidity = () => {
         );
         setPool(pool);
         if (pool) {
-          const price = getPriceFromSqrtPx96(Number(pool.sqrtPriceX96));
-          setPrice(String(noExponents(price)));
+          let price = getPriceFromSqrtPx96(Number(pool.sqrtPriceX96));
+          processAndSetPriceAtoB(price);
         }
       } catch (e) {
         setPool(null);
@@ -302,28 +403,11 @@ export const useAddLiquidity = () => {
     }
   };
 
-  const handleFullRange = () => {
-    if (selectedFee) {
-      const res = LIQUIDITY_PRICE_RANGE[selectedFee];
-      setLowPrice(String(res.min_price));
-      setTickLower(res.min_tick);
-      setHighPrice(String(res.max_price));
-      setTickUpper(res.max_tick);
-    }
-  };
-
-  const handleLowPriceChange = (value: string) => {
+  const handlePriceSet = async (e: any) => {
     try {
-      if (Number(value) == 0) {
-        setHighPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].min_price));
-        setTickLower(LIQUIDITY_PRICE_RANGE[selectedFee].min_tick);
-        return;
-      }
-
-      const res = getTickNPrice("rounded", selectedFee, Number(value));
-      setLowPrice(String(res.price));
-      setTickLower(res.tick);
-      processPriceRangeCondition(tickUpper, res.tick);
+      const price = e.target.value;
+      setPrice(noExponents(price));
+      await processPriceRangeCondition(tickUpper, tickLower);
     } catch (error) {
       toast({
         title: "Error",
@@ -332,17 +416,117 @@ export const useAddLiquidity = () => {
     }
   };
 
-  const handleHighPriceChange = (value: string) => {
+  const handleFullRange = async () => {
     try {
-      if (value == INFINITY_TEXT) {
+      if (selectedFee) {
+        const res = LIQUIDITY_PRICE_RANGE[selectedFee];
+        setLowPrice(String(res.min_price));
+        setTickLower(res.min_tick);
+        setHighPrice(String(res.max_price));
+        setTickUpper(res.max_tick);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleLowPriceChange = async (
+    value: string,
+    event: "change" | "blur",
+  ) => {
+    try {
+      if (event == "change") {
+        const parsedAmount = parseFloat(value);
+        if (isNaN(parsedAmount)) {
+          setLowPrice("");
+          setTickLower(null);
+        } else {
+          setLowPrice(value);
+        }
+        return;
+      }
+
+      if (!value) {
+        setLowPrice(value);
+        setTickLower(null);
+        setFromDepositShow(false);
+        setToDepositShow(false);
+        resetAmounts();
+        return;
+      }
+      if (Number(value) == 0) {
+        setLowPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].min_price));
+        setTickLower(LIQUIDITY_PRICE_RANGE[selectedFee].min_tick);
+        return;
+      } else if (value == INFINITY_TEXT) {
+        setLowPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].max_price));
+        setTickLower(LIQUIDITY_PRICE_RANGE[selectedFee].max_tick);
+        return;
+      }
+
+      if (Number(value) > 0) {
+        const res = getTickNPrice("rounded", selectedFee, Number(value));
+        setLowPrice(noExponents(res.price));
+        setTickLower(res.tick);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleHighPriceChange = async (
+    value: string,
+    event: "change" | "blur",
+  ) => {
+    try {
+      if (event == "change") {
+        const parsedAmount = parseFloat(value);
+        if (isNaN(parsedAmount)) {
+          setHighPrice("");
+          setTickUpper(null);
+        } else {
+          setHighPrice(value);
+        }
+        return;
+      }
+
+      if (!value) {
+        setHighPrice(value);
+        setTickUpper(null);
+        setFromDepositShow(false);
+        setToDepositShow(false);
+        resetAmounts();
+        return;
+      }
+
+      if (Number(value) == 0) {
+        setHighPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].min_price));
+        setTickUpper(LIQUIDITY_PRICE_RANGE[selectedFee].min_tick);
+        return;
+      } else if (value == INFINITY_TEXT) {
         setHighPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].max_price));
         setTickUpper(LIQUIDITY_PRICE_RANGE[selectedFee].max_tick);
         return;
       }
-      const res = getTickNPrice("rounded", selectedFee, Number(value));
-      setHighPrice(String(res.price));
-      setTickUpper(res.tick);
-      processPriceRangeCondition(res.tick, tickLower);
+
+      const parsedAmount = parseFloat(value);
+      if (isNaN(parsedAmount)) {
+        setHighPrice("");
+        setTickUpper(null);
+        return;
+      }
+
+      if (Number(value) > 0) {
+        const res = getTickNPrice("rounded", selectedFee, Number(value));
+        setHighPrice(noExponents(res.price));
+        setTickUpper(res.tick);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -351,14 +535,77 @@ export const useAddLiquidity = () => {
     }
   };
 
-  const handleHighPriceIncrease = () => {};
-  const handleHighPriceDecrease = () => {};
-  const handleLowPriceIncrease = () => {};
-  const handleLowPriceDecrease = () => {};
+  const handleHighPriceIncrease = () => {
+    try {
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
 
-  const handlePriceSet = (e: any) => {
-    const price = e.target.value;
-    setPrice(noExponents(price));
+  const handleHighPriceDecrease = () => {
+    try {
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleLowPriceIncrease = () => {
+    try {
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleLowPriceDecrease = () => {
+    try {
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleSwitchCoins = async () => {
+    try {
+      const fee = selectedFee;
+      const pl = pool;
+      const prc = price;
+      const lPrc = lowPrice;
+      const hPrc = highPrice;
+      const tickL = tickLower;
+      const tickU = tickUpper;
+
+      setFromCoin(toCoin);
+      setToCoin(fromCoin);
+      resetAmounts();
+
+      await sleep(5);
+
+      setSelectedFee(fee);
+      setPool(pl);
+      setPrice(noExponents(beautifyNumber(1 / Number(prc))));
+      setLowPrice(lPrc);
+      setHighPrice(hPrc);
+      // hPrc && handleLowPriceChange(String(1 / Number(hPrc)));
+      // lPrc && handleHighPriceChange(String(1 / Number(lPrc)));
+      setTickLower(tickL);
+      setTickUpper(tickU);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
   };
 
   const handleFromDepositAmountChange = async (amount: string) => {
@@ -378,7 +625,7 @@ export const useAddLiquidity = () => {
           } else {
             setFromDepositAmount(amount);
             setFromAmountError("");
-            if (toCoin && parsedAmount) {
+            if (toCoin) {
               const res = getConvertedAmountForLiqDeposit(
                 fromCoin,
                 toCoin,
@@ -387,7 +634,9 @@ export const useAddLiquidity = () => {
                 Number(highPrice),
                 parsedAmount,
               );
-              resetAmounts(String(res.amountA), String(res.amountB));
+              setToDepositAmount(
+                res.amountB ? noExponents(beautifyNumber(res.amountB)) : "",
+              );
             }
           }
         } else {
@@ -421,7 +670,7 @@ export const useAddLiquidity = () => {
             setToAmountError("");
             setToDepositAmount(amount);
 
-            if (fromCoin && parsedAmount) {
+            if (fromCoin) {
               setAssistMessage("Fetching converted amount...");
               const res = getConvertedAmountForLiqDeposit(
                 fromCoin,
@@ -432,7 +681,9 @@ export const useAddLiquidity = () => {
                 null,
                 parsedAmount,
               );
-              resetAmounts(String(res.amountA), String(res.amountB));
+              setFromDepositAmount(
+                res.amountA ? noExponents(beautifyNumber(res.amountA)) : "",
+              );
             }
           }
         } else {
@@ -449,12 +700,19 @@ export const useAddLiquidity = () => {
   };
 
   const handleAddLiquidity = (e: any) => {
-    e.preventDefault();
-    console.log("Selected Fee:", selectedFee);
-    console.log("From Coin:", fromCoin);
-    console.log("To Coin:", toCoin);
-    console.log("Low Price:", lowPrice);
-    console.log("High Price:", highPrice);
+    try {
+      e.preventDefault();
+      console.log("Selected Fee:", selectedFee);
+      console.log("From Coin:", fromCoin);
+      console.log("To Coin:", toCoin);
+      console.log("Low Price:", lowPrice);
+      console.log("High Price:", highPrice);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
   };
   /*  */
 

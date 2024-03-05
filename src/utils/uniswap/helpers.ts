@@ -84,10 +84,12 @@ export function getTickNPrice(
 
   price = price ?? getPriceFromTick(tick);
   tick = tick || getTickFromPrice(price, "ceil");
+  // console.log("tick: ", tick);
 
   if (output_type == "rounded") {
     const multiplier_of_tick_space = Math[rounded_formula](tick / tick_spacing);
     // console.log('multiplier_of_tick_space: ', multiplier_of_tick_space);
+
     const rounded_next_tick = multiplier_of_tick_space * tick_spacing;
     tick = rounded_next_tick;
   } else if (output_type == "next") {
