@@ -10,6 +10,7 @@ const usePoolDetails = () => {
   const [token1, setToken1] = useState<any>(null);
   console.log(tokenId, "params");
   const [positionDetails, setPositionDetails] = useState<any>(null);
+  const [openClaim, setOpenClaim] = useState<boolean>(false);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
@@ -46,6 +47,8 @@ const usePoolDetails = () => {
     selectedCoin,
     setSelectedCoin,
     tokenId,
+    setOpenClaim,
+    openClaim,
   };
 };
 export default usePoolDetails;

@@ -6,6 +6,7 @@ import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
 import { PoolFeeText } from "@/src/utils/coreconstants";
 import usePoolDetails from "@/src/hooks/useDetailsLiquidity";
 import Link from "next/link";
+import ClaimFeesModal from "./claimFees.section";
 const PoolDetailsSection = () => {
   const {
     token0,
@@ -18,6 +19,8 @@ const PoolDetailsSection = () => {
     selectedCoin,
     setSelectedCoin,
     tokenId,
+    openClaim,
+    setOpenClaim,
   } = usePoolDetails();
   const router = useRouter();
   return (
@@ -125,6 +128,10 @@ const PoolDetailsSection = () => {
                           </div>
                         </div>
                       )}
+                      <ClaimFeesModal
+                        openStatus={openClaim}
+                        setOpenStatus={setOpenClaim}
+                      />
                       {positionDetails.token1 && (
                         <div className="flex justify-between items-center px-2">
                           <div className="flex items-center gap-2 p-2 rounded-3xl">
@@ -155,9 +162,19 @@ const PoolDetailsSection = () => {
               </div>
 
               <div className=" border rounded-3xl  border-slate-800">
-                <h1 className="p-2 text-white text-md font-medium">
-                  Unclaimed fees
-                </h1>
+                <div className="flex justify-between items-center m-2">
+                  <h1 className="p-2 text-white text-md font-medium">
+                    Unclaimed fees
+                  </h1>
+                  <button
+                    className="bg-primary px-3 rounded-3xl py-2 text-sm text-white font-bold"
+                    onClick={() => {
+                      setOpenClaim(true);
+                    }}
+                  >
+                    Collect Fees
+                  </button>
+                </div>
                 <div className="text-white text-2xl font-bold p-2">-</div>
                 <div className="border mb-2 bg-slate-900 text-gray-400 border-slate-800 rounded-3xl mx-2">
                   <div className="flex justify-between items-center px-2">
