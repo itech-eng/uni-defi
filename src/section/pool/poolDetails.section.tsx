@@ -221,6 +221,9 @@ const PoolDetailsSection = () => {
                   <div
                     className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === firstCoin?.symbol ? "bg-slate-900" : ""}`}
                     onClick={() => {
+                      if (selectedCoin === firstCoin?.symbol) {
+                        return;
+                      }
                       setSelectedCoin(firstCoin.symbol);
                       handleSwapCoin();
                     }}
@@ -230,6 +233,9 @@ const PoolDetailsSection = () => {
                   <div
                     className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === secondCoin?.symbol ? "bg-slate-900" : ""}`}
                     onClick={() => {
+                      if (selectedCoin === secondCoin?.symbol) {
+                        return;
+                      }
                       setSelectedCoin(secondCoin?.symbol);
                       handleSwapCoin();
                     }}
