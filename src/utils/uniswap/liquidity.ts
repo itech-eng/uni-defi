@@ -366,9 +366,9 @@ export async function createAndAddLiquidity(
   coinA: CoinData,
   coinB: CoinData,
   poolFee: number,
+  priceAtoB: number,
   amountA: number,
   amountB: number,
-  price: number,
   tickLower: number,
   tickUpper: number,
   setInfo?: (msg: string) => void,
@@ -383,10 +383,13 @@ export async function createAndAddLiquidity(
   }
 
   network_data = network_data ?? (await getNetworkData(provider));
+  const postionContractAddress =
+    network_data.contract.nonfungible_position_manager.address;
 
   if (!coinA.is_native) {
     const tokenApproval = await getTokenTransferApproval(
       coinA.token_info,
+      postionContractAddress,
       amountA,
       setInfo,
       network_data,
@@ -401,6 +404,7 @@ export async function createAndAddLiquidity(
   if (!coinB.is_native) {
     const tokenApproval = await getTokenTransferApproval(
       coinB.token_info,
+      postionContractAddress,
       amountB,
       setInfo,
       network_data,
@@ -413,7 +417,7 @@ export async function createAndAddLiquidity(
   }
 
   const nftPositionManager = new ethers.Contract(
-    network_data.contract.nonfungible_position_manager.address,
+    postionContractAddress,
     NonfungiblePositionManagerABI.abi,
     signer,
   );
@@ -434,7 +438,7 @@ export async function createAndAddLiquidity(
     getSqrtPx96({
       fromToken: coinA.token_info,
       toToken: coinB.token_info,
-      price: price,
+      price: priceAtoB,
     }),
   );
 

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import IncreaseLiquidity from "@/src/section/pool/increaseLiquidity.section";
 import React from "react";
 

@@ -69,12 +69,12 @@ const PoolDetailsSection = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Link href={`/add/${tokenId}`}>
+                <Link href={`/pool/increase/${tokenId}`}>
                   <div className="px-3 rounded-3xl py-2 text-sm text-gray-400 border border-slate-800">
                     Increase Liquidity
                   </div>
                 </Link>
-                <Link href={`/remove/${tokenId}`}>
+                <Link href={`/pool/remove/${tokenId}`}>
                   <div className="bg-primary px-3 rounded-3xl py-2 text-sm text-white font-bold">
                     Remove Liquidity
                   </div>

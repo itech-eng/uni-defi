@@ -23,7 +23,7 @@ const IncreaseLiquidity = () => {
           className="text-white text-2xl cursor-pointer"
           onClick={() => router.back()}
         />
-        <h1 className="text-xl text-white  font-bold ">Add Liquidity</h1>
+        <h1 className="text-xl text-white  font-bold ">Increase Liquidity</h1>
         <div className=""></div>
       </div>
       <div className="border-b border-slate-800"></div>

@@ -281,6 +281,7 @@ export async function executeSwapNew(
   if (!fromCoin.is_native) {
     const tokenApproval = await getTokenTransferApproval(
       fromCoin.token_info,
+      network_data.contract.swap_router.address,
       fromAmount,
       setInfo,
       network_data,
@@ -407,6 +408,7 @@ export async function executeSwap(
   if (!fromCoin.is_native) {
     const tokenApproval = await getTokenTransferApproval(
       fromCoin.token_info,
+      network_data.contract.swap_router.address,
       fromAmount,
       setInfo,
       network_data,

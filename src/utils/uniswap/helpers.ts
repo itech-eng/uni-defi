@@ -99,7 +99,7 @@ export function getTickNPrice(
   }
   // console.log('tick: ', tick);
 
-  price = formatNumber(getPriceFromTick(tick), 6);
+  price = getPriceFromTick(tick);
   // console.log("tick n price: ", { price, tick });
   return { price, tick };
 }

@@ -38,7 +38,6 @@ const useDecreaseLiquidity = () => {
     positionDetails,
     loading,
     handleSwapCoin,
-
     selectedCoin,
     setSelectedCoin,
   };

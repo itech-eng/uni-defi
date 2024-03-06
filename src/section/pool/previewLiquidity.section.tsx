@@ -10,6 +10,12 @@ import {
 import { X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { CoinData } from "@/src/utils/types";
+import {
+  INFINITY_TEXT,
+  LIQUIDITY_PRICE_RANGE,
+  PoolFeeText,
+} from "@/src/utils/coreconstants";
+import { beautifyNumber, formatAmountKnL } from "@/src/utils/corefunctions";
 
 const PreviewLiquidity = ({
   openStatus,
@@ -18,12 +24,15 @@ const PreviewLiquidity = ({
   toCoin,
   fromAmount,
   toAmount,
-  confirmSwap,
+  fee,
+  confirmAddLiquidity,
   handleSwitchCoins,
   selectedCoin,
   setSelectedCoin,
+  currentPrice,
   lowPrice,
   highPrice,
+  inRange,
   firstCoin,
   secondCoin,
 }: {
@@ -33,15 +42,28 @@ const PreviewLiquidity = ({
   toCoin: CoinData;
   fromAmount: string;
   toAmount: string;
-  confirmSwap: () => void;
+  fee: number;
+  confirmAddLiquidity: () => void;
   selectedCoin: string;
   setSelectedCoin: any;
+  currentPrice: string;
   lowPrice: string;
   highPrice: string;
+  inRange: boolean;
   firstCoin: CoinData;
   secondCoin: CoinData;
   handleSwitchCoins: () => void;
 }) => {
+  const renederRangePrice = (price: string): string => {
+    if (!price) return "N/A";
+    if (price == String(LIQUIDITY_PRICE_RANGE[fee].min_price)) {
+      return "0";
+    } else if (price == String(LIQUIDITY_PRICE_RANGE[fee].max_price)) {
+      return INFINITY_TEXT;
+    }
+    return formatAmountKnL(price);
+  };
+
   return (
     <Dialog open={openStatus}>
       <DialogTrigger asChild></DialogTrigger>
@@ -63,19 +85,25 @@ const PreviewLiquidity = ({
                 alt=""
               />
               <img
-                src={fromCoin?.basic.icon}
+                src={toCoin?.basic.icon}
                 className="h-7 w-7 top-0 absolute left-2  rounded-full"
                 alt=""
               />
             </div>
             <div>
               <h1 className="text-white text-xl font-medium">
-                {fromCoin?.basic?.code}/{toCoin?.basic?.code}
+                {fromCoin?.basic?.code} / {toCoin?.basic?.code}
               </h1>
             </div>
           </div>
           <div>
-            <h1 className="text-green-500 text-sm font-medium">In Range</h1>
+            {inRange ? (
+              <h1 className="text-green-500 text-sm font-medium">In Range</h1>
+            ) : (
+              <h1 className="text-yellow-500 text-sm font-medium">
+                Out of Range
+              </h1>
+            )}
           </div>
         </div>
 
@@ -91,7 +119,7 @@ const PreviewLiquidity = ({
             </div>
 
             <div className="text-white">
-              <h1 className="text-xl font-medium">{fromAmount}</h1>
+              <h1 className="text-xl font-medium">{fromAmount || 0}</h1>
             </div>
           </div>
           <div className="flex items-center justify-between space-x-2 py-2 rounded-2xl">
@@ -105,18 +133,20 @@ const PreviewLiquidity = ({
             </div>
 
             <div className="text-white">
-              <h1 className="text-xl font-medium">{toAmount}</h1>
+              <h1 className="text-xl font-medium">{toAmount || 0}</h1>
             </div>
           </div>
           <div className="flex  border-t border-slate-800 items-center justify-between space-x-2 py-2 ">
-            <h1 className="text-white text-xl font-medium">Free Tier</h1>
-            <h1 className="text-gray-400 text-xl font-medium">0.00 DKFT20</h1>
+            <h1 className="text-white text-xl font-medium">Fee Tier</h1>
+            <h1 className="text-gray-400 text-xl font-medium">
+              {fee ? PoolFeeText[fee] : 0}%
+            </h1>
           </div>
         </div>
         <div className="border border-gray-800 my-4"></div>
         <div className="flex items-center justify-between text-white mb-6">
-          <h1>Set Price Range</h1>
-          <div className="flex items-center gap-2">
+          <h1>Selected Range</h1>
+          {/* <div className="flex items-center gap-2">
             <div className="text-xs text-slate-400" />
 
             {firstCoin && (
@@ -149,26 +179,43 @@ const PreviewLiquidity = ({
                 {secondCoin.token_info.symbol}
               </div>
             )}
-          </div>
+          </div> */}
         </div>
-        <div className="grid grid-cols-2 text-white gap-4  rounded-2xl ">
+        <div className="grid grid-cols-2 text-white gap-4 rounded-2xl ">
           <div className="bg-slate-900 flex flex-col items-center justify-center rounded-2xl p-4">
             <h1 className="text-xs font-medium">Min Price</h1>
-            <h1 className="text-xl font-medium"> {lowPrice ? lowPrice : 0}</h1>
+            <h1 className="text-xl font-medium">
+              {" "}
+              {renederRangePrice(lowPrice)}
+            </h1>
             <h1 className="text-xs font-medium">
-              {fromCoin?.token_info?.symbol} per {toCoin?.token_info?.symbol}
+              {toCoin?.token_info?.symbol} per {fromCoin?.token_info?.symbol}
             </h1>
           </div>
           <div className="bg-slate-900 flex flex-col items-center justify-center rounded-2xl p-4">
             <h1 className="text-xs font-medium">Max Price</h1>
-            <h1 className="text-xl font-medium">{highPrice ? highPrice : 0}</h1>
+            <h1 className="text-xl font-medium">
+              {renederRangePrice(highPrice)}
+            </h1>
             <h1 className="text-xs font-medium">
-              {fromCoin?.token_info?.symbol} per {toCoin?.token_info?.symbol}
+              {toCoin?.token_info?.symbol} per {fromCoin?.token_info?.symbol}
+            </h1>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 text-white gap-4 rounded-2xl ">
+          <div className="bg-slate-900 flex flex-col items-center justify-center rounded-2xl p-4">
+            <h1 className="text-xs font-medium">Current Price</h1>
+            <h1 className="text-xl font-medium">
+              {" "}
+              {currentPrice ? beautifyNumber(currentPrice, 3) : 0}
+            </h1>
+            <h1 className="text-xs font-medium">
+              {toCoin?.token_info?.symbol} per {fromCoin?.token_info?.symbol}
             </h1>
           </div>
         </div>
         <Button
-          onClick={confirmSwap}
+          onClick={confirmAddLiquidity}
           type="submit"
           className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
             rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"

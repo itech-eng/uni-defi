@@ -8,8 +8,8 @@ const RemoveLiquidity = () => {
   const router = useRouter();
   const [percent, setPercent] = useState(50);
   const {
-    firstCoin,
-    secondCoin,
+    // firstCoin,
+    // secondCoin,
     handleSwapCoin,
     loading,
     positionDetails,

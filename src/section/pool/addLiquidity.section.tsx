@@ -11,7 +11,8 @@ import { Button } from "@/src/components/ui/button";
 import PreviewLiquidity from "./previewLiquidity.section";
 import { useAddLiquidity } from "@/src/hooks/useAddLiquidity";
 import LoadingModal from "@/src/components/loader/loader.section";
-import { beautifyNumber, noExponents } from "@/src/utils/corefunctions";
+import { beautifyNumber } from "@/src/utils/corefunctions";
+import { getTickFromPrice } from "@/src/utils/uniswap/maths";
 
 const AddLiquiditySection = () => {
   const {
@@ -37,6 +38,9 @@ const AddLiquiditySection = () => {
     setLowPrice,
     highPrice,
     setHighPrice,
+    tickLower,
+    tickUpper,
+    inRange,
     selectedFee,
     setSelectedFee,
     selectedCoin,
@@ -68,6 +72,8 @@ const AddLiquiditySection = () => {
     setFirstCoin,
     secondCoin,
     setSecondCoin,
+    loading,
+    setLoading,
   } = useAddLiquidity();
 
   const renederRangePrice = (price: string): string => {
@@ -100,7 +106,12 @@ const AddLiquiditySection = () => {
           Clear All
         </div>
       </div>
-      <form onSubmit={handleAddLiquidity} className="w-full">
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        name="add-liquidity"
+        id="add-liquidity"
+        className="w-full"
+      >
         <div>
           <p className="text-white text-sm mb-2">Select a pair</p>
           <div className="grid grid-cols-2 items-center justify-between w-full gap-4">
@@ -190,14 +201,20 @@ const AddLiquiditySection = () => {
                 )}
               </div>
             </div>
-            <LoadingModal openStatus={false} setOpenStatus={() => {}} />
+
+            <LoadingModal
+              openStatus={loading}
+              setOpenStatus={setLoading}
+              text={assistMessage}
+            />
+
             <div className="grid w-full items-center gap-4 mb-4">
               <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
                 <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
                   Low Price
                 </label>
-                <div className="flex items-center justify-between space-x-2 ">
-                  <div className="flex flex-col items-end space-y-1.5">
+                <div className="flex items-center justify-between space-x-8 ">
+                  <div className="flex flex-col items-end space-y-1.5 w-full">
                     <input
                       type="text"
                       // pattern="^[0-9]*[.,]?[0-9]*$"
@@ -238,8 +255,8 @@ const AddLiquiditySection = () => {
                 <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
                   High Price
                 </label>
-                <div className="flex items-center justify-between space-x-2 ">
-                  <div className="flex flex-col items-end space-y-1.5">
+                <div className="flex items-center justify-between space-x-8 ">
+                  <div className="flex flex-col items-end space-y-1.5 w-full">
                     <input
                       type="text"
                       // pattern="^[0-9]*[.,]?[0-9]*$"
@@ -305,8 +322,9 @@ const AddLiquiditySection = () => {
                       <input
                         type="text"
                         placeholder="0"
+                        value={price}
                         className="bg-slate-950 text-white w-full "
-                        onChange={handlePriceSet}
+                        onChange={(e) => handlePriceSet(e.target.value)}
                       />
                     </div>
                   </div>
@@ -333,8 +351,8 @@ const AddLiquiditySection = () => {
             {fromCoin && fromDepositShow && (
               <div className="grid w-full items-center gap-4 mb-4">
                 <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
-                  <div className="flex items-center justify-between space-x-2 ">
-                    <div className="flex flex-col items-start space-y-1.5">
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex flex-col items-start space-y-1.5 w-full">
                       <input
                         type="text"
                         pattern="^[0-9]*[.,]?[0-9]*$"
@@ -345,7 +363,7 @@ const AddLiquiditySection = () => {
                           fromAmountError ? "border-red-500" : "border-none"
                         } text-white placeholder:text-gray-400 text-xl 
                         placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none`}
-                        id="youPay"
+                        id="fromAmount"
                         placeholder="0"
                         value={renederDepositAmount(fromDepositAmount)}
                         onChange={(e) =>
@@ -361,7 +379,7 @@ const AddLiquiditySection = () => {
                         -
                       </label> */}
                     </div>
-                    <div className="flex flex-col items-end gap-2 space-y-1.5 text-white">
+                    <div className="flex flex-col items-end gap-2 min-w-[150px] space-y-1.5 text-white">
                       <div className="flex items-center space-x-2 bg-slate-800 rounded-full px-2 py-1">
                         <img
                           src={fromCoin?.basic?.icon}
@@ -384,8 +402,8 @@ const AddLiquiditySection = () => {
             {toCoin && toDepositShow && (
               <div className="grid w-full items-center gap-4 mb-4">
                 <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
-                  <div className="flex items-center justify-between space-x-2 ">
-                    <div className="flex flex-col items-start space-y-1.5">
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex flex-col items-start space-y-1.5 w-full">
                       <input
                         type="text"
                         pattern="^[0-9]*[.,]?[0-9]*$"
@@ -412,7 +430,7 @@ const AddLiquiditySection = () => {
                         -
                       </label> */}
                     </div>
-                    <div className="flex flex-col items-end gap-2 space-y-1.5 text-white">
+                    <div className="flex flex-col min-w-[150px] items-end gap-2 space-y-1.5 text-white">
                       <div className="flex items-center space-x-2 bg-slate-800 rounded-full px-2 py-1">
                         <img
                           src={toCoin?.basic?.icon}
@@ -440,16 +458,17 @@ const AddLiquiditySection = () => {
           setOpenStatus={setPreview}
           fromCoin={fromCoin}
           toCoin={toCoin}
-          fromAmount="0"
-          toAmount="0"
-          confirmSwap={() => {
-            setPreview(false);
-          }}
+          fee={selectedFee}
+          fromAmount={fromDepositAmount}
+          toAmount={toDepositAmount}
+          confirmAddLiquidity={handleAddLiquidity}
           handleSwitchCoins={handleSwitchCoins}
           selectedCoin={selectedCoin}
           setSelectedCoin={setSelectedCoin}
+          currentPrice={price}
           lowPrice={lowPrice}
           highPrice={highPrice}
+          inRange={inRange}
           firstCoin={firstCoin}
           secondCoin={secondCoin}
         />

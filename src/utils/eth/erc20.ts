@@ -44,6 +44,7 @@ export const getERC20Balance = async (
 
 export async function getTokenTransferApproval(
   token: Token,
+  approval_to_address: string,
   min_amount: number | string,
   setInfo?: (msg: string) => void,
   network_data?: NetworkData,
@@ -63,7 +64,7 @@ export async function getTokenTransferApproval(
 
     let approvedAmount = await tokenContract.allowance(
       address,
-      network_data.contract.swap_router.address,
+      approval_to_address,
     );
 
     if (approvedAmount) {
@@ -80,10 +81,7 @@ export async function getTokenTransferApproval(
     setInfo && setInfo("Approval needed!! Confirm the transaction.");
 
     const transaction: providers.TransactionResponse =
-      await tokenContract.approve(
-        network_data.contract.swap_router.address,
-        MAX_APPROVE_AMOUNT_INT,
-      );
+      await tokenContract.approve(approval_to_address, MAX_APPROVE_AMOUNT_INT);
 
     setInfo && setInfo("Wait for Approval process completion...");
 

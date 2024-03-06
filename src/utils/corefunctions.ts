@@ -280,7 +280,10 @@ export function beautifyNumber(
   value: number | string,
   non_zero_decimal = 4,
 ): string {
+  if (isNaN(Number(value))) throw new Error(`Invalid number: ${value}`);
   value = Number(value);
+  const sign = Math.sign(value) < 0 ? "-" : "";
+
   const decimal_inc = non_zero_decimal - 4;
   const right_number = String(value).split(".")[1];
   if (right_number && right_number[0] == "9") {
@@ -314,7 +317,9 @@ export function beautifyNumber(
   } else if (value >= 0.000000000001 && value < 0.00000000001) {
     value = formatNumber(value, 15 + decimal_inc);
   }
-  return noExponents(value);
+
+  value = noExponents(value);
+  return sign ? `${sign}${value}` : value;
 }
 
 export function decodeMulticall(abi: ReadonlyArray<any>, calls: string[]) {
@@ -407,3 +412,62 @@ export async function getNetworkData(
   const network_data = NETWORK_DATA[network];
   return network_data;
 }
+
+//format amount in K, M, B or with Greater or Less than string <, ex: 10B, <0.000001, >100000B
+export const formatAmountKnL = (
+  amount: number | string,
+  decimal = 0,
+): string => {
+  let value = Number(amount);
+  if (isNaN(value)) throw new Error(`Invalid number: ${amount}`);
+  decimal = decimal > 100 ? 100 : decimal;
+
+  if (value == 0) {
+    return "0";
+  } else if (Math.abs(value) < 0.00001) {
+    return "<0.00001";
+  } else if (Math.abs(value) > 10000000000000) {
+    return ">10000B";
+  } else if (Math.abs(value) > 999999999) {
+    return (
+      String(
+        Math.round(
+          Number(
+            (
+              (Math.sign(value) * Math.round(Math.abs(value) / 100000000)) /
+              10
+            ).toFixed(decimal),
+          ),
+        ),
+      ) + "B"
+    );
+  } else if (Math.abs(value) > 999999) {
+    return (
+      String(
+        Math.round(
+          Number(
+            (
+              (Math.sign(value) * Math.round(Math.abs(value) / 100000)) /
+              10
+            ).toFixed(decimal),
+          ),
+        ),
+      ) + "M"
+    );
+  } else if (Math.abs(value) > 999) {
+    return (
+      String(
+        Math.round(
+          Number(
+            (
+              (Math.sign(value) * Math.round(Math.abs(value) / 100)) /
+              10
+            ).toFixed(decimal),
+          ),
+        ),
+      ) + "K"
+    );
+  } else {
+    return beautifyNumber(value);
+  }
+};

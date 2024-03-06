@@ -9,6 +9,7 @@ const usePoolDetails = () => {
   const [token0, setToken0] = useState<any>(null);
   const [token1, setToken1] = useState<any>(null);
   console.log(tokenId, "params");
+
   const [positionDetails, setPositionDetails] = useState<any>(null);
   const [openClaim, setOpenClaim] = useState<boolean>(false);
   const router = useRouter();
