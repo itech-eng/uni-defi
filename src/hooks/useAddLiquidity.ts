@@ -84,6 +84,8 @@ export const useAddLiquidity = () => {
     //   toCoin,
     //   selectedFee,
     //   price,
+    //   lowPrice,
+    //   highPrice,
     //   tickLower,
     //   tickUpper,
     //   fromDepositAmount,
@@ -290,7 +292,6 @@ export const useAddLiquidity = () => {
         throw new Error("Price Low cannot be greater than Price High!!");
       }
       const currentTick = getTickFromPrice(Number(price));
-
       // console.log("currentTick: ", currentTick);
 
       if (tickH == tickL) {
@@ -787,7 +788,7 @@ export const useAddLiquidity = () => {
       });
       clearData();
     } catch (error) {
-      console.log(error.message);
+      // console.error(error.message);
       setLoading(false);
       toast({
         title: "Error",

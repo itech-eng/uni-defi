@@ -16,7 +16,12 @@ import {
 } from "../corefunctions";
 import { FeeAmount, Pool, Position, TICK_SPACINGS } from "@uniswap/v3-sdk";
 import { getPriceFromTick, getTickFromPrice } from "./maths";
-import { getPrice, getSqrtPx96, parseTokenURItoJson } from "./helpers";
+import {
+  getPrice,
+  getSlippageMinAmount,
+  getSqrtPx96,
+  parseTokenURItoJson,
+} from "./helpers";
 import { Token } from "@uniswap/sdk-core";
 import {
   INFINITY_TEXT,
@@ -369,8 +374,8 @@ export async function createAndAddLiquidity(
   priceAtoB: number,
   amountA: number,
   amountB: number,
-  tickLower: number,
-  tickUpper: number,
+  tickLowerAtoB: number,
+  tickUpperAtoB: number,
   setInfo?: (msg: string) => void,
   provider?: providers.Web3Provider,
   network_data?: NetworkData,
@@ -457,6 +462,12 @@ export async function createAndAddLiquidity(
   calls.push(calldata);
 
   // Prepare data for adding new position
+  const { tickLower, tickUpper } = processTickUL(
+    coinA,
+    coinB,
+    tickLowerAtoB,
+    tickUpperAtoB,
+  );
   const fee = poolFee;
   const amount0Desired = convertCoinAmountToInt(
     amount0,
@@ -466,8 +477,8 @@ export async function createAndAddLiquidity(
     amount1,
     coin1.token_info.decimals,
   );
-  const amount0Min = "0";
-  const amount1Min = "0";
+  const amount0Min = getSlippageMinAmount(amount0, coin0.token_info.decimals);
+  const amount1Min = getSlippageMinAmount(amount1, coin1.token_info.decimals);
   const recipient = walletAddress;
   const deadline = Math.ceil(new Date().getTime() / 1000 + 60 * 10); // 10 minutes
 
@@ -497,6 +508,14 @@ export async function createAndAddLiquidity(
     : coin1.is_native
       ? amount1
       : undefined;
+  console.log({ ethValue });
+
+  if (ethValue) {
+    const refundETHCalldata =
+      nftPositionManager.interface.encodeFunctionData("refundETH");
+    // console.log("refundETHCalldata: ", refundETHCalldata);
+    calls.push(refundETHCalldata);
+  }
 
   const txRes: providers.TransactionResponse =
     await nftPositionManager.multicall(calls, {
@@ -505,4 +524,19 @@ export async function createAndAddLiquidity(
 
   const tx = await txRes.wait();
   return tx;
+}
+
+function processTickUL(
+  coinA: CoinData,
+  coinB: CoinData,
+  tickLowerAtoB: number,
+  tickUpperAtoB: number,
+): { tickLower: number; tickUpper: number } {
+  let tickLower = tickLowerAtoB;
+  let tickUpper = tickUpperAtoB;
+  if (coinA.token_info.address > coinB.token_info.address) {
+    tickLower = -1 * tickUpperAtoB;
+    tickUpper = -1 * tickLowerAtoB;
+  }
+  return { tickLower, tickUpper };
 }

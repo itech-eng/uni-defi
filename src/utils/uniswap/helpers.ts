@@ -5,7 +5,12 @@ import {
   getSqrtPx96FromPrice,
   getTickFromPrice,
 } from "./maths";
-import { beautifyNumber, empty, formatNumber } from "../corefunctions";
+import {
+  beautifyNumber,
+  convertCoinAmountToInt,
+  empty,
+  formatNumber,
+} from "../corefunctions";
 import { getPoolInfo } from "./pool";
 import { NetworkData } from "../types";
 import { EVM_NATIVE_DECIMAL } from "../network/coin-data";
@@ -102,4 +107,15 @@ export function getTickNPrice(
   price = getPriceFromTick(tick);
   // console.log("tick n price: ", { price, tick });
   return { price, tick };
+}
+
+export function getSlippageMinAmount(
+  amount: number,
+  decimal: number,
+  percent = 10,
+): string {
+  return convertCoinAmountToInt(
+    amount - (amount * 10) / 100,
+    decimal,
+  ).toString();
 }
