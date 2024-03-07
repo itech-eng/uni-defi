@@ -88,9 +88,9 @@ const PoolDetailsSection = () => {
                   {positionDetails?.closed ? (
                     <span className="text-xs text-grey-500">Closed</span>
                   ) : positionDetails?.inRange ? (
-                    <span className="tex-xs text-green-500">In Range</span>
+                    <span className="text-xs text-green-500">In Range</span>
                   ) : (
-                    <span className="tex-xs text-yellow-500">Out of Range</span>
+                    <span className="text-xs text-yellow-500">Out of Range</span>
                   )}
                 </div>
               </div>
