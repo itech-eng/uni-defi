@@ -398,8 +398,12 @@ export function calculatePercentRatio(
     value2_percent: 0,
   };
   const formula_constant = 100 / (value1 + value2);
-  result.value1_percent = value1 * formula_constant;
-  result.value2_percent = value2 * formula_constant;
+  result.value1_percent = Math.abs(
+    Number((value1 * formula_constant).toFixed(2)),
+  );
+  result.value2_percent = Math.abs(
+    Number((value2 * formula_constant).toFixed(2)),
+  );
   return result;
 }
 

@@ -68,11 +68,8 @@ const PoolListSection = () => {
           </div>
           {positions.map((position, idx) =>
             !position.closed || showClosed ? (
-              <Link href={`/pool/${position.tokenId}`}>
-                <div
-                  key={idx}
-                  className="flex rounded-lg py-5 flex-row items-center justify-between px-4"
-                >
+              <Link key={idx} href={`/pool/${position.tokenId}`}>
+                <div className="flex rounded-lg py-5 flex-row items-center justify-between px-4">
                   <div className="">
                     <div className="flex items-center mb-2">
                       <div className="relative">
@@ -101,7 +98,9 @@ const PoolListSection = () => {
                       <span className=" mr-2 text-gray-500">
                         Min:{" "}
                         <span className="text-white">
-                          {formatAmountKnL(position.minPrice)}{" "}
+                          {position.minPrice != INFINITY_TEXT
+                            ? formatAmountKnL(position.minPrice)
+                            : position.minPrice}{" "}
                           {position.token1.symbol} per {position.token0.symbol}
                         </span>
                       </span>
