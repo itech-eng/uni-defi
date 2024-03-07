@@ -424,9 +424,11 @@ export const useAddLiquidity = () => {
         if (pool) {
           let price = getPriceFromSqrtPx96(Number(pool.sqrtPriceX96));
           processAndSetPriceAtoB(price);
+        } else {
+          clearData("fee_change");
         }
       } catch (e) {
-        setPool(null);
+        clearData("fee_change");
       }
     } catch (error) {
       toast({
@@ -780,8 +782,8 @@ export const useAddLiquidity = () => {
       //   toDepositAmount,
       // });
       toast({
-        title: "Congratulations!!",
-        description: "New Position Created",
+        title: "Success",
+        description: "Congratulations!! New Position Created",
       });
       clearData();
     } catch (error) {
