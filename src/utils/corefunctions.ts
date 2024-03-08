@@ -266,12 +266,19 @@ export function convertCoinAmountToDecimal(
 export function formatNumber(
   value: number | string,
   decimal: number,
+  formula: "truncate" | "toFixed" = "truncate",
   abs = true,
 ): number {
   value = Number(value);
-  // const result = Number(value.toFixed(decimal));
-  const numOfZeros = 10 ** decimal;
-  const result = Math.floor(value * numOfZeros) / numOfZeros;
+  let result = 0;
+  if (formula == "truncate") {
+    const numOfZeros = 10 ** decimal;
+    result = Math.floor(value * numOfZeros) / numOfZeros;
+  } else if (formula == "toFixed") {
+    result = Number(value.toFixed(decimal));
+  } else {
+    throw new Error(`Invalid decimal formula: ${formula}`);
+  }
   if (!abs) return result;
   else return Math.abs(result);
 }
@@ -285,37 +292,38 @@ export function beautifyNumber(
   const sign = Math.sign(value) < 0 ? "-" : "";
 
   const decimal_inc = non_zero_decimal - 4;
-  const right_number = String(value).split(".")[1];
-  if (right_number && right_number[0] == "9") {
-    return String(Math.ceil(value));
-  }
+
+  // const right_number = String(value).split(".")[1];
+  // if (right_number && right_number[0] == "9") {
+  //   return String(Math.ceil(value));
+  // }
 
   if (value >= 100) {
     value = Math.ceil(value);
   } else if (value >= 0.1 && value < 100) {
-    value = formatNumber(value, 4 + decimal_inc);
+    value = formatNumber(value, 4 + decimal_inc, "toFixed");
   } else if (value >= 0.01 && value < 0.1) {
-    value = formatNumber(value, 5 + decimal_inc);
+    value = formatNumber(value, 5 + decimal_inc, "toFixed");
   } else if (value >= 0.001 && value < 0.01) {
-    value = formatNumber(value, 6 + decimal_inc);
+    value = formatNumber(value, 6 + decimal_inc, "toFixed");
   } else if (value >= 0.0001 && value < 0.001) {
-    value = formatNumber(value, 7 + decimal_inc);
+    value = formatNumber(value, 7 + decimal_inc, "toFixed");
   } else if (value >= 0.00001 && value < 0.0001) {
-    value = formatNumber(value, 8 + decimal_inc);
+    value = formatNumber(value, 8 + decimal_inc, "toFixed");
   } else if (value >= 0.000001 && value < 0.00001) {
-    value = formatNumber(value, 9 + decimal_inc);
+    value = formatNumber(value, 9 + decimal_inc, "toFixed");
   } else if (value >= 0.0000001 && value < 0.000001) {
-    value = formatNumber(value, 10 + decimal_inc);
+    value = formatNumber(value, 10 + decimal_inc, "toFixed");
   } else if (value >= 0.00000001 && value < 0.0000001) {
-    value = formatNumber(value, 11 + decimal_inc);
+    value = formatNumber(value, 11 + decimal_inc, "toFixed");
   } else if (value >= 0.000000001 && value < 0.00000001) {
-    value = formatNumber(value, 12 + decimal_inc);
+    value = formatNumber(value, 12 + decimal_inc, "toFixed");
   } else if (value >= 0.0000000001 && value < 0.000000001) {
-    value = formatNumber(value, 13 + decimal_inc);
+    value = formatNumber(value, 13 + decimal_inc, "toFixed");
   } else if (value >= 0.00000000001 && value < 0.0000000001) {
-    value = formatNumber(value, 14 + decimal_inc);
+    value = formatNumber(value, 14 + decimal_inc, "toFixed");
   } else if (value >= 0.000000000001 && value < 0.00000000001) {
-    value = formatNumber(value, 15 + decimal_inc);
+    value = formatNumber(value, 15 + decimal_inc, "toFixed");
   }
 
   value = noExponents(value);
@@ -339,12 +347,17 @@ export function decodeMulticall(abi: ReadonlyArray<any>, calls: string[]) {
 export function getTokenByAddress(
   network_data: NetworkData,
   address: string,
+  ignore_native = true,
 ): Token {
   const coins = network_data.coin_or_token;
   for (const slug in coins) {
-    if (coins[slug].token_info.address == address)
+    if (
+      (!ignore_native || !coins[slug].is_native) &&
+      coins[slug].token_info.address == address
+    )
       return coins[slug].token_info;
   }
+  return null;
 }
 
 export function sortObjectArray(

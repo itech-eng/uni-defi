@@ -1,8 +1,6 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MoveHorizontal } from "lucide-react";
-
-import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
 import { INFINITY_TEXT, PoolFeeText } from "@/src/utils/coreconstants";
 import usePoolDetails from "@/src/hooks/useDetailsLiquidity";
 import Link from "next/link";
@@ -11,15 +9,22 @@ import { IRootState } from "@/store";
 import { useSelector } from "react-redux";
 import {
   beautifyNumber,
-  calculatePercentRatio,
+  clearBothEndSlash,
+  clearTrailingSlash,
   formatAmountKnL,
 } from "@/src/utils/corefunctions";
+import {
+  CHAIN_SLUG_MAPPING,
+  NETWORK_DATA,
+} from "@/src/utils/network/network-data";
+import { CoinData } from "@/src/utils/types";
+
 const PoolDetailsSection = () => {
   const router = useRouter();
 
   const {
-    token0,
-    token1,
+    fromCoin,
+    toCoin,
     positionDetails,
     loading,
     handleSwapCoin,
@@ -42,6 +47,18 @@ const PoolDetailsSection = () => {
     return walletAddress?.toLowerCase() == positionDetails?.owner.toLowerCase();
   };
 
+  const network_data = NETWORK_DATA[CHAIN_SLUG_MAPPING[chain_id]];
+
+  const tokenLink = (coin: CoinData) => {
+    if (!coin) return "";
+
+    const explorer = network_data.explorer_info;
+    const base_url = clearTrailingSlash(explorer.base_url);
+    const token_endpoint = clearBothEndSlash(explorer.token_endpoint);
+
+    return `${base_url}/${token_endpoint}/${coin.token_info.address}`;
+  };
+
   return chain_id ? (
     <div className="max-w-[800px] min-h-[500px] w-[90%] h-auto text-white mt-36 overflow-x-hidden">
       <div className="flex w-full justify-start items-start">
@@ -59,24 +76,25 @@ const PoolDetailsSection = () => {
         </div>
       ) : (
         <div>
+          {/* Top */}
           <div className="my-5">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center ">
                 <div className="relative">
                   <img
-                    src={`${COIN_BAISC_DATA[token0?.symbol]?.icon}`}
+                    src={`${fromCoin?.basic.icon}`}
                     className="h-7 w-7 ml-[20] rounded-full"
                     alt=""
                   />
                   <img
-                    src={`${COIN_BAISC_DATA[token1?.symbol]?.icon}`}
+                    src={`${toCoin?.basic.icon}`}
                     className="h-7 w-7 top-0 absolute left-2  rounded-full"
                     alt=""
                   />
                 </div>
                 <div className="flex items-center gap-2 ml-5">
                   <h3 className="text-2xl font-medium text-white">
-                    {token0?.symbol} / {token1?.symbol}
+                    {fromCoin?.basic.code} / {toCoin?.basic.code}
                   </h3>
                   <span className="text-sm bg-slate-900 px-2 rounded-full py-1 sm:text-xs text-gray-400">
                     {PoolFeeText[positionDetails?.fee]} %
@@ -90,7 +108,9 @@ const PoolDetailsSection = () => {
                   ) : positionDetails?.inRange ? (
                     <span className="text-xs text-green-500">In Range</span>
                   ) : (
-                    <span className="text-xs text-yellow-500">Out of Range</span>
+                    <span className="text-xs text-yellow-500">
+                      Out of Range
+                    </span>
                   )}
                 </div>
               </div>
@@ -110,7 +130,9 @@ const PoolDetailsSection = () => {
               )}
             </div>
           </div>
+
           <div className="grid grid-cols-2  gap-5">
+            {/* Image */}
             <div className="border border-slate-800 flex items-center justify-center rounded-3xl p-5">
               <img
                 src={positionDetails?.other_details?.imgSrc}
@@ -118,27 +140,30 @@ const PoolDetailsSection = () => {
                 alt=""
               />
             </div>
+
             <div className="flex gap-2 flex-col h-full  ">
               <div className="border rounded-3xl border-slate-800">
                 <h1 className="p-2 text-white text-md font-medium">
                   Liquidity
                 </h1>
-                <div className="text-white text-2xl font-bold p-2">
+                {/* <div className="text-white text-2xl font-bold p-2">
                   {positionDetails && "-"}
-                </div>
+                </div> */}
                 <div className="border mb-2 bg-slate-900 text-gray-400 border-slate-800 rounded-3xl mx-2">
                   {positionDetails && (
                     <div>
-                      {token0 && (
+                      {fromCoin && (
                         <div className="flex justify-between items-center px-2">
-                          <div className="flex items-center gap-2 p-2 rounded-3xl">
-                            <img
-                              src={`${COIN_BAISC_DATA[token0?.symbol]?.icon}`}
-                              className="h-7 w-7 rounded-full"
-                              alt=""
-                            />
-                            <h1>{token0?.symbol}</h1>
-                          </div>
+                          <a href={tokenLink(fromCoin)} target="_blank">
+                            <div className="flex items-center gap-2 p-2 rounded-3xl">
+                              <img
+                                src={`${fromCoin?.basic.icon}`}
+                                className="h-7 w-7 rounded-full"
+                                alt=""
+                              />
+                              <h1>{fromCoin?.basic.code}</h1>
+                            </div>
+                          </a>
                           <div className="flex items-center gap-2 p-2 rounded-3xl">
                             <h1>
                               {beautifyNumber(
@@ -156,16 +181,18 @@ const PoolDetailsSection = () => {
                           </div>
                         </div>
                       )}
-                      {token1 && (
+                      {toCoin && (
                         <div className="flex justify-between items-center px-2">
-                          <div className="flex items-center gap-2 p-2 rounded-3xl">
-                            <img
-                              src={`${COIN_BAISC_DATA[token1?.symbol]?.icon}`}
-                              className="h-7 w-7 rounded-full"
-                              alt=""
-                            />
-                            <h1>{token1?.symbol}</h1>
-                          </div>
+                          <a href={tokenLink(toCoin)} target="_blank">
+                            <div className="flex items-center gap-2 p-2 rounded-3xl">
+                              <img
+                                src={`${toCoin?.basic.icon}`}
+                                className="h-7 w-7 rounded-full"
+                                alt=""
+                              />
+                              <h1>{toCoin?.basic.code}</h1>
+                            </div>
+                          </a>
                           <div className="flex items-center gap-2 p-2 rounded-3xl">
                             <h1>
                               {beautifyNumber(
@@ -211,11 +238,11 @@ const PoolDetailsSection = () => {
                   <div className="flex justify-between items-center px-2">
                     <div className="flex items-center gap-2 p-2 rounded-3xl">
                       <img
-                        src={`${COIN_BAISC_DATA[token0?.symbol]?.icon}`}
+                        src={`${fromCoin?.basic.icon}`}
                         className="h-7 w-7 rounded-full"
                         alt=""
                       />
-                      <h1>{token0?.symbol}</h1>
+                      <h1>{fromCoin?.basic.code}</h1>
                     </div>
                     <div className="flex items-center gap-2 p-2 rounded-3xl">
                       <h1>
@@ -229,11 +256,11 @@ const PoolDetailsSection = () => {
                   <div className="flex justify-between items-center px-2">
                     <div className="flex items-center gap-2 p-2 rounded-3xl">
                       <img
-                        src={`${COIN_BAISC_DATA[token1?.symbol]?.icon}`}
+                        src={`${toCoin?.basic.icon}`}
                         className="h-7 w-7 rounded-full"
                         alt=""
                       />
-                      <h1>{token1?.symbol}</h1>
+                      <h1>{toCoin?.basic.code}</h1>
                     </div>
                     <div className="flex items-center gap-2 p-2 rounded-3xl">
                       <h1>
@@ -274,28 +301,28 @@ const PoolDetailsSection = () => {
                 {/* swap section */}
                 {/* <div className="border rounded-3xl flex justify-between items-center gap-2 text-gray-400 border-slate-800 mr-3 text-xs">
                   <div
-                    className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === firstCoin?.symbol ? "bg-slate-900" : ""}`}
+                    className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === firstCoin?.basic.code ? "bg-slate-900" : ""}`}
                     onClick={() => {
-                      if (selectedCoin === firstCoin?.symbol) {
+                      if (selectedCoin === firstCoin?.basic.code) {
                         return;
                       }
-                      setSelectedCoin(firstCoin?.symbol);
+                      setSelectedCoin(firstCoin?.basic.code);
                       handleSwapCoin();
                     }}
                   >
-                    {firstCoin?.symbol}
+                    {firstCoin?.basic.code}
                   </div>
                   <div
-                    className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === secondCoin?.symbol ? "bg-slate-900" : ""}`}
+                    className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === secondCoin?.basic.code ? "bg-slate-900" : ""}`}
                     onClick={() => {
-                      if (selectedCoin === secondCoin?.symbol) {
+                      if (selectedCoin === secondCoin?.basic.code) {
                         return;
                       }
-                      setSelectedCoin(secondCoin?.symbol);
+                      setSelectedCoin(secondCoin?.basic.code);
                       handleSwapCoin();
                     }}
                   >
-                    {secondCoin?.symbol}
+                    {secondCoin?.basic.code}
                   </div>
                 </div> */}
               </div>
@@ -310,7 +337,7 @@ const PoolDetailsSection = () => {
                     : positionDetails.minPrice}{" "}
                 </h1>
                 <p className="text-gray-400 text-md font-medium">
-                  {token1?.symbol} per {token0?.symbol}
+                  {toCoin?.basic.code} per {fromCoin?.basic.code}
                 </p>
               </div>
               <div className="w-[40px] flex items-center justify-center rounded-md h-full">
@@ -324,7 +351,7 @@ const PoolDetailsSection = () => {
                     : positionDetails.maxPrice}{" "}
                 </h1>
                 <p className="text-gray-400 text-md font-medium">
-                  {token1?.symbol} per {token0?.symbol}
+                  {toCoin?.basic.code} per {fromCoin?.basic.code}
                 </p>
               </div>
             </div>
@@ -337,7 +364,7 @@ const PoolDetailsSection = () => {
                 {beautifyNumber(positionDetails?.currentPrice, 3)}
               </h1>
               <p className="text-gray-400 text-md font-medium">
-                {token1?.symbol} per {token0?.symbol}
+                {toCoin?.basic.code} per {fromCoin?.basic.code}
               </p>
             </div>
           </div>

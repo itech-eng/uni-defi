@@ -6,6 +6,10 @@ import { useToast } from "../components/ui/use-toast";
 import { IRootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
+import { Token } from "@uniswap/sdk-core";
+import { CoinData } from "../utils/types";
+import { getProvider } from "../utils/wallet";
+import { getNetworkCoins, getNetworkData } from "../utils/corefunctions";
 
 const usePoolDetails = () => {
   const { toast } = useToast();
@@ -18,8 +22,8 @@ const usePoolDetails = () => {
 
   const [selectedCoin, setSelectedCoin] = useState<string>();
   const { tokenId } = useParams<{ tokenId: string }>();
-  const [token0, setToken0] = useState<any>(null);
-  const [token1, setToken1] = useState<any>(null);
+  const [fromCoin, setFromCoin] = useState<CoinData>(null);
+  const [toCoin, setToCoin] = useState<CoinData>(null);
   // console.log(tokenId, "params");
 
   const [positionDetails, setPositionDetails] = useState<PositionInfo>(null);
@@ -27,10 +31,15 @@ const usePoolDetails = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
-  const [firstCoin, setFirstCoin] = useState<any>();
-  const [secondCoin, setSecondCoin] = useState<any>();
+  const [firstCoin, setFirstCoin] = useState<CoinData>();
+  const [secondCoin, setSecondCoin] = useState<CoinData>();
 
   /* core functions */
+  const getCoinData = async (token: Token): Promise<CoinData> => {
+    const network_data = await getNetworkData(provider);
+    return network_data.coin_or_token[token.symbol];
+  };
+
   const getPositionDetails = async (
     tokenId: string,
     load = true,
@@ -40,13 +49,13 @@ const usePoolDetails = () => {
       const position = await getPositionInfo(tokenId, provider, null, true);
 
       setPositionDetails(position);
-      setToken0(position.token0);
-      setToken1(position.token1);
-      setFirstCoin(position.token0);
-      setSecondCoin(position.token1);
+      setFromCoin(await getCoinData(position.token0));
+      setToCoin(await getCoinData(position.token1));
+      setFirstCoin(await getCoinData(position.token0));
+      setSecondCoin(await getCoinData(position.token1));
       setSelectedCoin(position.token1.symbol);
 
-      // console.log(position, "position");
+      console.log(position, "position");
 
       load && setLoading(false);
       return positionDetails;
@@ -68,6 +77,7 @@ const usePoolDetails = () => {
   /* useEffects */
 
   useEffect(() => {
+    setProvider(getProvider());
     tokenId && chain_id && getPositionDetails(tokenId);
   }, [tokenId, chain_id]);
 
@@ -104,14 +114,14 @@ const usePoolDetails = () => {
   };
 
   const handleSwapCoin = () => {
-    const temp = token0;
-    setToken0(token1);
-    setToken1(temp);
+    const temp = fromCoin;
+    setFromCoin(toCoin);
+    setToCoin(temp);
   };
 
   return {
-    token0,
-    token1,
+    fromCoin,
+    toCoin,
     positionDetails,
     loading,
     handleSwapCoin,
