@@ -145,3 +145,15 @@ console.log("decoded: ", [...decoded, noExponents(Number(decoded[1]))]);
 /** **/
 
 /*  */
+
+// increase liquidity
+// https://goerli.etherscan.io/tx/0x117f59a92933902f203c1f599c1c7ae7b259ae4760d419e358a3ca964935bb06 tokens
+// https://goerli.etherscan.io/tx/0x9ef6807bdfcdbe9cbae1e6f754e8f9f32dcb534305df25c78bc7ee56dbe44bc0 eth
+
+// remove liquidity
+// https://goerli.etherscan.io/tx/0x5325548f58aaa1694bd479fbd8852f5b061fc6ff617264b09da1a94e0ed3759c  tokens
+// https://goerli.etherscan.io/tx/0x3c69e8cfad725335658af70a92ddcb2ee429c102c1dc3e96bce2c1ff80cf9a7f  eth
+
+// collect fees
+// https://goerli.etherscan.io/tx/0x5535726282b1079d10cbe9db971a3ab15f44c42cb835167bdb0309297c78fb5e tokens
+// https://goerli.etherscan.io/tx/0xc81312ede4e1b5f072ca5fb7987c5727726965f7003231b9e238ed6b68430496 eth

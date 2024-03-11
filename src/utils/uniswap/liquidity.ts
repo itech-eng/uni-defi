@@ -32,6 +32,8 @@ import { getPoolInfo } from "./pool";
 import { COIN_SLUG } from "../network/coin-data";
 import { getTokenTransferApproval } from "../eth/erc20";
 
+const MAX_UINT128 = BigNumber.from(2).pow(128).sub(1);
+
 export interface PositionInfo {
   tokenId: number | string;
   tickLower: number;
@@ -220,8 +222,6 @@ async function getPositionAmounts(
   provider?: ethers.providers.Web3Provider,
 ): Promise<PositionInfo> {
   provider = provider ?? getProvider();
-  const MAX_UINT128 = BigNumber.from(2).pow(128).sub(1);
-
   const positionContract = new ethers.Contract(
     network_data.contract.nonfungible_position_manager.address,
     NonfungiblePositionManagerABI.abi,
@@ -289,8 +289,8 @@ async function getPositionAmounts(
   // console.log("fee_token0: ", fee_token0.toString());
   // console.log("fee_token1: ", fee_token1.toString());
 
-  const token0Amount = Number(pos_data.amount0.toSignificant(6));
-  const token1Amount = Number(pos_data.amount1.toSignificant(6));
+  const token0Amount = Number(pos_data.amount0.toSignificant(18));
+  const token1Amount = Number(pos_data.amount1.toSignificant(18));
   const percentRatio = calculatePercentRatio(
     token0Amount,
     (1 / position.currentPrice) * token1Amount,
@@ -539,4 +539,280 @@ function processTickUL(
     tickUpper = -1 * tickLowerAtoB;
   }
   return { tickLower, tickUpper };
+}
+
+export async function increaseLiquidity(
+  tokenId: string,
+  coinA: CoinData,
+  coinB: CoinData,
+  poolFee: number,
+  amountA: number,
+  amountB: number,
+  setInfo?: (msg: string) => void,
+  provider?: providers.Web3Provider,
+  network_data?: NetworkData,
+): Promise<providers.TransactionReceipt> {
+  provider = provider ?? getProvider();
+  const signer = provider.getSigner();
+  const walletAddress = await signer.getAddress();
+  if (!walletAddress || !provider) {
+    throw new Error("Cannot increase liquidity without a connected wallet");
+  }
+
+  network_data = network_data ?? (await getNetworkData(provider));
+  const postionContractAddress =
+    network_data.contract.nonfungible_position_manager.address;
+
+  if (!coinA.is_native) {
+    const tokenApproval = await getTokenTransferApproval(
+      coinA.token_info,
+      postionContractAddress,
+      amountA,
+      setInfo,
+      network_data,
+      provider,
+    );
+
+    if (!tokenApproval) {
+      throw new Error("Approval Process Failed");
+    }
+  }
+
+  if (!coinB.is_native) {
+    const tokenApproval = await getTokenTransferApproval(
+      coinB.token_info,
+      postionContractAddress,
+      amountB,
+      setInfo,
+      network_data,
+      provider,
+    );
+
+    if (!tokenApproval) {
+      throw new Error("Approval Process Failed");
+    }
+  }
+
+  const nftPositionManager = new ethers.Contract(
+    postionContractAddress,
+    NonfungiblePositionManagerABI.abi,
+    signer,
+  );
+  // console.log('nftPositionManager: ', nftPositionManager.functions);
+
+  const calls = [];
+
+  const coin0 =
+    coinA.token_info.address < coinB.token_info.address ? coinA : coinB;
+  const coin1 =
+    coinB.token_info.address > coinA.token_info.address ? coinB : coinA;
+
+  const amount0 = coinA.basic.code == coin0.basic.code ? amountA : amountB;
+  const amount1 = coinB.basic.code == coin1.basic.code ? amountB : amountA;
+
+  // Prepare data for increase liquidity
+  const fee = poolFee;
+  const amount0Desired = convertCoinAmountToInt(
+    amount0,
+    coin0.token_info.decimals,
+  );
+  const amount1Desired = convertCoinAmountToInt(
+    amount1,
+    coin1.token_info.decimals,
+  );
+  const amount0Min = getSlippageMinAmount(amount0, coin0.token_info.decimals);
+  const amount1Min = getSlippageMinAmount(amount1, coin1.token_info.decimals);
+  const deadline = Math.ceil(new Date().getTime() / 1000 + 60 * 10); // 10 minutes
+
+  const increaseParam = {
+    tokenId,
+    amount0Desired,
+    amount1Desired,
+    amount0Min,
+    amount1Min,
+    deadline,
+  };
+
+  console.log("increaseParam: ", increaseParam);
+
+  const increaseCalldata = nftPositionManager.interface.encodeFunctionData(
+    "increaseLiquidity",
+    [increaseParam],
+  );
+  calls.push(increaseCalldata);
+
+  const ethValue = coin0.is_native
+    ? amount0
+    : coin1.is_native
+      ? amount1
+      : undefined;
+  console.log({ ethValue });
+
+  if (ethValue) {
+    const refundETHCalldata =
+      nftPositionManager.interface.encodeFunctionData("refundETH");
+    // console.log("refundETHCalldata: ", refundETHCalldata);
+    calls.push(refundETHCalldata);
+  }
+
+  const txRes: providers.TransactionResponse =
+    await nftPositionManager.multicall(calls, {
+      value: ethValue ? ethers.utils.parseEther(String(ethValue)) : undefined,
+    });
+
+  const tx = await txRes.wait();
+  return tx;
+}
+
+export async function removeLiquidity(
+  tokenId: string,
+  coinA: CoinData,
+  coinB: CoinData,
+  liquidity: string,
+  amountA: number,
+  amountB: number,
+  setInfo?: (msg: string) => void,
+  provider?: providers.Web3Provider,
+  network_data?: NetworkData,
+): Promise<providers.TransactionReceipt> {
+  provider = provider ?? getProvider();
+  const signer = provider.getSigner();
+  const walletAddress = await signer.getAddress();
+  if (!walletAddress || !provider) {
+    throw new Error("Cannot perform this action without a connected wallet");
+  }
+
+  network_data = network_data ?? (await getNetworkData(provider));
+  const postionContractAddress =
+    network_data.contract.nonfungible_position_manager.address;
+
+  const nftPositionManager = new ethers.Contract(
+    postionContractAddress,
+    NonfungiblePositionManagerABI.abi,
+    signer,
+  );
+  // console.log('nftPositionManager: ', nftPositionManager.functions);
+
+  const calls = [];
+
+  const coin0 =
+    coinA.token_info.address < coinB.token_info.address ? coinA : coinB;
+  const coin1 =
+    coinB.token_info.address > coinA.token_info.address ? coinB : coinA;
+
+  const amount0 = coinA.basic.code == coin0.basic.code ? amountA : amountB;
+  const amount1 = coinB.basic.code == coin1.basic.code ? amountB : amountA;
+
+  // Prepare data for remove liquidity
+  const amount0Min = getSlippageMinAmount(amount0, coin0.token_info.decimals);
+  const amount1Min = getSlippageMinAmount(amount1, coin1.token_info.decimals);
+  const deadline = Math.ceil(new Date().getTime() / 1000 + 60 * 10); // 10 minutes
+
+  const removeParam = {
+    tokenId,
+    liquidity,
+    amount0Min,
+    amount1Min,
+    deadline,
+  };
+
+  console.log("removeParam: ", removeParam);
+
+  const removeCalldata = nftPositionManager.interface.encodeFunctionData(
+    "removeLiquidity",
+    [removeParam],
+  );
+  calls.push(removeCalldata);
+
+  // prepare data for collect
+  const recipient = walletAddress;
+  const collectParam = {
+    tokenId,
+    recipient,
+    amount0Max: MAX_UINT128,
+    amount1Max: MAX_UINT128,
+  };
+
+  console.log("collectParam: ", collectParam);
+
+  const collectCalldata = nftPositionManager.interface.encodeFunctionData(
+    "colllect",
+    [collectParam],
+  );
+  calls.push(collectCalldata);
+
+  if (coin0.is_native || coin1.is_native) {
+    // const refundETHCalldata =
+    //   nftPositionManager.interface.encodeFunctionData("refundETH");
+    // calls.push(refundETHCalldata);
+  }
+
+  const txRes: providers.TransactionResponse =
+    await nftPositionManager.multicall(calls);
+
+  const tx = await txRes.wait();
+  return tx;
+}
+
+export async function collectFees(
+  tokenId: string,
+  coinA: CoinData,
+  coinB: CoinData,
+  setInfo?: (msg: string) => void,
+  provider?: providers.Web3Provider,
+  network_data?: NetworkData,
+): Promise<providers.TransactionReceipt> {
+  provider = provider ?? getProvider();
+  const signer = provider.getSigner();
+  const walletAddress = await signer.getAddress();
+  if (!walletAddress || !provider) {
+    throw new Error("Cannot perform this action without a connected wallet");
+  }
+
+  network_data = network_data ?? (await getNetworkData(provider));
+  const postionContractAddress =
+    network_data.contract.nonfungible_position_manager.address;
+
+  const nftPositionManager = new ethers.Contract(
+    postionContractAddress,
+    NonfungiblePositionManagerABI.abi,
+    signer,
+  );
+  // console.log('nftPositionManager: ', nftPositionManager.functions);
+
+  const calls = [];
+
+  const coin0 =
+    coinA.token_info.address < coinB.token_info.address ? coinA : coinB;
+  const coin1 =
+    coinB.token_info.address > coinA.token_info.address ? coinB : coinA;
+
+  // prepare data for collect
+  const recipient = walletAddress;
+  const collectParam = {
+    tokenId,
+    recipient,
+    amount0Max: MAX_UINT128,
+    amount1Max: MAX_UINT128,
+  };
+
+  console.log("collectParam: ", collectParam);
+
+  const collectCalldata = nftPositionManager.interface.encodeFunctionData(
+    "colllect",
+    [collectParam],
+  );
+  calls.push(collectCalldata);
+
+  if (coin0.is_native || coin1.is_native) {
+    // const refundETHCalldata =
+    //   nftPositionManager.interface.encodeFunctionData("refundETH");
+    // calls.push(refundETHCalldata);
+  }
+
+  const txRes: providers.TransactionResponse =
+    await nftPositionManager.multicall(calls);
+
+  const tx = await txRes.wait();
+  return tx;
 }
