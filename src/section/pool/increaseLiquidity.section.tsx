@@ -1,22 +1,31 @@
 import useIncreaseLiquidity from "@/src/hooks/useIncreaseLiquidity";
+import { IRootState } from "@/store";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { useSelector } from "react-redux";
 
 const IncreaseLiquidity = () => {
   const router = useRouter();
   const {
+    wallet_address: walletAddress,
+    chain_id,
+    block_number,
+  } = useSelector((state: IRootState) => state.wallet);
+
+  const {
     firstCoin,
     secondCoin,
-    handleSwapCoin,
+    handleSwitchCoins,
     loading,
     positionDetails,
     selectedCoin,
     setSelectedCoin,
-    token0,
-    token1,
+    fromCoin,
+    toCoin,
   } = useIncreaseLiquidity();
-  return (
+
+  return chain_id ? (
     <div className="flex flex-col container mt-36 rounded-xl max-w-2xl border border-slate-800 py-6  ">
       <div className="flex items-center justify-between mb-6">
         <ArrowLeft
@@ -113,28 +122,28 @@ const IncreaseLiquidity = () => {
                 </div>
                 <div className="border rounded-3xl flex justify-between items-center gap-2 text-gray-400 border-slate-800 mr-3 text-xs">
                   <div
-                    className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === firstCoin?.symbol ? "bg-slate-900" : ""}`}
+                    className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === firstCoin?.basic.code ? "bg-slate-900" : ""}`}
                     onClick={() => {
-                      if (selectedCoin === firstCoin?.symbol) {
+                      if (selectedCoin === firstCoin?.basic.code) {
                         return;
                       }
-                      setSelectedCoin(firstCoin.symbol);
-                      handleSwapCoin();
+                      setSelectedCoin(firstCoin.basic.code);
+                      handleSwitchCoins();
                     }}
                   >
-                    {firstCoin?.symbol}
+                    {firstCoin?.basic.code}
                   </div>
                   <div
-                    className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === secondCoin?.symbol ? "bg-slate-900" : ""}`}
+                    className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === secondCoin?.basic.code ? "bg-slate-900" : ""}`}
                     onClick={() => {
-                      if (selectedCoin === secondCoin?.symbol) {
+                      if (selectedCoin === secondCoin?.basic.code) {
                         return;
                       }
-                      setSelectedCoin(secondCoin?.symbol);
-                      handleSwapCoin();
+                      setSelectedCoin(secondCoin?.basic.code);
+                      handleSwitchCoins();
                     }}
                   >
-                    {secondCoin?.symbol}
+                    {secondCoin?.basic.code}
                   </div>
                 </div>
               </div>
@@ -250,6 +259,18 @@ const IncreaseLiquidity = () => {
           </div>
         </div>
       )}
+    </div>
+  ) : (
+    <div className="max-w-[800px] min-h-[500px] w-[90%] h-auto text-white mt-36 overflow-x-hidden">
+      <div className="flex w-full justify-start items-start">
+        <span
+          onClick={() => router.back()}
+          className="flex text-[14px] font-medium items-center text-gray-400 cursor-pointer"
+        >
+          <ArrowLeft size={16} className="cursor-pointer" />
+          Back to Pool
+        </span>
+      </div>
     </div>
   );
 };

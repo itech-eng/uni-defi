@@ -1,12 +1,19 @@
 import { Slider } from "@/src/components/ui/slider";
-import useDecreaseLiquidity from "@/src/hooks/useDecreaseLiquidity";
+import useRemoveLiquidity from "@/src/hooks/useDecreaseLiquidity";
+import { IRootState } from "@/store";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
 const RemoveLiquidity = () => {
   const router = useRouter();
-  const [percent, setPercent] = useState(50);
+  const {
+    wallet_address: walletAddress,
+    chain_id,
+    block_number,
+  } = useSelector((state: IRootState) => state.wallet);
+
   const {
     // firstCoin,
     // secondCoin,
@@ -15,10 +22,12 @@ const RemoveLiquidity = () => {
     positionDetails,
     selectedCoin,
     setSelectedCoin,
-    token0,
-    token1,
-  } = useDecreaseLiquidity();
-  return (
+    fromCoin,
+    toCoin,
+    percent,
+    setPercent,
+  } = useRemoveLiquidity();
+  return chain_id ? (
     <div className="flex flex-col container mt-20 rounded-xl max-w-md border border-slate-800 py-6">
       <div className="flex items-center justify-between mb-6">
         <ArrowLeft
@@ -136,6 +145,18 @@ const RemoveLiquidity = () => {
         <button className="inline-flex items-center justify-center whitespace-nowrap ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary">
           Decrease
         </button>
+      </div>
+    </div>
+  ) : (
+    <div className="max-w-[800px] min-h-[500px] w-[90%] h-auto text-white mt-36 overflow-x-hidden">
+      <div className="flex w-full justify-start items-start">
+        <span
+          onClick={() => router.back()}
+          className="flex text-[14px] font-medium items-center text-gray-400 cursor-pointer"
+        >
+          <ArrowLeft size={16} className="cursor-pointer" />
+          Back to Pool
+        </span>
       </div>
     </div>
   );

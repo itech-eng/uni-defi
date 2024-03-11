@@ -10,6 +10,7 @@ import { Token } from "@uniswap/sdk-core";
 import { CoinData } from "../utils/types";
 import { getProvider } from "../utils/wallet";
 import { getNetworkCoins, getNetworkData } from "../utils/corefunctions";
+import { getCoinData } from "../utils/network/coin-data";
 
 const usePoolDetails = () => {
   const { toast } = useToast();
@@ -35,11 +36,6 @@ const usePoolDetails = () => {
   const [secondCoin, setSecondCoin] = useState<CoinData>();
 
   /* core functions */
-  const getCoinData = async (token: Token): Promise<CoinData> => {
-    const network_data = await getNetworkData(provider);
-    return network_data.coin_or_token[token.symbol];
-  };
-
   const getPositionDetails = async (
     tokenId: string,
     load = true,
@@ -49,10 +45,10 @@ const usePoolDetails = () => {
       const position = await getPositionInfo(tokenId, provider, null, true);
 
       setPositionDetails(position);
-      setFromCoin(await getCoinData(position.token0));
-      setToCoin(await getCoinData(position.token1));
-      setFirstCoin(await getCoinData(position.token0));
-      setSecondCoin(await getCoinData(position.token1));
+      setFromCoin(await getCoinData(position.token0, provider));
+      setToCoin(await getCoinData(position.token1, provider));
+      setFirstCoin(await getCoinData(position.token0, provider));
+      setSecondCoin(await getCoinData(position.token1, provider));
       setSelectedCoin(position.token1.symbol);
 
       console.log(position, "position");

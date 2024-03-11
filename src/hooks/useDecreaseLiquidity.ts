@@ -1,45 +1,122 @@
 import { ethers } from "ethers";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getPositionInfo } from "../utils/uniswap/liquidity";
+import { PositionInfo, getPositionInfo } from "../utils/uniswap/liquidity";
+import { useDispatch, useSelector } from "react-redux";
+import { IRootState } from "@/store";
+import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
+import { useToast } from "../components/ui/use-toast";
+import { getCoinData } from "../utils/network/coin-data";
+import { CoinData } from "../utils/types";
+import { getProvider } from "../utils/wallet";
 
-const useDecreaseLiquidity = () => {
-  const [selectedCoin, setSelectedCoin] = useState<string>();
+const useRemoveLiquidity = () => {
+  const { toast } = useToast();
+  const {
+    wallet_address: walletAddress,
+    chain_id,
+    block_number,
+  } = useSelector((state: IRootState) => state.wallet);
+  const dispatch = useDispatch();
+
+  const [percent, setPercent] = useState(50);
   const { tokenId } = useParams<{ tokenId: string }>();
-  const [token0, setToken0] = useState<any>(null);
-  const [token1, setToken1] = useState<any>(null);
+  const [fromCoin, setFromCoin] = useState<CoinData>(null);
+  const [toCoin, setToCoin] = useState<CoinData>(null);
+  const [selectedCoin, setSelectedCoin] = useState<string>();
   const [positionDetails, setPositionDetails] = useState<any>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
 
-  const getPositionDetails = async (tokenId: any) => {
-    setLoading(true);
-    const positions = await getPositionInfo(tokenId, provider, null, true);
-    setPositionDetails(positions);
-    setToken0(positions.token0);
-    setToken1(positions.token1);
+  const getPositionDetails = async (
+    tokenId: string,
+    load = true,
+  ): Promise<PositionInfo> => {
+    try {
+      load && setLoading(true);
+      const position = await getPositionInfo(tokenId, provider, null, true);
 
-    setSelectedCoin(positions.token1.symbol);
-    console.log(positions, "positions");
-    setLoading(false);
+      setPositionDetails(position);
+      setFromCoin(await getCoinData(position.token0, provider));
+      setToCoin(await getCoinData(position.token1, provider));
+      setSelectedCoin(position.token1.symbol);
+
+      console.log(position, "position");
+
+      load && setLoading(false);
+      return positionDetails;
+    } catch (error) {
+      setLoading(false);
+      router.back();
+      toast({
+        title: "Error",
+        description: "Position not found",
+      });
+      console.error(error);
+      return null;
+    }
   };
+
+  const clearData = (action: "clear_all" = "clear_all") => {};
+  /*  */
+
+  /* useEffects */
+
   useEffect(() => {
-    tokenId && getPositionDetails(tokenId);
-  }, [tokenId]);
-  const handleSwapCoin = () => {
-    const temp = token0;
-    setToken0(token1);
-    setToken1(temp);
+    setProvider(getProvider());
+    tokenId && chain_id && getPositionDetails(tokenId);
+  }, [tokenId, chain_id]);
+
+  useEffect(() => {
+    // chain_id && router.push("/pool");
+  }, [chain_id]);
+
+  useEffect(() => {
+    tokenId && chain_id && getPositionDetails(tokenId, false);
+  }, [block_number]);
+  /*  */
+
+  /* handlers */
+  const handleClearAll = () => {
+    try {
+      clearData();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
   };
+
+  const handleConnectWallet = () => {
+    try {
+      dispatch(setWallet<walletSliceType>({ open_wallet_sidebar: true }));
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleSwapCoin = () => {
+    const temp = fromCoin;
+    setFromCoin(toCoin);
+    setToCoin(temp);
+  };
+
   return {
-    token0,
-    token1,
+    fromCoin,
+    toCoin,
     positionDetails,
     loading,
     handleSwapCoin,
     selectedCoin,
     setSelectedCoin,
+    percent,
+    setPercent,
   };
 };
-export default useDecreaseLiquidity;
+
+export default useRemoveLiquidity;

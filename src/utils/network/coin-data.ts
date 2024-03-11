@@ -2,8 +2,12 @@ import {
   Currency,
   NativeCurrencyName,
   NativeCurrency,
+  Token,
 } from "@uniswap/sdk-core";
-import { CoinBasic } from "../types";
+import { CoinBasic, CoinData, NetworkData } from "../types";
+import { getNetworkData } from "../corefunctions";
+import { providers } from "ethers";
+import { getProvider } from "../wallet";
 
 export declare abstract class NativeCoin extends NativeCurrency {}
 
@@ -76,3 +80,13 @@ export const COIN_BAISC_DATA: { [slug: string]: CoinBasic } = {
     icon: "/coins/usdt.png",
   },
 };
+
+export async function getCoinData(
+  token: Token,
+  provider?: providers.Web3Provider,
+  network_data?: NetworkData,
+): Promise<CoinData> {
+  provider = provider ?? getProvider();
+  network_data = network_data ?? (await getNetworkData(provider));
+  return network_data.coin_or_token[token.symbol];
+}
