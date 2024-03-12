@@ -84,14 +84,14 @@ export default function Navbar() {
           </ul>
         </div>
         <div className="flex items-center justify-center">
-          <div className="relative w-full flex items-center">
+          {/* <div className="relative w-full flex items-center">
             <Search className="text-white absolute left-3" size={20} />
             <input
               type="text"
               placeholder="Search Coins..."
               className="bg-slate-950 border border-gray-800 w-full h-10 text-white pl-10 pr-4 rounded-2xl focus:outline-none focus:ring focus:border-primary"
             />
-          </div>
+          </div> */}
         </div>
         <div className="flex items-center justify-end gap-4">
           <DropdownWithIcon

@@ -287,7 +287,7 @@ export function beautifyNumber(
   value: number | string,
   non_zero_decimal = 4,
 ): string {
-  if (!value || value == "undefined" || value == "null") return "-";
+  if (!value || value == "undefined" || value == "null") return "0";
   if (isNaN(Number(value))) throw new Error(`Invalid number: ${value}`);
   value = Number(value);
   const sign = Math.sign(value) < 0 ? "-" : "";
@@ -411,6 +411,7 @@ export function calculatePercentRatio(
     value1_percent: 0,
     value2_percent: 0,
   };
+  if (!value1 && !value2) return result;
   const formula_constant = 100 / (value1 + value2);
   result.value1_percent = Math.abs(
     Number((value1 * formula_constant).toFixed(2)),
@@ -436,7 +437,7 @@ export const formatAmountKnL = (
   amount: number | string,
   decimal = 0,
 ): string => {
-  if (!amount || amount == "undefined" || amount == "null") return "-";
+  if (!amount || amount == "undefined" || amount == "null") return "0";
   let value = Number(amount);
   if (isNaN(value)) throw new Error(`Invalid number: ${amount}`);
   decimal = decimal > 100 ? 100 : decimal;
