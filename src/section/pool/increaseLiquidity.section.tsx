@@ -189,7 +189,9 @@ const IncreaseLiquidity = () => {
                     </span>
                   </div>
                 </div>
-                <div className="border rounded-3xl flex justify-between items-center gap-2 text-gray-400 border-slate-800 mr-3 text-xs">
+                
+                {/* switch coin */}
+                {/* <div className="border rounded-3xl flex justify-between items-center gap-2 text-gray-400 border-slate-800 mr-3 text-xs">
                   <div
                     className={`px-3 rounded-3xl py-1 text-white font-normal cursor-pointer ${selectedCoin === firstCoin?.basic.code ? "bg-slate-900" : ""}`}
                     onClick={() => {
@@ -214,7 +216,9 @@ const IncreaseLiquidity = () => {
                   >
                     {secondCoin?.basic.code}
                   </div>
-                </div>
+                </div> */}
+                {/*  */}
+
               </div>
             </div>
             <div className="flex items-center justify-center rounded-3xl mb-5 mx-3">
