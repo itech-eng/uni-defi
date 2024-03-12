@@ -18,6 +18,10 @@ import {
   NETWORK_DATA,
 } from "@/src/utils/network/network-data";
 import { CoinData } from "@/src/utils/types";
+import {
+  PositionInfo,
+  getLiquidityRangePrice,
+} from "@/src/utils/uniswap/liquidity";
 
 const PoolDetailsSection = () => {
   const router = useRouter();
@@ -59,11 +63,15 @@ const PoolDetailsSection = () => {
     return `${base_url}/${token_endpoint}/${coin.token_info.address}`;
   };
 
+  const renderCoinPerText = () => {
+    return `${toCoin?.basic.code} per ${fromCoin?.basic.code}`;
+  };
+
   return chain_id ? (
     <div className="max-w-[800px] min-h-[500px] w-[90%] h-auto text-white mt-36 overflow-x-hidden">
       <div className="flex w-full justify-start items-start">
         <span
-          onClick={() => router.back()}
+          onClick={() => router.push("/pool")}
           className="flex text-[14px] font-medium items-center text-gray-400 cursor-pointer"
         >
           <ArrowLeft size={16} className="" />
@@ -104,7 +112,7 @@ const PoolDetailsSection = () => {
                     <div className="h-2 w-2 bg-green-500 rounded-full"></div>
                   </span> */}
                   {positionDetails?.closed ? (
-                    <span className="text-xs text-grey-500">Closed</span>
+                    <span className="text-xs text-gray-500">Closed</span>
                   ) : positionDetails?.inRange ? (
                     <span className="text-xs text-green-500">In Range</span>
                   ) : (
@@ -288,7 +296,7 @@ const PoolDetailsSection = () => {
                         className={`h-2 w-2 ${positionDetails?.inRange ? "bg-green-500" : "bg-red-500"} rounded-full`}
                       ></div> */}
                       {positionDetails?.closed ? (
-                        <span className="text-grey-500">Closed</span>
+                        <span className="text-gray-500">Closed</span>
                       ) : positionDetails?.inRange ? (
                         <span className="text-green-500">In Range</span>
                       ) : (
@@ -332,12 +340,14 @@ const PoolDetailsSection = () => {
               <div className="w-[380px] flex flex-col py-4 items-center justify-center border border-slate-800 bg-slate-900 rounded-md">
                 <h1 className="text-gray-400 text-md font-medium">Min Price</h1>
                 <h1 className="text-white text-xl font-bold">
-                  {positionDetails.minPrice != INFINITY_TEXT
-                    ? formatAmountKnL(positionDetails.minPrice)
-                    : positionDetails.minPrice}{" "}
+                  {getLiquidityRangePrice(
+                    "to_text",
+                    positionDetails?.minPrice,
+                    positionDetails?.fee,
+                  )}{" "}
                 </h1>
                 <p className="text-gray-400 text-md font-medium">
-                  {toCoin?.basic.code} per {fromCoin?.basic.code}
+                  {renderCoinPerText()}
                 </p>
               </div>
               <div className="w-[40px] flex items-center justify-center rounded-md h-full">
@@ -346,12 +356,14 @@ const PoolDetailsSection = () => {
               <div className="w-[380px] flex flex-col py-4 items-center justify-center border border-slate-800 bg-slate-900 rounded-md">
                 <h1 className="text-gray-400 text-md font-medium">Max Price</h1>
                 <h1 className="text-white text-xl font-bold">
-                  {positionDetails.maxPrice != INFINITY_TEXT
-                    ? formatAmountKnL(positionDetails.maxPrice)
-                    : positionDetails.maxPrice}{" "}
+                  {getLiquidityRangePrice(
+                    "to_text",
+                    positionDetails?.maxPrice,
+                    positionDetails?.fee,
+                  )}{" "}
                 </h1>
                 <p className="text-gray-400 text-md font-medium">
-                  {toCoin?.basic.code} per {fromCoin?.basic.code}
+                  {renderCoinPerText()}
                 </p>
               </div>
             </div>
@@ -364,7 +376,7 @@ const PoolDetailsSection = () => {
                 {beautifyNumber(positionDetails?.currentPrice, 3)}
               </h1>
               <p className="text-gray-400 text-md font-medium">
-                {toCoin?.basic.code} per {fromCoin?.basic.code}
+                {renderCoinPerText()}
               </p>
             </div>
           </div>
@@ -377,7 +389,7 @@ const PoolDetailsSection = () => {
     <div className="max-w-[800px] min-h-[500px] w-[90%] h-auto text-white mt-36 overflow-x-hidden">
       <div className="flex w-full justify-start items-start">
         <span
-          onClick={() => router.back()}
+          onClick={() => router.push("/pool")}
           className="flex text-[14px] font-medium items-center text-gray-400 cursor-pointer"
         >
           <ArrowLeft size={16} className="cursor-pointer" />

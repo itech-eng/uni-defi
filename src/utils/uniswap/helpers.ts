@@ -9,6 +9,7 @@ import {
   beautifyNumber,
   convertCoinAmountToInt,
   empty,
+  formatAmountKnL,
   formatNumber,
 } from "../corefunctions";
 import { getPoolInfo } from "./pool";

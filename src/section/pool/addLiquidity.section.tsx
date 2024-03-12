@@ -12,20 +12,16 @@ import PreviewLiquidity from "./previewLiquidity.section";
 import { useAddLiquidity } from "@/src/hooks/useAddLiquidity";
 import LoadingModal from "@/src/components/loader/loader.section";
 import { beautifyNumber } from "@/src/utils/corefunctions";
-import { getTickFromPrice } from "@/src/utils/uniswap/maths";
+import { getLiquidityRangePrice } from "@/src/utils/uniswap/liquidity";
 
 const AddLiquiditySection = () => {
   const {
     pool,
     price,
-    handlePriceSet,
     formReady,
     preview,
-    setPreview,
     fromCoin,
-    setFromCoin,
     toCoin,
-    setToCoin,
     fromDepositAmount,
     toDepositAmount,
     fromBalance,
@@ -35,60 +31,49 @@ const AddLiquiditySection = () => {
     fromDepositShow,
     toDepositShow,
     lowPrice,
-    setLowPrice,
     highPrice,
-    setHighPrice,
-    tickLower,
-    tickUpper,
     inRange,
     selectedFee,
-    setSelectedFee,
+    isCoinSelected,
     selectedCoin,
-    setSelectedCoin,
     assistMessage,
-    setAssistMessage,
+    firstCoin,
     walletAddress,
-    chain_id,
-    block_number,
+    secondCoin,
     router,
-    handleConnectWallet,
-    handleSwitchCoins,
-    handleAddLiquidity,
+    loading,
+    setSelectedCoin,
+    setPreview,
+    setFromCoin,
+    setToCoin,
     handleFullRange,
     handleLowPriceChange,
+    handlePriceSet,
     handleHighPriceChange,
+    handleConnectWallet,
     handleFeeSelection,
+    handleSwitchCoins,
     handleFromDepositAmountChange,
+    handleAddLiquidity,
     handleToDepositAmountChange,
     handleHighPriceIncrease,
     handleHighPriceDecrease,
     handleLowPriceIncrease,
     handleLowPriceDecrease,
-    isCoinSelected,
-    isPoolFeeSelected,
     isAllSelected,
     handleClearAll,
-    firstCoin,
     setFirstCoin,
-    secondCoin,
     setSecondCoin,
-    loading,
     setLoading,
   } = useAddLiquidity();
-
-  const renederRangePrice = (price: string): string => {
-    if (!selectedFee) return price;
-    if (price == String(LIQUIDITY_PRICE_RANGE[selectedFee].min_price)) {
-      return "0";
-    } else if (price == String(LIQUIDITY_PRICE_RANGE[selectedFee].max_price)) {
-      return INFINITY_TEXT;
-    }
-    return price;
-  };
 
   const renederDepositAmount = (amount: string): string => {
     return amount;
     // return amount ? noExponents(beautifyNumber(amount)) : amount;
+  };
+
+  const renderCoinPerText = () => {
+    return `${toCoin?.basic.code} per ${fromCoin?.basic.code}`;
   };
 
   return (
@@ -96,7 +81,7 @@ const AddLiquiditySection = () => {
       <div className="flex items-center justify-between mb-6">
         <ArrowLeft
           className="text-white text-2xl cursor-pointer"
-          onClick={() => router.back()}
+          onClick={() => router.push("/pool")}
         />
         <h1 className="text-xl text-white  font-bold ">Add Liquidity</h1>
         <div
@@ -131,6 +116,7 @@ const AddLiquiditySection = () => {
             />
           </div>
         </div>
+
         <div
           className={`grid cursor-pointer grid-cols-3 gap-4 mt-4 ${!isCoinSelected && "pointer-events-none opacity-50"}`}
         >
@@ -154,6 +140,7 @@ const AddLiquiditySection = () => {
             </div>
           ))}
         </div>
+
         <div
           className={`my-5 ${!isAllSelected && "pointer-events-none opacity-50"}`}
         >
@@ -219,9 +206,13 @@ const AddLiquiditySection = () => {
                       type="text"
                       // pattern="^[0-9]*[.,]?[0-9]*$"
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
-                      id="youPay"
+                      id="lowPrice"
                       placeholder="0"
-                      value={renederRangePrice(lowPrice)}
+                      value={getLiquidityRangePrice(
+                        "to_text",
+                        lowPrice,
+                        selectedFee,
+                      )}
                       onChange={(e) =>
                         handleLowPriceChange(e.target.value, "change")
                       }
@@ -246,7 +237,7 @@ const AddLiquiditySection = () => {
                   </div>
                 </div>
                 <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                  {toCoin?.basic.code} per {fromCoin?.basic.code}
+                  {renderCoinPerText()}
                 </label>
               </div>
             </div>
@@ -261,9 +252,13 @@ const AddLiquiditySection = () => {
                       type="text"
                       // pattern="^[0-9]*[.,]?[0-9]*$"
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
-                      id="youPay"
+                      id="highPrice"
                       placeholder="0"
-                      value={renederRangePrice(highPrice)}
+                      value={getLiquidityRangePrice(
+                        "to_text",
+                        highPrice,
+                        selectedFee,
+                      )}
                       onChange={(e) =>
                         handleHighPriceChange(e.target.value, "change")
                       }
@@ -288,11 +283,12 @@ const AddLiquiditySection = () => {
                   </div>
                 </div>
                 <label className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400">
-                  {toCoin?.basic.code} per {fromCoin?.basic.code}
+                  {renderCoinPerText()}
                 </label>
               </div>
             </div>
           </div>
+
           {pool
             ? selectedFee && (
                 <div className="flex items-center justify-between text-white mb-6">
@@ -302,7 +298,7 @@ const AddLiquiditySection = () => {
                       {beautifyNumber(price, 3)}
                     </p>
                     <h1 className="text-sm font-medium">
-                      {toCoin?.basic.code} per {fromCoin?.basic.code}
+                      {renderCoinPerText()}
                     </h1>
                   </div>
                 </div>
@@ -332,7 +328,7 @@ const AddLiquiditySection = () => {
                     <div>Starting {fromCoin?.basic.code} Price:</div>
                     {price ? (
                       <div>
-                        {price} {toCoin?.basic.code} per {fromCoin?.basic.code}
+                        {price} {renderCoinPerText()}
                       </div>
                     ) : (
                       <div>-</div>
@@ -340,6 +336,7 @@ const AddLiquiditySection = () => {
                   </div>
                 </div>
               )}
+
           {(fromDepositShow || toDepositShow) && (
             <div className="my-2">
               <div className="flex items-center justify-between text-white mb-6">
@@ -347,6 +344,7 @@ const AddLiquiditySection = () => {
               </div>
             </div>
           )}
+
           <div>
             {fromCoin && fromDepositShow && (
               <div className="grid w-full items-center gap-4 mb-4">
@@ -399,6 +397,7 @@ const AddLiquiditySection = () => {
                 </div>
               </div>
             )}
+
             {toCoin && toDepositShow && (
               <div className="grid w-full items-center gap-4 mb-4">
                 <div className="flex flex-col bg-slate-900 space-y-1.5 px-3 py-5 rounded-2xl">
@@ -414,7 +413,7 @@ const AddLiquiditySection = () => {
                           toAmountError ? "border-red-500" : "border-none"
                         } text-white placeholder:text-gray-400 text-xl 
                         placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none`}
-                        id="youPay"
+                        id="toAmount"
                         placeholder="0"
                         value={renederDepositAmount(toDepositAmount)}
                         onChange={(e) =>
@@ -461,7 +460,7 @@ const AddLiquiditySection = () => {
           fee={selectedFee}
           fromAmount={fromDepositAmount}
           toAmount={toDepositAmount}
-          confirmAddLiquidity={handleAddLiquidity}
+          submitHandler={handleAddLiquidity}
           handleSwitchCoins={handleSwitchCoins}
           selectedCoin={selectedCoin}
           setSelectedCoin={setSelectedCoin}

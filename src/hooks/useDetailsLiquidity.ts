@@ -43,6 +43,7 @@ const usePoolDetails = () => {
     try {
       load && setLoading(true);
       const position = await getPositionInfo(tokenId, provider, null, true);
+      // console.log("position: ", position);
 
       setPositionDetails(position);
       setFromCoin(await getCoinData(position.token0, provider));
@@ -51,13 +52,11 @@ const usePoolDetails = () => {
       setSecondCoin(await getCoinData(position.token1, provider));
       setSelectedCoin(position.token1.symbol);
 
-      console.log(position, "position");
-
       load && setLoading(false);
       return positionDetails;
     } catch (error) {
       setLoading(false);
-      router.back();
+      router.push("/pool");
       toast({
         title: "Error",
         description: "Position not found",
@@ -82,7 +81,9 @@ const usePoolDetails = () => {
   }, [chain_id]);
 
   useEffect(() => {
-    tokenId && chain_id && getPositionDetails(tokenId, false);
+    tokenId &&
+      chain_id &&
+      getPositionDetails(tokenId, positionDetails ? false : true);
   }, [block_number]);
   /*  */
 

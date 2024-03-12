@@ -8,6 +8,7 @@ import {
   convertCoinAmountToDecimal,
   convertCoinAmountToInt,
   empty,
+  formatAmountKnL,
   formatNumber,
   getNetworkData,
   getTokenByAddress,
@@ -205,13 +206,13 @@ async function getPosULCPrice(
     position.inRange = true;
   }
 
-  if (position.tickLower == LIQUIDITY_PRICE_RANGE[position.fee].min_tick) {
-    position.minPrice = 0;
-  }
+  // if (position.tickLower == LIQUIDITY_PRICE_RANGE[position.fee].min_tick) {
+  //   position.minPrice = 0;
+  // }
 
-  if (position.tickUpper == LIQUIDITY_PRICE_RANGE[position.fee].max_tick) {
-    position.maxPrice = INFINITY_TEXT;
-  }
+  // if (position.tickUpper == LIQUIDITY_PRICE_RANGE[position.fee].max_tick) {
+  //   position.maxPrice = INFINITY_TEXT;
+  // }
 
   return position;
 }
@@ -541,11 +542,34 @@ function processTickUL(
   return { tickLower, tickUpper };
 }
 
+export function getLiquidityRangePrice(
+  type: "to_text" | "to_number",
+  price: number | string,
+  fee: number,
+): string {
+  if (!type || !price || !fee) return "-";
+  price = String(price);
+  if (type == "to_text") {
+    if (price == String(LIQUIDITY_PRICE_RANGE[fee].min_price)) {
+      return "0";
+    } else if (price == String(LIQUIDITY_PRICE_RANGE[fee].max_price)) {
+      return INFINITY_TEXT;
+    }
+    return formatAmountKnL(price);
+  } else if (type == "to_number") {
+    if (price == "0") {
+      return String(LIQUIDITY_PRICE_RANGE[fee].min_price);
+    } else if (price == INFINITY_TEXT) {
+      return String(LIQUIDITY_PRICE_RANGE[fee].max_price);
+    }
+    return formatAmountKnL(price);
+  }
+}
+
 export async function increaseLiquidity(
   tokenId: string,
   coinA: CoinData,
   coinB: CoinData,
-  poolFee: number,
   amountA: number,
   amountB: number,
   setInfo?: (msg: string) => void,
@@ -611,7 +635,6 @@ export async function increaseLiquidity(
   const amount1 = coinB.basic.code == coin1.basic.code ? amountB : amountA;
 
   // Prepare data for increase liquidity
-  const fee = poolFee;
   const amount0Desired = convertCoinAmountToInt(
     amount0,
     coin0.token_info.decimals,

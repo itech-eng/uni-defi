@@ -1,5 +1,5 @@
 import { Slider } from "@/src/components/ui/slider";
-import useRemoveLiquidity from "@/src/hooks/useDecreaseLiquidity";
+import useRemoveLiquidity from "@/src/hooks/useRemoveLiquidity";
 import { IRootState } from "@/store";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -32,7 +32,7 @@ const RemoveLiquidity = () => {
       <div className="flex items-center justify-between mb-6">
         <ArrowLeft
           className="text-white text-2xl cursor-pointer"
-          onClick={() => router.back()}
+          onClick={() => router.push("/pool")}
         />
         <h1 className="text-sm text-white  font-bold ">Remove Liquidity</h1>
         <div className=""></div>
@@ -151,7 +151,7 @@ const RemoveLiquidity = () => {
     <div className="max-w-[800px] min-h-[500px] w-[90%] h-auto text-white mt-36 overflow-x-hidden">
       <div className="flex w-full justify-start items-start">
         <span
-          onClick={() => router.back()}
+          onClick={() => router.push("/pool")}
           className="flex text-[14px] font-medium items-center text-gray-400 cursor-pointer"
         >
           <ArrowLeft size={16} className="cursor-pointer" />

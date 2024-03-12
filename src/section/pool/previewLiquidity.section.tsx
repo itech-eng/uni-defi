@@ -16,6 +16,7 @@ import {
   PoolFeeText,
 } from "@/src/utils/coreconstants";
 import { beautifyNumber, formatAmountKnL } from "@/src/utils/corefunctions";
+import { getLiquidityRangePrice } from "@/src/utils/uniswap/liquidity";
 
 const PreviewLiquidity = ({
   openStatus,
@@ -25,7 +26,7 @@ const PreviewLiquidity = ({
   fromAmount,
   toAmount,
   fee,
-  confirmAddLiquidity,
+  submitHandler,
   handleSwitchCoins,
   selectedCoin,
   setSelectedCoin,
@@ -35,6 +36,8 @@ const PreviewLiquidity = ({
   inRange,
   firstCoin,
   secondCoin,
+  title,
+  submitButtonText,
 }: {
   openStatus: boolean;
   setOpenStatus: any;
@@ -43,7 +46,7 @@ const PreviewLiquidity = ({
   fromAmount: string;
   toAmount: string;
   fee: number;
-  confirmAddLiquidity: () => void;
+  submitHandler: () => void;
   selectedCoin: string;
   setSelectedCoin: any;
   currentPrice: string;
@@ -53,15 +56,11 @@ const PreviewLiquidity = ({
   firstCoin: CoinData;
   secondCoin: CoinData;
   handleSwitchCoins: () => void;
+  title?: string;
+  submitButtonText?: string;
 }) => {
-  const renederRangePrice = (price: string): string => {
-    if (!price) return "N/A";
-    if (price == String(LIQUIDITY_PRICE_RANGE[fee].min_price)) {
-      return "0";
-    } else if (price == String(LIQUIDITY_PRICE_RANGE[fee].max_price)) {
-      return INFINITY_TEXT;
-    }
-    return formatAmountKnL(price);
+  const renderCoinPerText = () => {
+    return `${toCoin?.token_info?.symbol} per ${fromCoin?.token_info?.symbol}`;
   };
 
   return (
@@ -69,7 +68,9 @@ const PreviewLiquidity = ({
       <DialogTrigger asChild></DialogTrigger>
       <DialogContent className="sm:max-w-md border border-slate-900 bg-slate-950 h-auto flex flex-col justify-start">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-white">Add Liquidity</DialogTitle>
+          <DialogTitle className="text-white">
+            {title ?? "Add Liquidity"}
+          </DialogTitle>
           <X
             className="text-white cursor-pointer"
             size={20}
@@ -185,21 +186,16 @@ const PreviewLiquidity = ({
           <div className="bg-slate-900 flex flex-col items-center justify-center rounded-2xl p-4">
             <h1 className="text-xs font-medium">Min Price</h1>
             <h1 className="text-xl font-medium">
-              {" "}
-              {renederRangePrice(lowPrice)}
+              {getLiquidityRangePrice("to_text", lowPrice, fee)}{" "}
             </h1>
-            <h1 className="text-xs font-medium">
-              {toCoin?.token_info?.symbol} per {fromCoin?.token_info?.symbol}
-            </h1>
+            <h1 className="text-xs font-medium">{renderCoinPerText()}</h1>
           </div>
           <div className="bg-slate-900 flex flex-col items-center justify-center rounded-2xl p-4">
             <h1 className="text-xs font-medium">Max Price</h1>
             <h1 className="text-xl font-medium">
-              {renederRangePrice(highPrice)}
+              {getLiquidityRangePrice("to_text", highPrice, fee)}{" "}
             </h1>
-            <h1 className="text-xs font-medium">
-              {toCoin?.token_info?.symbol} per {fromCoin?.token_info?.symbol}
-            </h1>
+            <h1 className="text-xs font-medium">{renderCoinPerText()}</h1>
           </div>
         </div>
         <div className="grid grid-cols-1 text-white gap-4 rounded-2xl ">
@@ -209,18 +205,16 @@ const PreviewLiquidity = ({
               {" "}
               {currentPrice ? beautifyNumber(currentPrice, 3) : 0}
             </h1>
-            <h1 className="text-xs font-medium">
-              {toCoin?.token_info?.symbol} per {fromCoin?.token_info?.symbol}
-            </h1>
+            <h1 className="text-xs font-medium">{renderCoinPerText()}</h1>
           </div>
         </div>
         <Button
-          onClick={confirmAddLiquidity}
+          onClick={submitHandler}
           type="submit"
           className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
             rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary"
         >
-          Add
+          {submitButtonText ?? "Add"}
         </Button>
       </DialogContent>
     </Dialog>

@@ -287,7 +287,7 @@ export function beautifyNumber(
   value: number | string,
   non_zero_decimal = 4,
 ): string {
-  if (!value) return "-";
+  if (!value || value == "undefined" || value == "null") return "-";
   if (isNaN(Number(value))) throw new Error(`Invalid number: ${value}`);
   value = Number(value);
   const sign = Math.sign(value) < 0 ? "-" : "";
@@ -436,7 +436,7 @@ export const formatAmountKnL = (
   amount: number | string,
   decimal = 0,
 ): string => {
-  if (!amount) return "-";
+  if (!amount || amount == "undefined" || amount == "null") return "-";
   let value = Number(amount);
   if (isNaN(value)) throw new Error(`Invalid number: ${amount}`);
   decimal = decimal > 100 ? 100 : decimal;

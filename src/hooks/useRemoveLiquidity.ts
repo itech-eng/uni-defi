@@ -19,12 +19,12 @@ const useRemoveLiquidity = () => {
   } = useSelector((state: IRootState) => state.wallet);
   const dispatch = useDispatch();
 
-  const [percent, setPercent] = useState(50);
+  const [percent, setPercent] = useState(0);
   const { tokenId } = useParams<{ tokenId: string }>();
   const [fromCoin, setFromCoin] = useState<CoinData>(null);
   const [toCoin, setToCoin] = useState<CoinData>(null);
-  const [selectedCoin, setSelectedCoin] = useState<string>();
-  const [positionDetails, setPositionDetails] = useState<any>(null);
+  const [selectedCoin, setSelectedCoin] = useState<string>("");
+  const [positionDetails, setPositionDetails] = useState<PositionInfo>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
@@ -36,19 +36,21 @@ const useRemoveLiquidity = () => {
     try {
       load && setLoading(true);
       const position = await getPositionInfo(tokenId, provider, null, true);
+      // console.log("position: ", position);
+      if (walletAddress.toLowerCase() != position.owner.toLowerCase()) {
+        throw new Error("Not Authorized!!");
+      }
 
       setPositionDetails(position);
       setFromCoin(await getCoinData(position.token0, provider));
       setToCoin(await getCoinData(position.token1, provider));
       setSelectedCoin(position.token1.symbol);
 
-      console.log(position, "position");
-
       load && setLoading(false);
       return positionDetails;
     } catch (error) {
       setLoading(false);
-      router.back();
+      router.push("/pool");
       toast({
         title: "Error",
         description: "Position not found",
@@ -73,7 +75,9 @@ const useRemoveLiquidity = () => {
   }, [chain_id]);
 
   useEffect(() => {
-    tokenId && chain_id && getPositionDetails(tokenId, false);
+    tokenId &&
+      chain_id &&
+      getPositionDetails(tokenId, positionDetails ? false : true);
   }, [block_number]);
   /*  */
 

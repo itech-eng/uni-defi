@@ -1,8 +1,11 @@
 "use client";
-import { INFINITY_TEXT, PoolFeeText } from "@/src/utils/coreconstants";
-import { formatAmountKnL } from "@/src/utils/corefunctions";
+import { PoolFeeText } from "@/src/utils/coreconstants";
 import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
-import { PositionInfo, getPositions } from "@/src/utils/uniswap/liquidity";
+import {
+  PositionInfo,
+  getLiquidityRangePrice,
+  getPositions,
+} from "@/src/utils/uniswap/liquidity";
 import { IRootState } from "@/store";
 import { Plus, Rows3 } from "lucide-react";
 import Link from "next/link";
@@ -19,6 +22,7 @@ const PoolListSection = () => {
     chain_id,
     block_number,
   } = useSelector((state: IRootState) => state.wallet);
+
   const handlePositionList = async (load = true) => {
     try {
       if (load) setLoading(true);
@@ -29,6 +33,7 @@ const PoolListSection = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     handlePositionList();
   }, [walletAddress, chain_id]);
@@ -39,6 +44,10 @@ const PoolListSection = () => {
 
   const toggleClosedShowHide = () => {
     setShowClosed((prev) => !prev);
+  };
+
+  const renderCoinPerText = (position: PositionInfo) => {
+    return `${position.token1.symbol} per ${position.token0.symbol}`;
   };
 
   return (
@@ -98,20 +107,24 @@ const PoolListSection = () => {
                       <span className=" mr-2 text-gray-500">
                         Min:{" "}
                         <span className="text-white">
-                          {position.minPrice != INFINITY_TEXT
-                            ? formatAmountKnL(position.minPrice)
-                            : position.minPrice}{" "}
-                          {position.token1.symbol} per {position.token0.symbol}
+                          {getLiquidityRangePrice(
+                            "to_text",
+                            position.minPrice,
+                            position.fee,
+                          )}{" "}
+                          {renderCoinPerText(position)}
                         </span>
                       </span>
                       ... {"  "}
                       <span className=" text-gray-500 ">
                         Max:{" "}
                         <span className="text-white">
-                          {position.maxPrice != INFINITY_TEXT
-                            ? formatAmountKnL(position.maxPrice)
-                            : position.maxPrice}{" "}
-                          {position.token1.symbol} per {position.token0.symbol}
+                          {getLiquidityRangePrice(
+                            "to_text",
+                            position.maxPrice,
+                            position.fee,
+                          )}{" "}
+                          {renderCoinPerText(position)}
                         </span>
                       </span>
                     </div>
@@ -119,7 +132,7 @@ const PoolListSection = () => {
                   <div>
                     <span className="font-medium text-[14px] text-gray-400 mr-2">
                       {position.closed ? (
-                        <span className="text-grey-500">Closed</span>
+                        <span className="text-gray-500">Closed</span>
                       ) : position.inRange ? (
                         <span className="text-green-500">In Range</span>
                       ) : (

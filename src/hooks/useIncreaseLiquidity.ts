@@ -5,6 +5,7 @@ import {
   PositionInfo,
   getConvertedAmountForLiqDeposit,
   getPositionInfo,
+  increaseLiquidity,
 } from "../utils/uniswap/liquidity";
 import { CoinData } from "../utils/types";
 import { getCoinData } from "../utils/network/coin-data";
@@ -14,7 +15,14 @@ import { IRootState } from "@/store";
 import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
 import { getProvider } from "../utils/wallet";
 import { getCoinBalance } from "../utils/eth/eth";
-import { beautifyNumber, noExponents, sleep } from "../utils/corefunctions";
+import {
+  beautifyNumber,
+  empty,
+  noExponents,
+  sleep,
+} from "../utils/corefunctions";
+import { getPriceFromTick, getTickFromPrice } from "../utils/uniswap/maths";
+import { INFINITY_TEXT, LIQUIDITY_PRICE_RANGE } from "../utils/coreconstants";
 
 const useIncreaseLiquidity = () => {
   const { toast } = useToast();
@@ -25,13 +33,15 @@ const useIncreaseLiquidity = () => {
   } = useSelector((state: IRootState) => state.wallet);
   const dispatch = useDispatch();
 
-  const [selectedCoin, setSelectedCoin] = useState<string>();
   const { tokenId } = useParams<{ tokenId: string }>();
+
+  const [selectedCoin, setSelectedCoin] = useState<string>();
   const [fromCoin, setFromCoin] = useState<CoinData>(null);
   const [toCoin, setToCoin] = useState<CoinData>(null);
-  const [positionDetails, setPositionDetails] = useState<any>(null);
+  const [positionDetails, setPositionDetails] = useState<PositionInfo>(null);
   const router = useRouter();
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
+
   const [firstCoin, setFirstCoin] = useState<CoinData>();
   const [secondCoin, setSecondCoin] = useState<CoinData>();
   const [price, setPrice] = useState<string>();
@@ -39,6 +49,11 @@ const useIncreaseLiquidity = () => {
   const [formReady, setFormReady] = useState<boolean>(false);
   const [preview, setPreview] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingModal, setLoadingModal] = useState(false);
+
+  const [inRange, setInRange] = useState<boolean>(false);
+  const [lowPrice, setLowPrice] = useState("");
+  const [highPrice, setHighPrice] = useState("");
 
   const [fromDepositAmount, setFromDepositAmount] = useState("");
   const [toDepositAmount, setToDepositAmount] = useState("");
@@ -49,6 +64,87 @@ const useIncreaseLiquidity = () => {
   const [fromAmountError, setFromAmountError] = useState<string>("");
   const [toAmountError, setToAmountError] = useState<string>("");
 
+  /* useEffects */
+  useEffect(() => {
+    setProvider(getProvider());
+    tokenId && chain_id && getPositionDetails(tokenId);
+  }, [tokenId, chain_id]);
+
+  useEffect(() => {
+    // clearData();
+  }, [chain_id]);
+
+  useEffect(() => {
+    tokenId &&
+      chain_id &&
+      getPositionDetails(tokenId, positionDetails ? false : true);
+    fetchAndSetBalance(fromCoin, setFromBalance);
+    fetchAndSetBalance(toCoin, setToBalance);
+  }, [block_number]);
+
+  useEffect(() => {
+    // assistantMessage();
+    if (
+      walletAddress &&
+      positionDetails &&
+      walletAddress.toLowerCase() != positionDetails.owner?.toLowerCase()
+    ) {
+      toast({ title: "Error", description: "Not Authorized!!" });
+      router.push(`/pool/${tokenId}`);
+    }
+
+    if (Number(fromDepositAmount) > Number(fromBalance)) {
+      setFromAmountError("Insufficient balance");
+    } else {
+      setFromAmountError("");
+    }
+
+    if (Number(toDepositAmount) > Number(toBalance)) {
+      setToAmountError("Insufficient balance");
+    } else {
+      setToAmountError("");
+    }
+  }, [fromDepositAmount, toDepositAmount, walletAddress]);
+
+  // all dependencis
+  useEffect(() => {
+    // assistantMessage();
+
+    // console.log({
+    //   fromCoin,
+    //   toCoin,
+    //   price,
+    //   fromDepositAmount,
+    //   toDepositAmount,
+    //   fromAmountError,
+    //   toAmountError,
+    // });
+
+    if (
+      fromCoin &&
+      toCoin &&
+      Number(price) &&
+      (Number(fromDepositAmount) || Number(toDepositAmount)) &&
+      !fromAmountError &&
+      !toAmountError
+    ) {
+      setFormReady(true);
+    } else {
+      setFormReady(false);
+    }
+  }, [
+    positionDetails,
+    fromCoin,
+    toCoin,
+    selectedCoin,
+    price,
+    fromDepositAmount,
+    fromAmountError,
+    toDepositAmount,
+    toAmountError,
+  ]);
+  /*  */
+
   /*core functions  */
   const getPositionDetails = async (
     tokenId: string,
@@ -56,32 +152,64 @@ const useIncreaseLiquidity = () => {
   ): Promise<PositionInfo> => {
     try {
       load && setLoading(true);
-      const position = await getPositionInfo(tokenId, provider);
+      const position = await getPositionInfo(tokenId, provider, null, true);
+      // console.log("position: ", position);
+      if (walletAddress.toLowerCase() != position.owner.toLowerCase()) {
+        throw new Error("Not Authorized!!");
+      }
 
       setPositionDetails(position);
       setFromCoin(await getCoinData(position.token0, provider));
       setToCoin(await getCoinData(position.token1, provider));
+      await fetchAndSetBalance(fromCoin, setFromBalance);
+      await fetchAndSetBalance(toCoin, setToBalance);
+
       setFirstCoin(await getCoinData(position.token0, provider));
       setSecondCoin(await getCoinData(position.token1, provider));
       setSelectedCoin(position.token1.symbol);
+      setPrice(position.currentPrice.toString());
+      setLowPrice(position.minPrice.toString());
+      setHighPrice(position.maxPrice.toString());
 
-      console.log(position, "position");
-
+      await processPriceRangeCondition(
+        position.tickUpper,
+        position.tickLower,
+        position.currentPrice,
+      );
       load && setLoading(false);
-      return positionDetails;
+      return position;
     } catch (error) {
       setLoading(false);
-      router.back();
+      router.push("/pool");
       toast({
         title: "Error",
-        description: "Position not found",
+        description: "Invalid Position!!",
       });
       console.error(error);
       return null;
     }
   };
 
-  const clearData = (action: "clear_all" = "clear_all") => {};
+  const clearData = (
+    action: "clear_all" | "fee_change" | "coin_change" = "clear_all",
+  ) => {
+    setFromDepositShow(false);
+    setToDepositShow(false);
+    resetAmounts();
+
+    setAssistMessage("");
+    setFormReady(false);
+    setPreview(false);
+    setLoading(false);
+
+    (async () =>
+      positionDetails &&
+      (await processPriceRangeCondition(
+        positionDetails.tickUpper,
+        positionDetails.tickLower,
+        positionDetails.currentPrice,
+      )))();
+  };
 
   const fetchAndSetBalance = async (
     coin: CoinData,
@@ -105,11 +233,49 @@ const useIncreaseLiquidity = () => {
     }
   };
 
-  const processAndSetPriceAtoB = (price: number) => {
-    if (fromCoin.token_info.address > toCoin.token_info.address) {
-      price = 1 / price;
+  const processPriceRangeCondition = async (
+    tickH: number,
+    tickL: number,
+    currentPrice?: number | string,
+  ) => {
+    // await sleep(5);
+    // console.log({ tickL, tickH });
+    currentPrice = currentPrice ?? price;
+    // resetAmounts();
+
+    if (!empty(tickH) && !empty(tickL) && Number(currentPrice)) {
+      if (tickL > tickH) {
+        throw new Error("Price Low cannot be greater than Price High!!");
+      }
+      const currentTick = getTickFromPrice(Number(currentPrice));
+      // console.log("currentTick: ", currentTick);
+
+      if (tickH == tickL) {
+        //no deposit amount needed for coinA, coinB
+        setFromDepositShow(false);
+        setToDepositShow(false);
+        setInRange(false);
+      } else if (currentTick < tickL) {
+        //no deposit amount needed for coinB
+
+        setFromDepositShow(true);
+        setToDepositShow(false);
+        setInRange(false);
+      } else if (currentTick > tickH) {
+        //no deposit amount needed for coinA
+        setToDepositShow(true);
+        setFromDepositShow(false);
+        setInRange(false);
+      } else {
+        setFromDepositShow(true);
+        setToDepositShow(true);
+        setInRange(true);
+      }
+    } else {
+      setFromDepositShow(false);
+      setToDepositShow(false);
+      setInRange(false);
     }
-    setPrice(noExponents(beautifyNumber(price)));
   };
 
   const resetAmounts = (fromAmount = "", toAmount = "") => {
@@ -119,21 +285,6 @@ const useIncreaseLiquidity = () => {
     setToAmountError("");
   };
 
-  /*  */
-
-  /* useEffects */
-  useEffect(() => {
-    setProvider(getProvider());
-    tokenId && chain_id && getPositionDetails(tokenId);
-  }, [tokenId, chain_id]);
-
-  useEffect(() => {
-    // chain_id && router.push("/pool");
-  }, [chain_id]);
-
-  useEffect(() => {
-    tokenId && chain_id && getPositionDetails(tokenId, false);
-  }, [block_number]);
   /*  */
 
   /* handlers */
@@ -159,28 +310,47 @@ const useIncreaseLiquidity = () => {
     }
   };
 
+  const handlePriceSet = async (price: string) => {
+    try {
+      const parsedAmount = parseFloat(price);
+      if (isNaN(parsedAmount) || price == "Infinity") {
+        setPrice("");
+      } else {
+        setPrice(price);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   const handleSwitchCoins = async () => {
     try {
-      // const fee = selectedFee;
-      // const pl = pool;
-      // const prc = price;
-      // const lPrc = lowPrice;
-      // const hPrc = highPrice;
-      // const tickL = tickLower;
-      // const tickU = tickUpper;
-      // setFromCoin(toCoin);
-      // setToCoin(fromCoin);
-      // resetAmounts();
-      // await sleep(5);
-      // setSelectedFee(fee);
-      // setPool(pl);
-      // handlePriceSet(noExponents(beautifyNumber(1 / Number(prc))));
-      // setLowPrice(lPrc);
-      // setHighPrice(hPrc);
-      // // hPrc && handleLowPriceChange(String(1 / Number(hPrc)));
-      // // lPrc && handleHighPriceChange(String(1 / Number(lPrc)));
-      // setTickLower(tickL);
-      // setTickUpper(tickU);
+      const prc = price;
+      const lPrc = lowPrice;
+      const hPrc = highPrice;
+      setFromCoin(toCoin);
+      setToCoin(fromCoin);
+      resetAmounts();
+      await sleep(5);
+      handlePriceSet(noExponents(beautifyNumber(1 / Number(prc))));
+      if (hPrc != "0" && hPrc != INFINITY_TEXT) {
+        setLowPrice(beautifyNumber(1 / Number(hPrc)));
+      } else {
+        setLowPrice(hPrc);
+      }
+      if (lPrc != "0" && lPrc != INFINITY_TEXT) {
+        setHighPrice(beautifyNumber(1 / Number(lPrc)));
+      } else {
+        setHighPrice(lPrc);
+      }
+      await processPriceRangeCondition(
+        positionDetails.tickUpper,
+        positionDetails.tickLower,
+        positionDetails.currentPrice,
+      );
     } catch (error) {
       toast({
         title: "Error",
@@ -207,17 +377,17 @@ const useIncreaseLiquidity = () => {
             setFromDepositAmount(amount);
             setFromAmountError("");
             if (toCoin) {
-              // const res = getConvertedAmountForLiqDeposit(
-              //   fromCoin,
-              //   toCoin,
-              //   Number(price),
-              //   Number(lowPrice),
-              //   Number(highPrice),
-              //   parsedAmount,
-              // );
-              // setToDepositAmount(
-              //   res.amountB ? noExponents(beautifyNumber(res.amountB)) : "",
-              // );
+              const res = getConvertedAmountForLiqDeposit(
+                fromCoin,
+                toCoin,
+                Number(price),
+                Number(getPriceFromTick(positionDetails?.tickLower)),
+                Number(getPriceFromTick(positionDetails?.tickUpper)),
+                parsedAmount,
+              );
+              setToDepositAmount(
+                res.amountB ? noExponents(beautifyNumber(res.amountB)) : "",
+              );
             }
           }
         } else {
@@ -252,18 +422,18 @@ const useIncreaseLiquidity = () => {
             setToDepositAmount(amount);
 
             if (fromCoin) {
-              // const res = getConvertedAmountForLiqDeposit(
-              //   fromCoin,
-              //   toCoin,
-              //   Number(price),
-              //   Number(lowPrice),
-              //   Number(highPrice),
-              //   null,
-              //   parsedAmount,
-              // );
-              // setFromDepositAmount(
-              //   res.amountA ? noExponents(beautifyNumber(res.amountA)) : "",
-              // );
+              const res = getConvertedAmountForLiqDeposit(
+                fromCoin,
+                toCoin,
+                Number(price),
+                Number(getPriceFromTick(positionDetails?.tickLower)),
+                Number(getPriceFromTick(positionDetails?.tickUpper)),
+                null,
+                parsedAmount,
+              );
+              setFromDepositAmount(
+                res.amountA ? noExponents(beautifyNumber(res.amountA)) : "",
+              );
             }
           }
         } else {
@@ -279,39 +449,36 @@ const useIncreaseLiquidity = () => {
     }
   };
 
-  const handleAddLiquidity = async () => {
+  const handleIncreaseLiquidity = async () => {
     try {
       setPreview(false);
-      setLoading(true);
+      setLoadingModal(true);
       setAssistMessage("Wait for transaction completion ...");
-      // await createAndAddLiquidity(
-      //   fromCoin,
-      //   toCoin,
-      //   selectedFee,
-      //   Number(price),
-      //   Number(fromDepositAmount),
-      //   Number(toDepositAmount),
-      //   tickLower,
-      //   tickUpper,
-      // );
+
+      await increaseLiquidity(
+        tokenId,
+        fromCoin,
+        toCoin,
+        Number(fromDepositAmount),
+        Number(toDepositAmount),
+      );
+
       // console.log({
+      //   tokenId,
       //   fromCoin,
       //   toCoin,
-      //   selectedFee,
-      //   price,
-      //   tickLower,
-      //   tickUpper,
       //   fromDepositAmount,
       //   toDepositAmount,
       // });
+
       toast({
         title: "Success",
-        description: "Congratulations!! New Position Created",
+        description: "Congratulations!! Liquidity Increased Successfully.",
       });
-      clearData();
+      router.push(`/pool/${tokenId}`);
     } catch (error) {
       // console.error(error.message);
-      setLoading(false);
+      setLoadingModal(false);
       toast({
         title: "Error",
         description: error.message,
@@ -325,11 +492,34 @@ const useIncreaseLiquidity = () => {
     toCoin,
     positionDetails,
     loading,
-    handleSwitchCoins,
     firstCoin,
     secondCoin,
     selectedCoin,
+    assistMessage,
+    formReady,
+    preview,
+    price,
+    lowPrice,
+    highPrice,
+    fromDepositAmount,
+    toDepositAmount,
+    fromDepositShow,
+    toDepositShow,
+    fromBalance,
+    toBalance,
+    fromAmountError,
+    toAmountError,
+    inRange,
+    loadingModal,
     setSelectedCoin,
+    setPreview,
+    setLoadingModal,
+    handleClearAll,
+    handleSwitchCoins,
+    handleConnectWallet,
+    handleFromDepositAmountChange,
+    handleToDepositAmountChange,
+    handleIncreaseLiquidity,
   };
 };
 
