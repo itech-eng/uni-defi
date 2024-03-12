@@ -4,7 +4,7 @@ import { ArrowLeft, MoveHorizontal } from "lucide-react";
 import { INFINITY_TEXT, PoolFeeText } from "@/src/utils/coreconstants";
 import usePoolDetails from "@/src/hooks/useDetailsLiquidity";
 import Link from "next/link";
-import ClaimFeesModal from "./claimFees.section";
+import RemoveOrClaimFeesModal from "./removeOrclaimFeesModal.section";
 import { IRootState } from "@/store";
 import { useSelector } from "react-redux";
 import {
@@ -22,6 +22,7 @@ import {
   PositionInfo,
   getLiquidityRangePrice,
 } from "@/src/utils/uniswap/liquidity";
+import LoadingModal from "@/src/components/loader/loader.section";
 
 const PoolDetailsSection = () => {
   const router = useRouter();
@@ -31,14 +32,18 @@ const PoolDetailsSection = () => {
     toCoin,
     positionDetails,
     loading,
-    handleSwapCoin,
     firstCoin,
     secondCoin,
     selectedCoin,
-    setSelectedCoin,
     tokenId,
     openClaim,
+    loadingModal,
+    assistMessage,
     setOpenClaim,
+    setSelectedCoin,
+    setLoadingModal,
+    handleSwitchCoins,
+    handleClaimFees,
   } = usePoolDetails();
 
   const {
@@ -149,7 +154,7 @@ const PoolDetailsSection = () => {
               />
             </div>
 
-            <div className="flex gap-2 flex-col h-full  ">
+            <div className="flex gap-16 flex-col h-full">
               <div className="border rounded-3xl border-slate-800">
                 <h1 className="p-2 text-white text-md font-medium">
                   Liquidity
@@ -223,25 +228,29 @@ const PoolDetailsSection = () => {
                 </div>
               </div>
 
-              <div className=" border rounded-3xl  border-slate-800">
+              <div className="border rounded-3xl border-slate-800">
                 <div className="flex justify-between items-center m-2">
                   <h1 className="p-2 text-white text-md font-medium">
                     Unclaimed fees
                   </h1>
                   {isOwner() &&
-                    (positionDetails?.other_details.token0UnclaimedFee ||
-                      positionDetails?.other_details.token1UnclaimedFee) && (
-                      <button
-                        className="bg-primary px-3 rounded-3xl py-2 text-sm text-white font-bold"
-                        onClick={() => {
-                          setOpenClaim(true);
-                        }}
-                      >
-                        Collect Fees
-                      </button>
-                    )}
+                  (positionDetails?.other_details.token0UnclaimedFee ||
+                    positionDetails?.other_details.token1UnclaimedFee) ? (
+                    <button
+                      className="bg-primary px-3 rounded-3xl py-2 text-sm text-white font-bold"
+                      onClick={() => {
+                        setOpenClaim(true);
+                      }}
+                    >
+                      Collect Fees
+                    </button>
+                  ) : (
+                    ""
+                  )}
                 </div>
-                <div className="text-white text-2xl font-bold p-2">{"-"}</div>
+
+                {/* <div className="text-white text-2xl font-bold p-2">{"-"}</div> */}
+
                 <div className="border mb-2 bg-slate-900 text-gray-400 border-slate-800 rounded-3xl mx-2">
                   <div className="flex justify-between items-center px-2">
                     <div className="flex items-center gap-2 p-2 rounded-3xl">
@@ -383,7 +392,23 @@ const PoolDetailsSection = () => {
         </div>
       )}
 
-      <ClaimFeesModal openStatus={openClaim} setOpenStatus={setOpenClaim} />
+      <RemoveOrClaimFeesModal
+        openStatus={openClaim}
+        setOpenStatus={setOpenClaim}
+        coinA={fromCoin}
+        coinB={toCoin}
+        amounA={positionDetails?.other_details.token0UnclaimedFee}
+        amounB={positionDetails?.other_details.token1UnclaimedFee}
+        submitHandler={handleClaimFees}
+        title="Claim Fees"
+        submitText="Claim"
+      />
+
+      <LoadingModal
+        openStatus={loadingModal}
+        setOpenStatus={setLoadingModal}
+        text={assistMessage}
+      />
     </div>
   ) : (
     <div className="max-w-[800px] min-h-[500px] w-[90%] h-auto text-white mt-36 overflow-x-hidden">

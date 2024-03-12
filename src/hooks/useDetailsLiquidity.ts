@@ -1,7 +1,11 @@
 import { ethers } from "ethers";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PositionInfo, getPositionInfo } from "../utils/uniswap/liquidity";
+import {
+  PositionInfo,
+  collectFees,
+  getPositionInfo,
+} from "../utils/uniswap/liquidity";
 import { useToast } from "../components/ui/use-toast";
 import { IRootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,6 +38,9 @@ const usePoolDetails = () => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>(null);
   const [firstCoin, setFirstCoin] = useState<CoinData>();
   const [secondCoin, setSecondCoin] = useState<CoinData>();
+
+  const [assistMessage, setAssistMessage] = useState<string>("");
+  const [loadingModal, setLoadingModal] = useState(false);
 
   /* core functions */
   const getPositionDetails = async (
@@ -110,10 +117,39 @@ const usePoolDetails = () => {
     }
   };
 
-  const handleSwapCoin = () => {
+  const handleSwitchCoins = () => {
     const temp = fromCoin;
     setFromCoin(toCoin);
     setToCoin(temp);
+  };
+
+  const handleClaimFees = async () => {
+    try {
+      setOpenClaim(false);
+      setLoadingModal(true);
+      setAssistMessage("Wait for transaction completion ...");
+
+      await collectFees(tokenId, fromCoin, toCoin);
+
+      // console.log({
+      //   tokenId,
+      //   fromCoin,
+      //   toCoin,
+      // });
+
+      toast({
+        title: "Success",
+        description: `Congratulations!! Fees Collected.`,
+      });
+      setLoadingModal(false);
+    } catch (error) {
+      // console.error(error.message);
+      setLoadingModal(false);
+      toast({
+        title: "Error",
+        description: error.message,
+      });
+    }
   };
 
   return {
@@ -121,14 +157,18 @@ const usePoolDetails = () => {
     toCoin,
     positionDetails,
     loading,
-    handleSwapCoin,
     firstCoin,
     secondCoin,
     selectedCoin,
-    setSelectedCoin,
     tokenId,
-    setOpenClaim,
     openClaim,
+    assistMessage,
+    loadingModal,
+    setOpenClaim,
+    setSelectedCoin,
+    setLoadingModal,
+    handleSwitchCoins,
+    handleClaimFees,
   };
 };
 export default usePoolDetails;

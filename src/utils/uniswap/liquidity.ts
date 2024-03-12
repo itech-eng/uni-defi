@@ -742,7 +742,7 @@ export async function removeLiquidity(
   console.log("removeParam: ", removeParam);
 
   const removeCalldata = nftPositionManager.interface.encodeFunctionData(
-    "removeLiquidity",
+    "decreaseLiquidity",
     [removeParam],
   );
   calls.push(removeCalldata);
@@ -759,7 +759,7 @@ export async function removeLiquidity(
   console.log("collectParam: ", collectParam);
 
   const collectCalldata = nftPositionManager.interface.encodeFunctionData(
-    "colllect",
+    "collect",
     [collectParam],
   );
   calls.push(collectCalldata);
@@ -822,7 +822,7 @@ export async function collectFees(
   console.log("collectParam: ", collectParam);
 
   const collectCalldata = nftPositionManager.interface.encodeFunctionData(
-    "colllect",
+    "collect",
     [collectParam],
   );
   calls.push(collectCalldata);
