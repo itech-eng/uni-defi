@@ -3,6 +3,13 @@ This is a Dapp made over Uniswap v3 protocol
 
 ## Available Features
 - Swap
+- Add Pool
+- Add New Position
+- Position List
+- Position Details
+- Increase Liquidity
+- Remove Liquidity
+- Collect Fees
 
 
 ## Install
