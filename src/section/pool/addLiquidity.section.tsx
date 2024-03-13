@@ -343,7 +343,7 @@ const AddLiquiditySection = () => {
                     <div>Starting {fromCoin?.basic.code} Price:</div>
                     {price ? (
                       <div>
-                        {price} {renderCoinPerText()}
+                        {beautifyNumber(price)} {renderCoinPerText()}
                       </div>
                     ) : (
                       <div>-</div>

@@ -88,22 +88,22 @@ export const useAddLiquidity = () => {
   useEffect(() => {
     // assistantMessage();
 
-    console.log({
-      fromCoin,
-      toCoin,
-      selectedFee,
-      price,
-      lowPrice,
-      highPrice,
-      tickLower,
-      tickUpper,
-      fromDepositShow,
-      fromDepositAmount,
-      toDepositShow,
-      toDepositAmount,
-      fromAmountError,
-      toAmountError,
-    });
+    // console.log({
+    //   fromCoin,
+    //   toCoin,
+    //   selectedFee,
+    //   price,
+    //   lowPrice,
+    //   highPrice,
+    //   tickLower,
+    //   tickUpper,
+    //   fromDepositShow,
+    //   fromDepositAmount,
+    //   toDepositShow,
+    //   toDepositAmount,
+    //   fromAmountError,
+    //   toAmountError,
+    // });
 
     if (
       fromCoin &&

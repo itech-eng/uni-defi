@@ -361,9 +361,13 @@ export default function Test() {
   };
 
   const handlePositionDetails = async (e: any) => {
-    const tokenId = e.get("tokenId");
-    const positions = await getPositionInfo(tokenId, provider, null, true);
-    console.log(`position (${tokenId}) : `, positions);
+    try {
+      const tokenId = e.get("tokenId");
+      const positions = await getPositionInfo(tokenId, provider, null, true);
+      console.log(`position (${tokenId}) : `, positions);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleConvertedAmount = async (e: any) => {

@@ -162,10 +162,15 @@ export async function getPositionInfo(
 
   if (include_other_details) {
     position = await getPositionAmounts(network_data, position);
-    position.other_details.tokenURI = await positionContract.tokenURI(token_id);
-    position.other_details.imgSrc = parseTokenURItoJson(
-      position.other_details.tokenURI,
-    ).image;
+    try {
+      position.other_details.tokenURI =
+        await positionContract.tokenURI(token_id);
+      position.other_details.imgSrc = parseTokenURItoJson(
+        position.other_details.tokenURI,
+      ).image;
+    } catch (e) {
+      // console.error(`Can't fetch tokenURI!! ${e.message}`);
+    }
   }
   return position;
 }

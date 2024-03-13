@@ -50,7 +50,7 @@ const usePoolDetails = () => {
     try {
       load && setLoading(true);
       const position = await getPositionInfo(tokenId, provider, null, true);
-      console.log("position: ", position);
+      // console.log("position: ", position);
 
       setPositionDetails(position);
       setFromCoin(await getCoinData(position.token0, provider));
@@ -63,7 +63,7 @@ const usePoolDetails = () => {
       return positionDetails;
     } catch (error) {
       setLoading(false);
-      router.push("/pool");
+      // router.push("/pool");
       toast({
         title: "Error",
         description: "Position not found",
