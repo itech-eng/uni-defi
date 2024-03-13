@@ -7,7 +7,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import PreviewLiquidity from "./previewLiquidity.section";
 import LoadingModal from "@/src/components/loader/loader.section";
-import { beautifyNumber } from "@/src/utils/corefunctions";
+import { beautifyNumber, empty } from "@/src/utils/corefunctions";
 import {
   INFINITY_TEXT,
   LIQUIDITY_PRICE_RANGE,
@@ -15,7 +15,7 @@ import {
 } from "@/src/utils/coreconstants";
 import {
   PositionInfo,
-  getLiquidityRangePrice,
+  renderLiquidityRangePrice,
 } from "@/src/utils/uniswap/liquidity";
 
 const IncreaseLiquidity = () => {
@@ -189,7 +189,7 @@ const IncreaseLiquidity = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 {/* switch coin */}
                 {/* <div className="border rounded-3xl flex justify-between items-center gap-2 text-gray-400 border-slate-800 mr-3 text-xs">
                   <div
@@ -218,16 +218,15 @@ const IncreaseLiquidity = () => {
                   </div>
                 </div> */}
                 {/*  */}
-
               </div>
             </div>
             <div className="flex items-center justify-center rounded-3xl mb-5 mx-3">
               <div className="w-[380px] flex flex-col py-4 items-center justify-center border border-slate-800 bg-slate-900 rounded-md">
                 <h1 className="text-gray-400 text-md font-medium">Min Price</h1>
                 <h1 className="text-white text-xl font-bold">
-                  {getLiquidityRangePrice(
-                    "to_text",
+                  {renderLiquidityRangePrice(
                     lowPrice,
+                    positionDetails?.tickLower,
                     positionDetails?.fee,
                   )}
                   {""}
@@ -257,9 +256,9 @@ const IncreaseLiquidity = () => {
               <div className="w-[380px] flex flex-col py-4 items-center justify-center border border-slate-800 bg-slate-900 rounded-md">
                 <h1 className="text-gray-400 text-md font-medium">Max Price</h1>
                 <h1 className="text-white text-xl font-bold">
-                  {getLiquidityRangePrice(
-                    "to_text",
+                  {renderLiquidityRangePrice(
                     highPrice,
+                    positionDetails?.tickUpper,
                     positionDetails?.fee,
                   )}
                   {""}
@@ -326,7 +325,12 @@ const IncreaseLiquidity = () => {
                         <h1>{fromCoin?.token_info?.symbol}</h1>
                       </div>
                       <div>
-                        <span>Balance: {beautifyNumber(fromBalance)}</span>
+                        <span>
+                          Balance:{" "}
+                          {empty(fromBalance)
+                            ? "-"
+                            : beautifyNumber(fromBalance)}
+                        </span>
                         {/* <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
                           Max
                         </span> */}
@@ -378,7 +382,10 @@ const IncreaseLiquidity = () => {
                         <h1>{toCoin?.token_info?.symbol}</h1>
                       </div>
                       <div>
-                        <span>Balance: {beautifyNumber(toBalance)}</span>
+                        <span>
+                          Balance:{" "}
+                          {empty(toBalance) ? "-" : beautifyNumber(toBalance)}
+                        </span>
                         {/* <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
                           Max
                         </span> */}
@@ -414,6 +421,8 @@ const IncreaseLiquidity = () => {
             currentPrice={price}
             lowPrice={positionDetails?.minPrice?.toString()}
             highPrice={positionDetails?.maxPrice?.toString()}
+            tickLower={positionDetails?.tickLower}
+            tickUpper={positionDetails?.tickUpper}
             inRange={inRange}
             firstCoin={firstCoin}
             secondCoin={secondCoin}

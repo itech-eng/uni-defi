@@ -3,20 +3,18 @@ import { getAddress, getProvider } from "../wallet";
 import NonfungiblePositionManagerABI from "@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json";
 import { CoinData, NetworkData } from "../types";
 import {
-  beautifyNumber,
   calculatePercentRatio,
   convertCoinAmountToDecimal,
   convertCoinAmountToInt,
   empty,
   formatAmountKnL,
-  formatNumber,
   getNetworkData,
   getTokenByAddress,
   noExponents,
   sortObjectArray,
 } from "../corefunctions";
-import { FeeAmount, Pool, Position, TICK_SPACINGS } from "@uniswap/v3-sdk";
-import { getPriceFromTick, getTickFromPrice } from "./maths";
+import { Pool, Position } from "@uniswap/v3-sdk";
+import { getPriceFromTick } from "./maths";
 import {
   getPrice,
   getSlippageMinAmount,
@@ -30,7 +28,6 @@ import {
   ORDER_DIRECTION,
 } from "../coreconstants";
 import { getPoolInfo } from "./pool";
-import { COIN_SLUG } from "../network/coin-data";
 import { getTokenTransferApproval } from "../eth/erc20";
 
 const MAX_UINT128 = BigNumber.from(2).pow(128).sub(1);
@@ -181,16 +178,22 @@ async function getPosULCPrice(
   const token0 = getTokenByAddress(network_data, position.token0Address);
   const token1 = getTokenByAddress(network_data, position.token1Address);
   if (!token0 || !token1) {
-    throw new Error(
-      "This Position's Tokens are not not available in our system",
-    );
+    throw new Error("This Position's Tokens are not available in our system");
   }
 
   position.token0 = token0;
   position.token1 = token1;
 
-  position.maxPrice = getPriceFromTick(Number(position.tickUpper));
-  position.minPrice = getPriceFromTick(Number(position.tickLower));
+  position.maxPrice = getPriceFromTick(
+    Number(position.tickUpper),
+    position.token0.decimals,
+    position.token1.decimals,
+  );
+  position.minPrice = getPriceFromTick(
+    Number(position.tickLower),
+    position.token0.decimals,
+    position.token1.decimals,
+  );
 
   position.currentPrice = await getPrice({
     network_data: network_data,
@@ -535,35 +538,33 @@ function processTickUL(
 ): { tickLower: number; tickUpper: number } {
   let tickLower = tickLowerAtoB;
   let tickUpper = tickUpperAtoB;
+  console.log({ tickLowerAtoB, tickUpperAtoB });
   if (coinA.token_info.address > coinB.token_info.address) {
     tickLower = -1 * tickUpperAtoB;
     tickUpper = -1 * tickLowerAtoB;
   }
+  console.log({ tickLower, tickUpper });
   return { tickLower, tickUpper };
 }
 
-export function getLiquidityRangePrice(
-  type: "to_text" | "to_number",
+export function renderLiquidityRangePrice(
   price: number | string,
+  tick: number,
   fee: number,
+  formatKnL = true,
 ): string {
-  if (!type || !price || !fee) return "-";
+  // console.log({price, tick});
+  if (!price || !fee) return "";
   price = String(price);
-  if (type == "to_text") {
-    if (price == String(LIQUIDITY_PRICE_RANGE[fee].min_price)) {
-      return "0";
-    } else if (price == String(LIQUIDITY_PRICE_RANGE[fee].max_price)) {
-      return INFINITY_TEXT;
-    }
-    return formatAmountKnL(price);
-  } else if (type == "to_number") {
-    if (price == "0") {
-      return String(LIQUIDITY_PRICE_RANGE[fee].min_price);
-    } else if (price == INFINITY_TEXT) {
-      return String(LIQUIDITY_PRICE_RANGE[fee].max_price);
-    }
-    return formatAmountKnL(price);
+  if (empty(tick)) return price;
+
+  const ticks = LIQUIDITY_PRICE_RANGE[fee];
+  if (tick == ticks.min_tick) {
+    return "0";
+  } else if (tick == ticks.max_tick) {
+    return INFINITY_TEXT;
   }
+  return formatKnL ? formatAmountKnL(price) : price;
 }
 
 export async function increaseLiquidity(

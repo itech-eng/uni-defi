@@ -2,17 +2,14 @@ import React from "react";
 import SelectCoinSection from "../global/selectCoin.section";
 import { POOL_FEES } from "@/src/utils/corearrays";
 import { ArrowLeft } from "lucide-react";
-import {
-  INFINITY_TEXT,
-  LIQUIDITY_PRICE_RANGE,
-  PoolFeeText,
-} from "@/src/utils/coreconstants";
+import { PoolFeeText } from "@/src/utils/coreconstants";
 import { Button } from "@/src/components/ui/button";
 import PreviewLiquidity from "./previewLiquidity.section";
 import { useAddLiquidity } from "@/src/hooks/useAddLiquidity";
 import LoadingModal from "@/src/components/loader/loader.section";
 import { beautifyNumber } from "@/src/utils/corefunctions";
-import { getLiquidityRangePrice } from "@/src/utils/uniswap/liquidity";
+import { renderLiquidityRangePrice } from "@/src/utils/uniswap/liquidity";
+import { FeeAmount } from "@uniswap/v3-sdk";
 
 const AddLiquiditySection = () => {
   const {
@@ -32,6 +29,8 @@ const AddLiquiditySection = () => {
     toDepositShow,
     lowPrice,
     highPrice,
+    tickLower,
+    tickUpper,
     inRange,
     selectedFee,
     isCoinSelected,
@@ -73,7 +72,19 @@ const AddLiquiditySection = () => {
   };
 
   const renderCoinPerText = () => {
-    return `${toCoin?.basic.code} per ${fromCoin?.basic.code}`;
+    return isCoinSelected
+      ? `${toCoin?.basic.code} per ${fromCoin?.basic.code}`
+      : "";
+  };
+
+  const renderFeeShortDsscription = (fee: number): string => {
+    let text = "Best for stable pairs";
+    if (fee == FeeAmount.MEDIUM) {
+      text = "Best for most pairs";
+    } else if (fee == FeeAmount.HIGH) {
+      text = "Best for exotic pairs";
+    }
+    return text;
   };
 
   return (
@@ -135,8 +146,10 @@ const AddLiquiditySection = () => {
                 </span>
               )}
               <h1 className="text-base font-medium">{PoolFeeText[fee]}%</h1>
-              <p className="text-xs text-slate-400">Best for stable pairs</p>
-              <div className="text-sm ">0% Select</div>
+              <p className="text-xs text-slate-400">
+                {renderFeeShortDsscription(fee)}
+              </p>
+              {/* <div className="text-sm ">0% Select</div> */}
             </div>
           ))}
         </div>
@@ -208,10 +221,11 @@ const AddLiquiditySection = () => {
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
                       id="lowPrice"
                       placeholder="0"
-                      value={getLiquidityRangePrice(
-                        "to_text",
+                      value={renderLiquidityRangePrice(
                         lowPrice,
+                        tickLower,
                         selectedFee,
+                        false,
                       )}
                       onChange={(e) =>
                         handleLowPriceChange(e.target.value, "change")
@@ -254,10 +268,11 @@ const AddLiquiditySection = () => {
                       className="flex h-10 w-full rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-transparent p-0 border border-none text-white placeholder:text-gray-400 text-xl placeholder:text-xl py-7 font-medium focus:outline-none focus:border-none"
                       id="highPrice"
                       placeholder="0"
-                      value={getLiquidityRangePrice(
-                        "to_text",
+                      value={renderLiquidityRangePrice(
                         highPrice,
+                        tickUpper,
                         selectedFee,
+                        false,
                       )}
                       onChange={(e) =>
                         handleHighPriceChange(e.target.value, "change")
@@ -295,7 +310,7 @@ const AddLiquiditySection = () => {
                   <div>
                     <h1 className="text-sm font-medium">Current Price</h1>
                     <p className="text-xl text-slate-400">
-                      {beautifyNumber(price, 3)}
+                      {beautifyNumber(price)}
                     </p>
                     <h1 className="text-sm font-medium">
                       {renderCoinPerText()}
@@ -318,7 +333,7 @@ const AddLiquiditySection = () => {
                       <input
                         type="text"
                         placeholder="0"
-                        value={price}
+                        value={price ? beautifyNumber(price) : ""}
                         className="bg-slate-950 text-white w-full "
                         onChange={(e) => handlePriceSet(e.target.value)}
                       />
@@ -467,6 +482,8 @@ const AddLiquiditySection = () => {
           currentPrice={price}
           lowPrice={lowPrice}
           highPrice={highPrice}
+          tickLower={tickLower}
+          tickUpper={tickUpper}
           inRange={inRange}
           firstCoin={firstCoin}
           secondCoin={secondCoin}

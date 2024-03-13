@@ -286,6 +286,7 @@ export function formatNumber(
 export function beautifyNumber(
   value: number | string,
   non_zero_decimal = 4,
+  round_if_large_value = false,
 ): string {
   if (!value || value == "undefined" || value == "null") return "0";
   if (isNaN(Number(value))) throw new Error(`Invalid number: ${value}`);
@@ -300,7 +301,11 @@ export function beautifyNumber(
   // }
 
   if (value >= 100) {
-    value = Math.ceil(value);
+    if (round_if_large_value) {
+      value = Math.round(value);
+    } else {
+      value = formatNumber(value, 4 + decimal_inc, "toFixed");
+    }
   } else if (value >= 0.1 && value < 100) {
     value = formatNumber(value, 4 + decimal_inc, "toFixed");
   } else if (value >= 0.01 && value < 0.1) {
@@ -433,10 +438,7 @@ export async function getNetworkData(
 }
 
 //format amount in K, M, B or with Greater or Less than string <, ex: 10B, <0.000001, >100000B
-export const formatAmountKnL = (
-  amount: number | string,
-  decimal = 0,
-): string => {
+export function formatAmountKnL(amount: number | string, decimal = 0): string {
   if (!amount || amount == "undefined" || amount == "null") return "0";
   let value = Number(amount);
   if (isNaN(value)) throw new Error(`Invalid number: ${amount}`);
@@ -490,4 +492,39 @@ export const formatAmountKnL = (
   } else {
     return beautifyNumber(value);
   }
-};
+}
+
+export function countDecimal(value: number | string): number {
+  const splitted = String(value).split(".");
+  return splitted[1].length || 0;
+}
+
+export function truncateDecimalString(decimal: number, amount: string): string {
+  const splitted = String(amount).split(".");
+  if (splitted[1]?.length) {
+    amount = splitted[0] + "." + splitted[1].slice(0, decimal);
+  }
+  return amount;
+}
+
+export function validateAndTruncateDecimal(
+  decimal: number,
+  amount: number | string,
+): string {
+  if (String(amount) == "0") return String(amount);
+  if (!validateMaxDecimal(decimal, amount)) {
+    amount = truncateDecimalString(decimal, String(amount));
+  }
+  return String(amount);
+}
+
+export function validateMaxDecimal(
+  decimal: number,
+  amount: number | string,
+): boolean {
+  if (String(amount) == "0") return true;
+  const regex = `^-?\\d+(\\.\\d{0,${decimal}})?$`;
+  const isValid = new RegExp(regex).test(String(amount));
+  // console.log({isValid});
+  return isValid;
+}

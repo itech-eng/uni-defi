@@ -3,7 +3,7 @@ import { PoolFeeText } from "@/src/utils/coreconstants";
 import { COIN_BAISC_DATA } from "@/src/utils/network/coin-data";
 import {
   PositionInfo,
-  getLiquidityRangePrice,
+  renderLiquidityRangePrice,
   getPositions,
 } from "@/src/utils/uniswap/liquidity";
 import { IRootState } from "@/store";
@@ -107,9 +107,9 @@ const PoolListSection = () => {
                       <span className=" mr-2 text-gray-500">
                         Min:{" "}
                         <span className="text-white">
-                          {getLiquidityRangePrice(
-                            "to_text",
+                          {renderLiquidityRangePrice(
                             position.minPrice,
+                            position.tickLower,
                             position.fee,
                           )}{" "}
                           {renderCoinPerText(position)}
@@ -119,9 +119,9 @@ const PoolListSection = () => {
                       <span className=" text-gray-500 ">
                         Max:{" "}
                         <span className="text-white">
-                          {getLiquidityRangePrice(
-                            "to_text",
+                          {renderLiquidityRangePrice(
                             position.maxPrice,
+                            position.tickUpper,
                             position.fee,
                           )}{" "}
                           {renderCoinPerText(position)}

@@ -16,7 +16,15 @@ import { getPoolInfo } from "./pool";
 import { NetworkData } from "../types";
 import { EVM_NATIVE_DECIMAL } from "../network/coin-data";
 import { FeeAmount, TICK_SPACINGS } from "@uniswap/v3-sdk";
-import { INFINITY_TEXT, LIQUIDITY_PRICE_RANGE } from "../coreconstants";
+
+export function getToken0Token1(
+  tokenA: Token,
+  tokenB: Token,
+): { token0: Token; token1: Token } {
+  const token0 = tokenA.address < tokenB.address ? tokenA : tokenB;
+  const token1 = tokenA.address > tokenB.address ? tokenA : tokenB;
+  return { token0, token1 };
+}
 
 export async function getPrice(params: {
   fromToken: Token;
@@ -39,7 +47,13 @@ export async function getPrice(params: {
     params.sqrtPx96 = Number(sqrtPriceX96);
   }
 
-  let price = getPriceFromSqrtPx96(params.sqrtPx96);
+  const { token0, token1 } = getToken0Token1(params.fromToken, params.toToken);
+
+  let price = getPriceFromSqrtPx96(
+    params.sqrtPx96,
+    token0.decimals,
+    token1.decimals,
+  );
   if (params.fromToken.address > params.toToken.address) {
     price = 1 / price;
   }
@@ -55,7 +69,14 @@ export function getSqrtPx96(params: {
   if (params.fromToken.address > params.toToken.address) {
     params.price = 1 / params.price;
   }
-  const sqrtPx96 = getSqrtPx96FromPrice(params.price);
+
+  const { token0, token1 } = getToken0Token1(params.fromToken, params.toToken);
+
+  const sqrtPx96 = getSqrtPx96FromPrice(
+    params.price,
+    token0.decimals,
+    token1.decimals,
+  );
   return sqrtPx96;
 }
 
@@ -75,21 +96,26 @@ export function parseTokenURItoJson(tokenURI: string): {
 }
 
 export function getTickNPrice(
+  fromToken: Token,
+  toToken: Token,
   output_type: "rounded" | "next" | "prev",
   fee: FeeAmount,
   price?: number,
   tick?: number,
   rounded_formula: "floor" | "ceil" = "floor",
 ): { price: number; tick: number } {
-  if (!price && !tick) {
+  if (empty(price) && empty(tick)) {
     throw new Error("price or tick must required");
   }
 
   const tick_spacing = TICK_SPACINGS[fee];
   // console.log("tick_spacing: ", tick_spacing);
 
-  price = price ?? getPriceFromTick(tick);
-  tick = tick || getTickFromPrice(price, "ceil");
+  price = price || getPriceFromTick(tick, fromToken.decimals, toToken.decimals);
+  console.log("price: ", price);
+  tick =
+    tick ??
+    getTickFromPrice(price, fromToken.decimals, toToken.decimals, "ceil");
   // console.log("tick: ", tick);
 
   if (output_type == "rounded") {
@@ -105,7 +131,7 @@ export function getTickNPrice(
   }
   // console.log('tick: ', tick);
 
-  price = getPriceFromTick(tick);
+  price = getPriceFromTick(tick, fromToken.decimals, toToken.decimals);
   // console.log("tick n price: ", { price, tick });
   return { price, tick };
 }

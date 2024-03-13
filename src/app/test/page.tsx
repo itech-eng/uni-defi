@@ -4,6 +4,7 @@ import { convertCoinAmountToInt, noExponents } from "@/src/utils/corefunctions";
 import {
   CHAIN_SLUG_MAPPING,
   NETWORK_DATA,
+  NETWORK_SLUG,
 } from "@/src/utils/network/network-data";
 import {
   getAddress,
@@ -17,14 +18,15 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 import NonfungiblePositionManagerABI from "@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json";
 import { COIN_SLUG } from "@/src/utils/network/coin-data";
-import {
-  getSqrtPx96FromPrice,
-  getTickFromPrice,
-} from "@/src/utils/uniswap/maths";
+import { getPriceFromTick, getTickFromPrice } from "@/src/utils/uniswap/maths";
 import { LIQUIDITY_PRICE_RANGE } from "@/src/utils/coreconstants";
 import { FeeAmount } from "@uniswap/v3-sdk";
 import { PoolInfo, getPoolInfo } from "@/src/utils/uniswap/pool";
-import { getSqrtPx96, getTickNPrice } from "@/src/utils/uniswap/helpers";
+import {
+  getSqrtPx96,
+  getTickNPrice,
+  getToken0Token1,
+} from "@/src/utils/uniswap/helpers";
 import { useSearchParams } from "next/navigation";
 import {
   getConvertedAmountForLiqDeposit,
@@ -154,8 +156,8 @@ export default function Test() {
 
     // Prepare data for adding new position (example)
     const fee = poolFee;
-    const tickLower = getTickFromPrice(priceRange.min_price);
-    const tickUpper = getTickFromPrice(priceRange.max_price);
+    const tickLower = priceRange.min_tick;
+    const tickUpper = priceRange.max_tick;
     const amount0Desired = convertCoinAmountToInt(
       amount0,
       token0.token_info.decimals,
@@ -256,10 +258,22 @@ export default function Test() {
       let maxPrice = qMaxPrice;
       const price = qPrice;
 
+      const { token0, token1 } = getToken0Token1(
+        tokenA.token_info,
+        tokenB.token_info,
+      );
+
       if (qPoolFee) {
-        const { min_price, max_price } = LIQUIDITY_PRICE_RANGE[qPoolFee];
-        minPrice = min_price;
-        maxPrice = max_price;
+        minPrice = getPriceFromTick(
+          LIQUIDITY_PRICE_RANGE[qPoolFee].min_tick,
+          token0.decimals,
+          token1.decimals,
+        );
+        maxPrice = getPriceFromTick(
+          LIQUIDITY_PRICE_RANGE[qPoolFee].max_tick,
+          token0.decimals,
+          token1.decimals,
+        );
       }
 
       const outAmounts = getConvertedAmountForLiqDeposit(
@@ -411,9 +425,12 @@ export default function Test() {
   const getRoundedNextPrevTickPrice = (e: any) => {
     const price = Number(e.get("price"));
     const fee = Number(e.get("fee"));
-    const rounded = getTickNPrice("rounded", fee, price);
-    const next = getTickNPrice("next", fee, null, rounded.tick);
-    const prev = getTickNPrice("prev", fee, null, rounded.tick);
+    const network_data = NETWORK_DATA[NETWORK_SLUG.ETHEREUM];
+    const token0 = network_data.coin_or_token[COIN_SLUG.USDC].token_info;
+    const token1 = network_data.coin_or_token[COIN_SLUG.WETH].token_info;
+    const rounded = getTickNPrice(token0, token1, "rounded", fee, price);
+    const next = getTickNPrice(token0, token1, "next", fee, null, rounded.tick);
+    const prev = getTickNPrice(token0, token1, "prev", fee, null, rounded.tick);
     console.log("tick n price: ", { rounded, next, prev });
   };
 

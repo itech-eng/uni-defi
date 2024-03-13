@@ -14,14 +14,20 @@ import {
   getNetworkData,
   noExponents,
   sleep,
+  validateAndTruncateDecimal,
 } from "../utils/corefunctions";
-import { getPriceFromSqrtPx96, getTickFromPrice } from "../utils/uniswap/maths";
+import {
+  getPriceFromSqrtPx96,
+  getPriceFromTick,
+  getTickFromPrice,
+} from "../utils/uniswap/maths";
 import {
   createAndAddLiquidity,
   getConvertedAmountForLiqDeposit,
 } from "../utils/uniswap/liquidity";
-import { getTickNPrice } from "../utils/uniswap/helpers";
+import { getTickNPrice, getToken0Token1 } from "../utils/uniswap/helpers";
 import { INFINITY_TEXT, LIQUIDITY_PRICE_RANGE } from "../utils/coreconstants";
+import { Token } from "@uniswap/sdk-core";
 
 export const useAddLiquidity = () => {
   const dispatch = useDispatch();
@@ -30,6 +36,8 @@ export const useAddLiquidity = () => {
 
   const [fromCoin, setFromCoin] = useState<CoinData>(null);
   const [toCoin, setToCoin] = useState<CoinData>(null);
+  const [token0, setToken0] = useState<Token>(null);
+  const [token1, setToken1] = useState<Token>(null);
 
   const [firstCoin, setFirstCoin] = useState<CoinData>(null);
   const [secondCoin, setSecondCoin] = useState<CoinData>(null);
@@ -73,26 +81,29 @@ export const useAddLiquidity = () => {
   useEffect(() => {
     fetchAndSetBalance(fromCoin, setFromBalance);
     fetchAndSetBalance(toCoin, setToBalance);
+    isCoinSelected && selectedFee && handleFeeSelection(selectedFee, false);
   }, [block_number]);
 
   // all dependencis
   useEffect(() => {
     // assistantMessage();
 
-    // console.log({
-    //   fromCoin,
-    //   toCoin,
-    //   selectedFee,
-    //   price,
-    //   lowPrice,
-    //   highPrice,
-    //   tickLower,
-    //   tickUpper,
-    //   fromDepositAmount,
-    //   toDepositAmount,
-    //   fromAmountError,
-    //   toAmountError,
-    // });
+    console.log({
+      fromCoin,
+      toCoin,
+      selectedFee,
+      price,
+      lowPrice,
+      highPrice,
+      tickLower,
+      tickUpper,
+      fromDepositShow,
+      fromDepositAmount,
+      toDepositShow,
+      toDepositAmount,
+      fromAmountError,
+      toAmountError,
+    });
 
     if (
       fromCoin &&
@@ -101,7 +112,8 @@ export const useAddLiquidity = () => {
       Number(price) &&
       !empty(tickLower) &&
       !empty(tickUpper) &&
-      (Number(fromDepositAmount) || Number(toDepositAmount)) &&
+      (!fromDepositShow || Number(fromDepositAmount)) &&
+      (!toDepositShow || Number(toDepositAmount)) &&
       !fromAmountError &&
       !toAmountError
     ) {
@@ -117,6 +129,8 @@ export const useAddLiquidity = () => {
     price,
     lowPrice,
     highPrice,
+    fromDepositShow,
+    toDepositShow,
     fromDepositAmount,
     fromAmountError,
     toDepositAmount,
@@ -163,6 +177,7 @@ export const useAddLiquidity = () => {
         setFromBalance(null);
         return;
       }
+      setToken0Token1();
       fetchAndSetBalance(fromCoin, setFromBalance);
       resetAmounts();
     }
@@ -181,6 +196,7 @@ export const useAddLiquidity = () => {
         setToBalance(null);
         return;
       }
+      setToken0Token1();
       fetchAndSetBalance(toCoin, setToBalance);
       resetAmounts();
     }
@@ -245,6 +261,17 @@ export const useAddLiquidity = () => {
     setLoading(false);
   };
 
+  const setToken0Token1 = () => {
+    if (fromCoin && toCoin) {
+      const { token0, token1 } = getToken0Token1(
+        fromCoin.token_info,
+        toCoin.token_info,
+      );
+      setToken0(token0);
+      setToken1(token1);
+    }
+  };
+
   const fetchAndSetBalance = async (
     coin: CoinData,
     setBalanceSetter: (balance: string | number) => void,
@@ -267,11 +294,16 @@ export const useAddLiquidity = () => {
     }
   };
 
-  const processAndSetPriceAtoB = (price: number) => {
+  const processAndSetPriceAtoB = (currPrice: number) => {
     if (fromCoin.token_info.address > toCoin.token_info.address) {
-      price = 1 / price;
+      currPrice = 1 / currPrice;
     }
-    setPrice(noExponents(beautifyNumber(price)));
+
+    if (Number(price) != currPrice) {
+      resetAmounts();
+    }
+
+    setPrice(noExponents(currPrice));
   };
 
   const resetAmounts = (fromAmount = "", toAmount = "") => {
@@ -291,7 +323,12 @@ export const useAddLiquidity = () => {
       if (tickL > tickH) {
         throw new Error("Price Low cannot be greater than Price High!!");
       }
-      const currentTick = getTickFromPrice(Number(price));
+
+      const currentTick = getTickFromPrice(
+        Number(price),
+        fromCoin.token_info.decimals,
+        toCoin.token_info.decimals,
+      );
       // console.log("currentTick: ", currentTick);
 
       if (tickH == tickL) {
@@ -370,9 +407,20 @@ export const useAddLiquidity = () => {
     price_input: "low" | "high",
   ): boolean => {
     let price = price_input == "low" ? lowPrice : highPrice;
-    if (price == String(LIQUIDITY_PRICE_RANGE[selectedFee].min_price)) {
+    const ticks = LIQUIDITY_PRICE_RANGE[selectedFee];
+    const min_calc_prc = getPriceFromTick(
+      ticks.min_tick,
+      fromCoin.token_info.decimals,
+      toCoin.token_info.decimals,
+    );
+    const max_calc_prc = getPriceFromTick(
+      ticks.max_tick,
+      fromCoin.token_info.decimals,
+      toCoin.token_info.decimals,
+    );
+    if (Number(price) == min_calc_prc) {
       price = "0";
-    } else if (price == String(LIQUIDITY_PRICE_RANGE[selectedFee].max_price)) {
+    } else if (Number(price) == max_calc_prc) {
       price = INFINITY_TEXT;
     }
     if (
@@ -408,9 +456,9 @@ export const useAddLiquidity = () => {
     }
   };
 
-  const handleFeeSelection = async (fee: number) => {
+  const handleFeeSelection = async (fee: number, clear = true) => {
     try {
-      clearData("fee_change");
+      clear && clearData("fee_change");
       setSelectedFee(fee);
       const provider = getProvider();
       const network_data = await getNetworkData(provider);
@@ -423,13 +471,17 @@ export const useAddLiquidity = () => {
         );
         setPool(pool);
         if (pool) {
-          let price = getPriceFromSqrtPx96(Number(pool.sqrtPriceX96));
+          let price = getPriceFromSqrtPx96(
+            Number(pool.sqrtPriceX96),
+            token0.decimals,
+            token1.decimals,
+          );
           processAndSetPriceAtoB(price);
         } else {
-          clearData("fee_change");
+          clear && clearData("fee_change");
         }
       } catch (e) {
-        clearData("fee_change");
+        clear && clearData("fee_change");
       }
     } catch (error) {
       toast({
@@ -458,11 +510,21 @@ export const useAddLiquidity = () => {
   const handleFullRange = async () => {
     try {
       if (selectedFee) {
-        const res = LIQUIDITY_PRICE_RANGE[selectedFee];
-        setLowPrice(String(res.min_price));
-        setTickLower(res.min_tick);
-        setHighPrice(String(res.max_price));
-        setTickUpper(res.max_tick);
+        const ticks = LIQUIDITY_PRICE_RANGE[selectedFee];
+        const min_calc_prc = getPriceFromTick(
+          ticks.min_tick,
+          fromCoin.token_info.decimals,
+          toCoin.token_info.decimals,
+        );
+        const max_calc_prc = getPriceFromTick(
+          ticks.max_tick,
+          fromCoin.token_info.decimals,
+          toCoin.token_info.decimals,
+        );
+        setLowPrice(noExponents(min_calc_prc));
+        setTickLower(ticks.min_tick);
+        setHighPrice(noExponents(max_calc_prc));
+        setTickUpper(ticks.max_tick);
       }
     } catch (error) {
       toast({
@@ -481,10 +543,10 @@ export const useAddLiquidity = () => {
         const parsedAmount = parseFloat(value);
         if (isNaN(parsedAmount)) {
           setLowPrice("");
-          setTickLower(null);
         } else {
           setLowPrice(value);
         }
+        setTickLower(null);
         return;
       }
 
@@ -496,18 +558,36 @@ export const useAddLiquidity = () => {
         resetAmounts();
         return;
       }
+
+      const ticks = LIQUIDITY_PRICE_RANGE[selectedFee];
       if (Number(value) == 0) {
-        setLowPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].min_price));
-        setTickLower(LIQUIDITY_PRICE_RANGE[selectedFee].min_tick);
+        const min_calc_prc = getPriceFromTick(
+          ticks.min_tick,
+          fromCoin.token_info.decimals,
+          toCoin.token_info.decimals,
+        );
+        setLowPrice(noExponents(min_calc_prc));
+        setTickLower(ticks.min_tick);
         return;
       } else if (value == INFINITY_TEXT) {
-        setLowPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].max_price));
-        setTickLower(LIQUIDITY_PRICE_RANGE[selectedFee].max_tick);
+        const max_calc_prc = getPriceFromTick(
+          ticks.max_tick,
+          fromCoin.token_info.decimals,
+          toCoin.token_info.decimals,
+        );
+        setLowPrice(noExponents(max_calc_prc));
+        setTickLower(ticks.max_tick);
         return;
       }
 
       if (Number(value) > 0) {
-        const res = getTickNPrice("rounded", selectedFee, Number(value));
+        const res = getTickNPrice(
+          fromCoin.token_info,
+          toCoin.token_info,
+          "rounded",
+          selectedFee,
+          Number(value),
+        );
         setLowPrice(noExponents(res.price));
         setTickLower(res.tick);
       }
@@ -528,10 +608,10 @@ export const useAddLiquidity = () => {
         const parsedAmount = parseFloat(value);
         if (isNaN(parsedAmount)) {
           setHighPrice("");
-          setTickUpper(null);
         } else {
           setHighPrice(value);
         }
+        setTickUpper(null);
         return;
       }
 
@@ -544,13 +624,24 @@ export const useAddLiquidity = () => {
         return;
       }
 
+      const ticks = LIQUIDITY_PRICE_RANGE[selectedFee];
       if (Number(value) == 0) {
-        setHighPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].min_price));
-        setTickUpper(LIQUIDITY_PRICE_RANGE[selectedFee].min_tick);
+        const min_calc_prc = getPriceFromTick(
+          ticks.min_tick,
+          fromCoin.token_info.decimals,
+          toCoin.token_info.decimals,
+        );
+        setHighPrice(noExponents(min_calc_prc));
+        setTickUpper(ticks.min_tick);
         return;
       } else if (value == INFINITY_TEXT) {
-        setHighPrice(String(LIQUIDITY_PRICE_RANGE[selectedFee].max_price));
-        setTickUpper(LIQUIDITY_PRICE_RANGE[selectedFee].max_tick);
+        const max_calc_prc = getPriceFromTick(
+          ticks.max_tick,
+          fromCoin.token_info.decimals,
+          toCoin.token_info.decimals,
+        );
+        setHighPrice(noExponents(max_calc_prc));
+        setTickUpper(ticks.max_tick);
         return;
       }
 
@@ -562,7 +653,13 @@ export const useAddLiquidity = () => {
       }
 
       if (Number(value) > 0) {
-        const res = getTickNPrice("rounded", selectedFee, Number(value));
+        const res = getTickNPrice(
+          fromCoin.token_info,
+          toCoin.token_info,
+          "rounded",
+          selectedFee,
+          Number(value),
+        );
         setHighPrice(noExponents(res.price));
         setTickUpper(res.tick);
       }
@@ -578,7 +675,14 @@ export const useAddLiquidity = () => {
     try {
       if (!highPrice) return;
       if (!checkPricePlusMinusCondition("increase", "high")) return;
-      const res = getTickNPrice("next", selectedFee, null, tickUpper);
+      const res = getTickNPrice(
+        fromCoin.token_info,
+        toCoin.token_info,
+        "next",
+        selectedFee,
+        null,
+        tickUpper,
+      );
       setHighPrice(noExponents(res.price));
       setTickUpper(res.tick);
     } catch (error) {
@@ -593,7 +697,14 @@ export const useAddLiquidity = () => {
     try {
       if (!highPrice) return;
       if (!checkPricePlusMinusCondition("decrease", "high")) return;
-      const res = getTickNPrice("prev", selectedFee, null, tickUpper);
+      const res = getTickNPrice(
+        fromCoin.token_info,
+        toCoin.token_info,
+        "prev",
+        selectedFee,
+        null,
+        tickUpper,
+      );
       setHighPrice(noExponents(res.price));
       setTickUpper(res.tick);
     } catch (error) {
@@ -608,7 +719,14 @@ export const useAddLiquidity = () => {
     try {
       if (!lowPrice) return;
       if (!checkPricePlusMinusCondition("increase", "low")) return;
-      const res = getTickNPrice("next", selectedFee, null, tickLower);
+      const res = getTickNPrice(
+        fromCoin.token_info,
+        toCoin.token_info,
+        "next",
+        selectedFee,
+        null,
+        tickLower,
+      );
       setLowPrice(noExponents(res.price));
       setTickLower(res.tick);
     } catch (error) {
@@ -623,7 +741,14 @@ export const useAddLiquidity = () => {
     try {
       if (!lowPrice) return;
       if (!checkPricePlusMinusCondition("decrease", "low")) return;
-      const res = getTickNPrice("prev", selectedFee, null, tickLower);
+      const res = getTickNPrice(
+        fromCoin.token_info,
+        toCoin.token_info,
+        "prev",
+        selectedFee,
+        null,
+        tickLower,
+      );
       setLowPrice(noExponents(res.price));
       setTickLower(res.tick);
     } catch (error) {
@@ -652,7 +777,7 @@ export const useAddLiquidity = () => {
 
       setSelectedFee(fee);
       setPool(pl);
-      handlePriceSet(noExponents(beautifyNumber(1 / Number(prc))));
+      handlePriceSet(noExponents(1 / Number(prc)));
       setLowPrice(lPrc);
       setHighPrice(hPrc);
       // hPrc && handleLowPriceChange(String(1 / Number(hPrc)));
@@ -676,6 +801,10 @@ export const useAddLiquidity = () => {
       if (amount === "" || amount === null) {
         resetAmounts();
       } else {
+        amount = validateAndTruncateDecimal(
+          fromCoin.token_info.decimals,
+          amount,
+        );
         const parsedAmount = parseFloat(amount);
         if (!isNaN(parsedAmount)) {
           if (parsedAmount > Number(fromBalance)) {
@@ -693,9 +822,14 @@ export const useAddLiquidity = () => {
                 Number(highPrice),
                 parsedAmount,
               );
-              setToDepositAmount(
-                res.amountB ? noExponents(beautifyNumber(res.amountB)) : "",
+
+              res.amountB = Number(
+                validateAndTruncateDecimal(
+                  toCoin.token_info.decimals,
+                  noExponents(res.amountB),
+                ),
               );
+              setToDepositAmount(noExponents(beautifyNumber(res.amountB)));
             }
           }
         } else {
@@ -720,6 +854,7 @@ export const useAddLiquidity = () => {
       if (amount === "" || amount === null) {
         resetAmounts();
       } else {
+        amount = validateAndTruncateDecimal(toCoin.token_info.decimals, amount);
         const parsedAmount = parseFloat(amount);
         if (!isNaN(parsedAmount)) {
           if (parsedAmount > Number(toBalance)) {
@@ -739,9 +874,13 @@ export const useAddLiquidity = () => {
                 null,
                 parsedAmount,
               );
-              setFromDepositAmount(
-                res.amountA ? noExponents(beautifyNumber(res.amountA)) : "",
+              res.amountA = Number(
+                validateAndTruncateDecimal(
+                  fromCoin.token_info.decimals,
+                  noExponents(res.amountA),
+                ),
               );
+              setFromDepositAmount(noExponents(beautifyNumber(res.amountA)));
             }
           }
         } else {

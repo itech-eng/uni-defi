@@ -20,9 +20,10 @@ import {
   empty,
   noExponents,
   sleep,
+  validateAndTruncateDecimal,
 } from "../utils/corefunctions";
-import { getPriceFromTick, getTickFromPrice } from "../utils/uniswap/maths";
-import { INFINITY_TEXT, LIQUIDITY_PRICE_RANGE } from "../utils/coreconstants";
+import { getTickFromPrice } from "../utils/uniswap/maths";
+import { INFINITY_TEXT } from "../utils/coreconstants";
 
 const useIncreaseLiquidity = () => {
   const { toast } = useToast();
@@ -124,7 +125,8 @@ const useIncreaseLiquidity = () => {
       fromCoin &&
       toCoin &&
       Number(price) &&
-      (Number(fromDepositAmount) || Number(toDepositAmount)) &&
+      (!fromDepositShow || Number(fromDepositAmount)) &&
+      (!toDepositShow || Number(toDepositAmount)) &&
       !fromAmountError &&
       !toAmountError
     ) {
@@ -138,6 +140,8 @@ const useIncreaseLiquidity = () => {
     toCoin,
     selectedCoin,
     price,
+    fromDepositShow,
+    toDepositShow,
     fromDepositAmount,
     fromAmountError,
     toDepositAmount,
@@ -247,7 +251,12 @@ const useIncreaseLiquidity = () => {
       if (tickL > tickH) {
         throw new Error("Price Low cannot be greater than Price High!!");
       }
-      const currentTick = getTickFromPrice(Number(currentPrice));
+
+      const currentTick = getTickFromPrice(
+        Number(currentPrice),
+        fromCoin.token_info.decimals,
+        toCoin.token_info.decimals,
+      );
       // console.log("currentTick: ", currentTick);
 
       if (tickH == tickL) {
@@ -368,6 +377,10 @@ const useIncreaseLiquidity = () => {
       if (amount === "" || amount === null) {
         resetAmounts();
       } else {
+        amount = validateAndTruncateDecimal(
+          fromCoin.token_info.decimals,
+          amount,
+        );
         const parsedAmount = parseFloat(amount);
         if (!isNaN(parsedAmount)) {
           if (parsedAmount > Number(fromBalance)) {
@@ -381,13 +394,18 @@ const useIncreaseLiquidity = () => {
                 fromCoin,
                 toCoin,
                 Number(price),
-                Number(getPriceFromTick(positionDetails?.tickLower)),
-                Number(getPriceFromTick(positionDetails?.tickUpper)),
+                Number(positionDetails?.minPrice),
+                Number(positionDetails?.maxPrice),
                 parsedAmount,
               );
-              setToDepositAmount(
-                res.amountB ? noExponents(beautifyNumber(res.amountB)) : "",
+
+              res.amountB = Number(
+                validateAndTruncateDecimal(
+                  toCoin.token_info.decimals,
+                  noExponents(res.amountB),
+                ),
               );
+              setToDepositAmount(noExponents(beautifyNumber(res.amountB)));
             }
           }
         } else {
@@ -412,6 +430,7 @@ const useIncreaseLiquidity = () => {
       if (amount === "" || amount === null) {
         resetAmounts();
       } else {
+        amount = validateAndTruncateDecimal(toCoin.token_info.decimals, amount);
         const parsedAmount = parseFloat(amount);
         if (!isNaN(parsedAmount)) {
           if (parsedAmount > Number(toBalance)) {
@@ -426,14 +445,18 @@ const useIncreaseLiquidity = () => {
                 fromCoin,
                 toCoin,
                 Number(price),
-                Number(getPriceFromTick(positionDetails?.tickLower)),
-                Number(getPriceFromTick(positionDetails?.tickUpper)),
+                Number(positionDetails?.minPrice),
+                Number(positionDetails?.maxPrice),
                 null,
                 parsedAmount,
               );
-              setFromDepositAmount(
-                res.amountA ? noExponents(beautifyNumber(res.amountA)) : "",
+              res.amountA = Number(
+                validateAndTruncateDecimal(
+                  fromCoin.token_info.decimals,
+                  noExponents(res.amountA),
+                ),
               );
+              setFromDepositAmount(noExponents(beautifyNumber(res.amountA)));
             }
           }
         } else {

@@ -51,19 +51,19 @@ export const NETWORK_DATA: { [slug: string]: NetworkData } = {
       base_url: "https://etherscan.io",
     },
   },
-  [NETWORK_SLUG.GOERLI_ETH]: {
-    value: NETWORK_SLUG.GOERLI_ETH,
-    chain_id: ChainId.GOERLI,
-    native_currency_code: COIN_SLUG.ETH,
-    icon: "/networks/ethereum.png",
-    label: "Goerli",
-    contract: CommonContractData,
-    coin_or_token: NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH],
-    explorer_info: {
-      ...CommonExplorerData,
-      base_url: "https://goerli.etherscan.io",
-    },
-  },
+  // [NETWORK_SLUG.GOERLI_ETH]: {
+  //   value: NETWORK_SLUG.GOERLI_ETH,
+  //   chain_id: ChainId.GOERLI,
+  //   native_currency_code: COIN_SLUG.ETH,
+  //   icon: "/networks/ethereum.png",
+  //   label: "Goerli",
+  //   contract: CommonContractData,
+  //   coin_or_token: NETWORK_COIN_DATA[NETWORK_SLUG.GOERLI_ETH],
+  //   explorer_info: {
+  //     ...CommonExplorerData,
+  //     base_url: "https://goerli.etherscan.io",
+  //   },
+  // },
   [NETWORK_SLUG.SPOLIA_ETH]: {
     value: NETWORK_SLUG.SPOLIA_ETH,
     chain_id: ChainId.SEPOLIA,

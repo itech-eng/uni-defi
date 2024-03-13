@@ -7,7 +7,9 @@ import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
 import { useDispatch, useSelector } from "react-redux";
 
 const LayoutWithHeader = ({ children }: { children: React.ReactNode }) => {
-  const { chain_id } = useSelector((state: IRootState) => state.wallet);
+  const { chain_id, block_number } = useSelector(
+    (state: IRootState) => state.wallet,
+  );
 
   const dispatch = useDispatch();
 
@@ -25,6 +27,11 @@ const LayoutWithHeader = ({ children }: { children: React.ReactNode }) => {
     <>
       <Navbar />
       {children}
+      <div className="bg-slate-950 h-auto flex flex-col justify-start">
+        <span className="text-left text-xs p-2 text-green-500">
+          Block: {block_number}
+        </span>
+      </div>
     </>
   );
 };

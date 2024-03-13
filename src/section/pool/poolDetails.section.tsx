@@ -20,7 +20,7 @@ import {
 import { CoinData } from "@/src/utils/types";
 import {
   PositionInfo,
-  getLiquidityRangePrice,
+  renderLiquidityRangePrice,
 } from "@/src/utils/uniswap/liquidity";
 import LoadingModal from "@/src/components/loader/loader.section";
 
@@ -349,9 +349,9 @@ const PoolDetailsSection = () => {
               <div className="w-[380px] flex flex-col py-4 items-center justify-center border border-slate-800 bg-slate-900 rounded-md">
                 <h1 className="text-gray-400 text-md font-medium">Min Price</h1>
                 <h1 className="text-white text-xl font-bold">
-                  {getLiquidityRangePrice(
-                    "to_text",
+                  {renderLiquidityRangePrice(
                     positionDetails?.minPrice,
+                    positionDetails?.tickLower,
                     positionDetails?.fee,
                   )}{" "}
                 </h1>
@@ -365,9 +365,9 @@ const PoolDetailsSection = () => {
               <div className="w-[380px] flex flex-col py-4 items-center justify-center border border-slate-800 bg-slate-900 rounded-md">
                 <h1 className="text-gray-400 text-md font-medium">Max Price</h1>
                 <h1 className="text-white text-xl font-bold">
-                  {getLiquidityRangePrice(
-                    "to_text",
+                  {renderLiquidityRangePrice(
                     positionDetails?.maxPrice,
+                    positionDetails?.tickUpper,
                     positionDetails?.fee,
                   )}{" "}
                 </h1>

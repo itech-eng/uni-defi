@@ -16,7 +16,7 @@ import {
   PoolFeeText,
 } from "@/src/utils/coreconstants";
 import { beautifyNumber, formatAmountKnL } from "@/src/utils/corefunctions";
-import { getLiquidityRangePrice } from "@/src/utils/uniswap/liquidity";
+import { renderLiquidityRangePrice } from "@/src/utils/uniswap/liquidity";
 
 const PreviewLiquidity = ({
   openStatus,
@@ -33,6 +33,8 @@ const PreviewLiquidity = ({
   currentPrice,
   lowPrice,
   highPrice,
+  tickLower,
+  tickUpper,
   inRange,
   firstCoin,
   secondCoin,
@@ -52,6 +54,8 @@ const PreviewLiquidity = ({
   currentPrice: string;
   lowPrice: string;
   highPrice: string;
+  tickLower: number;
+  tickUpper: number;
   inRange: boolean;
   firstCoin: CoinData;
   secondCoin: CoinData;
@@ -186,14 +190,14 @@ const PreviewLiquidity = ({
           <div className="bg-slate-900 flex flex-col items-center justify-center rounded-2xl p-4">
             <h1 className="text-xs font-medium">Min Price</h1>
             <h1 className="text-xl font-medium">
-              {getLiquidityRangePrice("to_text", lowPrice, fee)}{" "}
+              {renderLiquidityRangePrice(lowPrice, tickLower, fee)}{" "}
             </h1>
             <h1 className="text-xs font-medium">{renderCoinPerText()}</h1>
           </div>
           <div className="bg-slate-900 flex flex-col items-center justify-center rounded-2xl p-4">
             <h1 className="text-xs font-medium">Max Price</h1>
             <h1 className="text-xl font-medium">
-              {getLiquidityRangePrice("to_text", highPrice, fee)}{" "}
+              {renderLiquidityRangePrice(highPrice, tickUpper, fee)}{" "}
             </h1>
             <h1 className="text-xs font-medium">{renderCoinPerText()}</h1>
           </div>
