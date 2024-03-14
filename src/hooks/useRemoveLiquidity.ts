@@ -110,7 +110,7 @@ const useRemoveLiquidity = () => {
       router.push("/pool");
       toast({
         title: "Error",
-        description: "Invalid Position!!",
+        description: "Something Went Wrong!! Try Again.",
       });
       console.error(error);
       return null;
@@ -154,13 +154,13 @@ const useRemoveLiquidity = () => {
       setLoadingModal(true);
       setAssistMessage("Wait for transaction completion ...");
 
-      // const liq = percent == 100 ? String(positionDetails.liquidity) : liquidity;
-      const liq = liquidity;
+      const liq = percent == 100 ? positionDetails.liquidity : liquidity;
 
       // console.log({
       //   tokenId,
       //   fromCoin,
       //   toCoin,
+      //   positionDetails,
       //   liq,
       //   fromAmount,
       //   toAmount,

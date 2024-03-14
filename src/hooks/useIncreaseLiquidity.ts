@@ -24,6 +24,7 @@ import {
 } from "../utils/corefunctions";
 import { getTickFromPrice } from "../utils/uniswap/maths";
 import { INFINITY_TEXT } from "../utils/coreconstants";
+import { Token } from "@uniswap/sdk-core";
 
 const useIncreaseLiquidity = () => {
   const { toast } = useToast();
@@ -74,6 +75,13 @@ const useIncreaseLiquidity = () => {
   useEffect(() => {
     // clearData();
   }, [chain_id]);
+  
+  useEffect(() => {
+    (async () => {
+      fromCoin && await fetchAndSetBalance(fromCoin, setFromBalance);
+      toCoin && await fetchAndSetBalance(toCoin, setToBalance);
+    })();
+  }, [fromCoin, toCoin]);
 
   useEffect(() => {
     tokenId &&
@@ -165,8 +173,6 @@ const useIncreaseLiquidity = () => {
       setPositionDetails(position);
       setFromCoin(await getCoinData(position.token0, provider));
       setToCoin(await getCoinData(position.token1, provider));
-      await fetchAndSetBalance(fromCoin, setFromBalance);
-      await fetchAndSetBalance(toCoin, setToBalance);
 
       setFirstCoin(await getCoinData(position.token0, provider));
       setSecondCoin(await getCoinData(position.token1, provider));
@@ -179,15 +185,17 @@ const useIncreaseLiquidity = () => {
         position.tickUpper,
         position.tickLower,
         position.currentPrice,
+        position.token0,
+        position.token1,
       );
       load && setLoading(false);
       return position;
     } catch (error) {
       setLoading(false);
-      router.push("/pool");
+      // router.push("/pool");
       toast({
         title: "Error",
-        description: "Invalid Position!!",
+        description: "Something Went Wrong!! Try Again.",
       });
       console.error(error);
       return null;
@@ -241,11 +249,15 @@ const useIncreaseLiquidity = () => {
     tickH: number,
     tickL: number,
     currentPrice?: number | string,
+    fromToken?: Token,
+    toToken?: Token,
   ) => {
     // await sleep(5);
     // console.log({ tickL, tickH });
     currentPrice = currentPrice ?? price;
     // resetAmounts();
+    fromToken = fromToken ?? fromCoin.token_info;
+    toToken = toToken ?? toCoin.token_info;
 
     if (!empty(tickH) && !empty(tickL) && Number(currentPrice)) {
       if (tickL > tickH) {
@@ -254,8 +266,8 @@ const useIncreaseLiquidity = () => {
 
       const currentTick = getTickFromPrice(
         Number(currentPrice),
-        fromCoin.token_info.decimals,
-        toCoin.token_info.decimals,
+        fromToken.decimals,
+        toToken.decimals,
       );
       // console.log("currentTick: ", currentTick);
 
@@ -355,10 +367,13 @@ const useIncreaseLiquidity = () => {
       } else {
         setHighPrice(lPrc);
       }
+      await sleep(5);
       await processPriceRangeCondition(
         positionDetails.tickUpper,
         positionDetails.tickLower,
         positionDetails.currentPrice,
+        fromCoin.token_info,
+        toCoin.token_info,
       );
     } catch (error) {
       toast({

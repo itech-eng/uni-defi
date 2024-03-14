@@ -22,7 +22,6 @@ export const getCoinBalance = async (
     } else {
       balance = await getERC20Balance(coin.token_info);
     }
-    balance = formatNumber(balance, 5);
     return balance;
   }
 };

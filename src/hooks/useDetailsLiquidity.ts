@@ -49,7 +49,13 @@ const usePoolDetails = () => {
   ): Promise<PositionInfo> => {
     try {
       load && setLoading(true);
-      const position = await getPositionInfo(tokenId, provider, null, true);
+      const position = await getPositionInfo(
+        tokenId,
+        provider,
+        null,
+        true,
+        true,
+      );
       // console.log("position: ", position);
 
       setPositionDetails(position);
@@ -63,10 +69,10 @@ const usePoolDetails = () => {
       return positionDetails;
     } catch (error) {
       setLoading(false);
-      // router.push("/pool");
+      router.push("/pool");
       toast({
         title: "Error",
-        description: "Position not found",
+        description: "Something Went Wrong!! Try Again.",
       });
       console.error(error);
       return null;

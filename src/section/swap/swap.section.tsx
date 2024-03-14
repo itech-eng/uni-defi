@@ -13,6 +13,7 @@ import { ArrowDown } from "lucide-react";
 import useSwapSection from "@/src/hooks/useSwap";
 import SelectCoinSection from "../global/selectCoin.section";
 import ConfirmSwapSection from "./confirmSwap.section";
+import { beautifyNumber, empty } from "@/src/utils/corefunctions";
 
 const SwapSection = () => {
   const {
@@ -56,7 +57,7 @@ const SwapSection = () => {
     // }
     return (
       <p className="text-white text-[10px] mt-1 mr-3">
-        Balance : {balance ?? "N/A"}
+        Balance : {empty(balance) ? "-" : beautifyNumber(balance)}
       </p>
     );
   };
@@ -86,7 +87,7 @@ const SwapSection = () => {
                   You Pay
                 </Label>
                 <div className="flex items-center space-x-2">
-                  <div className="flex flex-col items-end space-y-1.5">
+                  <div className="flex flex-col items-start space-y-1.5">
                     <Input
                       id="youPay"
                       type="text"
@@ -110,7 +111,7 @@ const SwapSection = () => {
                     )}
                   </div>
 
-                  <div className="flex flex-col items-end space-y-1.5">
+                  <div className="flex min-w-[200x] flex-col items-end space-y-1.5">
                     <SelectCoinSection
                       coin={fromCoin}
                       setCoin={setFromCoin}
@@ -134,7 +135,7 @@ const SwapSection = () => {
                   You Receive
                 </Label>
                 <div className="flex items-center space-x-2">
-                  <div className="flex flex-col items-end space-y-1.5">
+                  <div className="flex flex-col items-start space-y-1.5">
                     <Input
                       id="youReceive"
                       type="text"
@@ -159,7 +160,7 @@ const SwapSection = () => {
                     )}
                   </div>
 
-                  <div className="flex flex-col items-end space-y-1.5">
+                  <div className="flex min-w-[200x] flex-col items-end space-y-1.5">
                     <SelectCoinSection
                       coin={toCoin}
                       setCoin={setToCoin}

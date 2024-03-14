@@ -363,7 +363,13 @@ export default function Test() {
   const handlePositionDetails = async (e: any) => {
     try {
       const tokenId = e.get("tokenId");
-      const positions = await getPositionInfo(tokenId, provider, null, true);
+      const positions = await getPositionInfo(
+        tokenId,
+        provider,
+        null,
+        true,
+        true,
+      );
       console.log(`position (${tokenId}) : `, positions);
     } catch (error) {
       console.log(error);

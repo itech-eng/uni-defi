@@ -134,11 +134,13 @@ const PoolDetailsSection = () => {
                       Increase Liquidity
                     </div>
                   </Link>
-                  <Link href={`/pool/remove/${tokenId}`}>
-                    <div className="bg-primary px-3 rounded-3xl py-2 text-sm text-white font-bold">
-                      Remove Liquidity
-                    </div>
-                  </Link>
+                  {!positionDetails?.closed && (
+                    <Link href={`/pool/remove/${tokenId}`}>
+                      <div className="bg-primary px-3 rounded-3xl py-2 text-sm text-white font-bold">
+                        Remove Liquidity
+                      </div>
+                    </Link>
+                  )}
                 </div>
               )}
             </div>

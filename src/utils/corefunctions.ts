@@ -431,7 +431,7 @@ export async function getNetworkData(
   provider?: ethers.providers.Web3Provider,
 ): Promise<NetworkData> {
   provider = provider ?? getProvider();
-  await sleep(200);
+  await sleep(500);
   const network = CHAIN_SLUG_MAPPING[provider._network?.chainId];
   const network_data = NETWORK_DATA[network];
   return network_data;

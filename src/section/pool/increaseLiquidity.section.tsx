@@ -324,7 +324,7 @@ const IncreaseLiquidity = () => {
                         />
                         <h1>{fromCoin?.token_info?.symbol}</h1>
                       </div>
-                      <div>
+                      <div className="min-w-[200px] flex flex-col items-end">
                         <span>
                           Balance:{" "}
                           {empty(fromBalance)
@@ -381,7 +381,7 @@ const IncreaseLiquidity = () => {
                         />
                         <h1>{toCoin?.token_info?.symbol}</h1>
                       </div>
-                      <div>
+                      <div className="min-w-[200px] flex flex-col items-end">
                         <span>
                           Balance:{" "}
                           {empty(toBalance) ? "-" : beautifyNumber(toBalance)}

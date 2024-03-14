@@ -41,7 +41,7 @@ export interface PositionInfo {
   token0: Token;
   token1: Token;
   fee: number;
-  liquidity: BigNumber | number | string;
+  liquidity: BigNumber | string;
   feeGrowthInside0LastX128: BigNumber | number | string;
   feeGrowthInside1LastX128: BigNumber | number | string;
   tokensOwed0: BigNumber | number | string;
@@ -114,7 +114,8 @@ export async function getPositionInfo(
   token_id: number | string,
   provider?: ethers.providers.Web3Provider,
   network_data?: NetworkData,
-  include_other_details = false,
+  include_amount_details = false,
+  include_token_img = false,
 ): Promise<PositionInfo> {
   provider = provider ?? getProvider();
 
@@ -160,8 +161,10 @@ export async function getPositionInfo(
 
   position = await getPosULCPrice(network_data, position);
 
-  if (include_other_details) {
+  if (include_amount_details) {
     position = await getPositionAmounts(network_data, position);
+  }
+  if (include_token_img) {
     try {
       position.other_details.tokenURI =
         await positionContract.tokenURI(token_id);
@@ -298,8 +301,14 @@ async function getPositionAmounts(
   // console.log("fee_token0: ", fee_token0.toString());
   // console.log("fee_token1: ", fee_token1.toString());
 
-  const token0Amount = Number(pos_data.amount0.toSignificant(18));
-  const token1Amount = Number(pos_data.amount1.toSignificant(18));
+  const token0Amount = Number(
+    pos_data.amount0.toSignificant(position.token0.decimals),
+  );
+  const token1Amount = Number(
+    pos_data.amount1.toSignificant(position.token1.decimals),
+  );
+  // console.log({token0Amount, token1Amount});
+
   const percentRatio = calculatePercentRatio(
     token0Amount,
     (1 / position.currentPrice) * token1Amount,
@@ -697,7 +706,7 @@ export async function removeLiquidity(
   tokenId: string,
   coinA: CoinData,
   coinB: CoinData,
-  liquidity: string,
+  liquidity: string | BigNumber,
   amountA: number,
   amountB: number,
   setInfo?: (msg: string) => void,

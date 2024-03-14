@@ -7,7 +7,7 @@ import { Button } from "@/src/components/ui/button";
 import PreviewLiquidity from "./previewLiquidity.section";
 import { useAddLiquidity } from "@/src/hooks/useAddLiquidity";
 import LoadingModal from "@/src/components/loader/loader.section";
-import { beautifyNumber } from "@/src/utils/corefunctions";
+import { beautifyNumber, empty } from "@/src/utils/corefunctions";
 import { renderLiquidityRangePrice } from "@/src/utils/uniswap/liquidity";
 import { FeeAmount } from "@uniswap/v3-sdk";
 
@@ -401,8 +401,13 @@ const AddLiquiditySection = () => {
                         />
                         <h1>{fromCoin?.token_info?.symbol}</h1>
                       </div>
-                      <div>
-                        <span>Balance: {beautifyNumber(fromBalance)}</span>
+                      <div className="min-w-[200px] flex flex-col items-end">
+                        <span>
+                          Balance:{" "}
+                          {empty(fromBalance)
+                            ? "-"
+                            : beautifyNumber(fromBalance)}
+                        </span>
                         {/* <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
                           Max
                         </span> */}
@@ -453,8 +458,11 @@ const AddLiquiditySection = () => {
                         />
                         <h1>{toCoin?.token_info?.symbol}</h1>
                       </div>
-                      <div>
-                        <span>Balance: {beautifyNumber(toBalance)}</span>
+                      <div className="min-w-[200px] flex flex-col items-end">
+                        <span>
+                          Balance:{" "}
+                          {empty(toBalance) ? "-" : beautifyNumber(toBalance)}
+                        </span>
                         {/* <span className="text-primary bg-primary bg-opacity-30 ml-2 text-sm px-2 py-1 rounded-md">
                           Max
                         </span> */}

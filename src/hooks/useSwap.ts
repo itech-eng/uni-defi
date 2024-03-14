@@ -95,6 +95,7 @@ const useSwapSection = () => {
         }
       }
     } catch (error) {
+      setToAmountDisabled(false);
       toast({
         title: "Error",
         description: error.message,
@@ -136,6 +137,7 @@ const useSwapSection = () => {
         }
       }
     } catch (error) {
+      setFromAmountDisabled(false);
       toast({
         title: "Error",
         description: error.message,
