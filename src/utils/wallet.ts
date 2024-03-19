@@ -60,8 +60,10 @@ export const sendTransactionViaExtension = async (
   }
 };
 
-export const getChainInfo = async (): Promise<number> => {
-  const provider = getProvider();
+export const getChainInfo = async (
+  provider?: providers.Web3Provider,
+): Promise<number> => {
+  provider = provider ?? getProvider();
   if (!provider) return -1;
   return (await provider.getNetwork()).chainId;
 };
@@ -88,7 +90,7 @@ export const onMessage = (
 };
 
 export const onAccountsChanged = (
-  callback: (address: string[]) => void,
+  callback: (accounts: string[]) => void,
 ): void => {
   if (!isMetaMaskInstalled()) return;
   window.ethereum.on("accountsChanged", callback);

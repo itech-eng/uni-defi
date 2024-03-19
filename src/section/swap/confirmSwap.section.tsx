@@ -19,7 +19,7 @@ const ConfirmSwapSection = ({
   toCoin,
   fromAmount,
   toAmount,
-  confirmSwap,
+  handleConfirmSwap,
 }: {
   openStatus: boolean;
   setOpenStatus: any;
@@ -27,7 +27,7 @@ const ConfirmSwapSection = ({
   toCoin: CoinData;
   fromAmount: string;
   toAmount: string;
-  confirmSwap: () => void;
+  handleConfirmSwap: () => void;
 }) => {
   return (
     <Dialog open={openStatus}>
@@ -48,9 +48,7 @@ const ConfirmSwapSection = ({
             </Label>
             <div className="flex items-center justify-between space-x-2">
               <div className="bg-transparent p-0 border-none text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-2 font-medium focus:outline-none focus:border-none">
-                <h1>
-                  {fromAmount} {fromCoin?.basic?.code}
-                </h1>
+                <h1>{fromAmount}</h1>
               </div>
 
               <div className="flex flex-col items-end space-y-1.5">
@@ -69,9 +67,7 @@ const ConfirmSwapSection = ({
             </Label>
             <div className="flex items-center justify-between space-x-2">
               <div className="bg-transparent p-0 border-none text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-2 font-medium focus:outline-none focus:border-none">
-                <h1>
-                  {toAmount} {toCoin?.basic?.code}
-                </h1>
+                <h1>{toAmount}</h1>
               </div>
 
               <div className="flex flex-col items-end space-y-1.5">
@@ -108,7 +104,7 @@ const ConfirmSwapSection = ({
         </div> */}
 
         <Button
-          onClick={confirmSwap}
+          onClick={handleConfirmSwap}
           className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 
             rounded-2xl w-full hover:text-white hover:bg-primary hover:border-primary  "
         >

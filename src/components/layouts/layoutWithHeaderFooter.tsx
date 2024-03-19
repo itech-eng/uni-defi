@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import Navbar from "../navbar";
 import Footer from "../footer";
-import { getProvider } from "@/src/utils/wallet";
+import { getAddress, getChainInfo, getProvider } from "@/src/utils/wallet";
 import { IRootState } from "@/store";
 import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,7 +22,15 @@ const LayoutWithHeaderAndFooter = ({
     provider &&
       provider.on("block", async (blockNumber: number) => {
         // console.log(`New block mined: ${blockNumber}`);
-        dispatch(setWallet<walletSliceType>({ block_number: blockNumber }));
+        const address = await getAddress(provider);
+        const chain_id = await getChainInfo(provider);
+        dispatch(
+          setWallet<walletSliceType>({
+            wallet_address: address,
+            chain_id,
+            block_number: blockNumber,
+          }),
+        );
       });
 
     return () => {

@@ -23,9 +23,9 @@ const SwapSection = () => {
     setToCoin,
     fromBalance,
     toBalance,
-    switchCoins,
+    handleSwitchCoins,
     handleConnectWallet,
-    walletAddress,
+    wallet_address,
     handleSwap,
     loadingPayBalance,
     loadingReceiveBalance,
@@ -42,7 +42,7 @@ const SwapSection = () => {
     fromAmountError,
     toAmountError,
     assistMessage,
-    confirmSwap,
+    handleConfirmSwap,
   } = useSwapSection();
 
   const renderBalance = (balance: string | number | null, loading: boolean) => {
@@ -78,7 +78,7 @@ const SwapSection = () => {
             toCoin={toCoin}
             fromAmount={fromAmount}
             toAmount={toAmount}
-            confirmSwap={confirmSwap}
+            handleConfirmSwap={handleConfirmSwap}
           />
           <form name="swap-form" id="swap-form">
             <div className="grid w-full items-center gap-4">
@@ -92,7 +92,7 @@ const SwapSection = () => {
                       id="youPay"
                       type="text"
                       // step="any"
-                      disabled={!walletAddress || fromAmountDisabled}
+                      disabled={!wallet_address || fromAmountDisabled}
                       className={`bg-transparent p-0 border ${
                         fromAmountError ? "border-red-500" : "border-none"
                       } text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none`}
@@ -111,12 +111,12 @@ const SwapSection = () => {
                     )}
                   </div>
 
-                  <div className="flex min-w-[200x] flex-col items-end space-y-1.5">
+                  <div className="flex min-w-[200px] flex-col items-end space-y-1.5">
                     <SelectCoinSection
                       coin={fromCoin}
                       setCoin={setFromCoin}
                       handleConnectWallet={handleConnectWallet}
-                      walletAddress={walletAddress}
+                      walletAddress={wallet_address}
                     />
                     {renderBalance(fromBalance, loadingPayBalance)}
                   </div>
@@ -125,7 +125,7 @@ const SwapSection = () => {
             </div>
             <div
               className="absolute -translate-x-1/2 border-[4px] border-slate-950 -translate-y-1/2 flex w-10 h-10 bg-slate-900 rounded-xl items-center justify-center left-1/2 hover:bg-slate-800 hover:border-slate-700 cursor-pointer"
-              onClick={switchCoins}
+              onClick={handleSwitchCoins}
             >
               <ArrowDown className="mx-auto text-3xl text-white" size={15} />
             </div>
@@ -141,7 +141,7 @@ const SwapSection = () => {
                       type="text"
                       // step="any"
                       // inputMode="decimal"
-                      disabled={!walletAddress || toAmountDisabled}
+                      disabled={!wallet_address || toAmountDisabled}
                       className={`bg-transparent p-0 border ${
                         toAmountError ? "border-red-500" : "border-none"
                       } text-white placeholder:text-gray-400 text-4xl placeholder:text-4xl py-7 font-medium focus:outline-none focus:border-none`}
@@ -160,12 +160,12 @@ const SwapSection = () => {
                     )}
                   </div>
 
-                  <div className="flex min-w-[200x] flex-col items-end space-y-1.5">
+                  <div className="flex min-w-[200px] flex-col items-end space-y-1.5">
                     <SelectCoinSection
                       coin={toCoin}
                       setCoin={setToCoin}
                       handleConnectWallet={handleConnectWallet}
-                      walletAddress={walletAddress}
+                      walletAddress={wallet_address}
                     />
                     {renderBalance(toBalance, loadingReceiveBalance)}
                   </div>
@@ -175,7 +175,7 @@ const SwapSection = () => {
           </form>
         </CardContent>
         <CardFooter className="flex justify-between">
-          {!walletAddress ? (
+          {!wallet_address ? (
             <Button
               onClick={handleConnectWallet}
               className="bg-[#7e22ce4a] text-primary py-7 text-xl font-semibold 

@@ -20,8 +20,12 @@ export const walletSlice = createSlice({
   initialState: walletInitialState,
   reducers: {
     setWallet: (state, action: PayloadAction<walletSliceType>) => {
-      action.payload.chain_id && (state.chain_id = action.payload.chain_id);
+      action.payload.chain_id &&
+        state.chain_id != action.payload.chain_id &&
+        (state.chain_id = action.payload.chain_id);
       action.payload.wallet_address &&
+        state.wallet_address?.toLowerCase() !=
+          action.payload.wallet_address.toLowerCase() &&
         (state.wallet_address = action.payload.wallet_address);
       action.payload.block_number &&
         (state.block_number = action.payload.block_number);
