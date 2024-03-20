@@ -142,7 +142,7 @@ export function getSlippageMinAmount(
   percent = 10,
 ): string {
   return convertCoinAmountToInt(
-    amount - (amount * 10) / 100,
+    amount - (amount * percent) / 100,
     decimal,
   ).toString();
 }

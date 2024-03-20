@@ -398,6 +398,7 @@ export default function Test() {
       setPoolFee(result.pool_fee);
       setConvertedToAmount(result.converted_amount);
       setRawConvAmount(result.raw_conv_amount);
+      setSwapTokenPath(result.path);
       alert(`${result.converted_amount} ${outCoin.basic.code}`);
     } catch (e) {
       alert(`ERROR: ${e.message}`);
@@ -419,8 +420,10 @@ export default function Test() {
       await executeSwap(
         fromCoin,
         toCoin,
-        poolFee,
+        swapTokenPath,
         Number(from_amount),
+        convertedToAmount,
+        rawConvAmount,
         null,
         network_data,
         provider,

@@ -36,6 +36,7 @@ const useSwapSection = () => {
   //swap specific
   const [poolFee, setPoolFee] = useState<number>(0);
   const [rawConvAmount, setRawConvAmount] = useState<string>("");
+  const [swapTokenPath, setSwapTokenPath] = useState<string>("");
 
   /* use Effects */
 
@@ -124,6 +125,8 @@ const useSwapSection = () => {
     setShowConfirmSwap(false);
     setLoadingPayBalance(false);
     setLoadingReceiveBalance(false);
+    setRawConvAmount("");
+    setSwapTokenPath("");
   }, [chain_id]);
 
   /*  */
@@ -144,6 +147,7 @@ const useSwapSection = () => {
     const convertedRes = await getConvertedAmount(inCoin, outCoin, inAmount);
     setPoolFee(convertedRes.pool_fee);
     setRawConvAmount(convertedRes.raw_conv_amount);
+    setSwapTokenPath(convertedRes.path);
 
     if (input == "to") {
       setFromAmount(beautifyNumber(convertedRes.converted_amount));
@@ -200,6 +204,8 @@ const useSwapSection = () => {
     setFromAmountError("");
     setToAmount("");
     setToAmountError("");
+    setRawConvAmount("");
+    setSwapTokenPath("");
   };
   /*  */
 
@@ -332,16 +338,20 @@ const useSwapSection = () => {
 
   const handleConfirmSwap = async () => {
     try {
-      setTimeout(() => setShowConfirmSwap(false), 1000);
+      setTimeout(() => {
+        setShowConfirmSwap(false), resetAmounts();
+      }, 1000);
       await executeSwap(
         fromCoin,
         toCoin,
-        poolFee,
+        swapTokenPath,
         Number(fromAmount),
+        Number(toAmount),
+        rawConvAmount,
         setAssistMessage,
       );
       setAssistMessage("");
-      resetAmounts();
+      // resetAmounts();
       toast({
         title: "Success",
         description: "Congratulations!! Swap Successful.",
