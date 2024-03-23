@@ -38,6 +38,24 @@ export const useWallet = (): WalletHookReturnType => {
   const dispatch = useDispatch();
   const { toast } = useToast();
 
+  /* use effects */
+  useEffect(() => {
+    onConnect(handleConnect);
+    onDisconnect(handleDisconnect);
+    onMessage(handleMessage);
+    onAccountsChanged(handleAccountsChanged);
+    onChainChanged(handleChainChanged);
+    loadWalletData();
+
+    // Clean up subscriptions when component unmounts
+    return () => {
+      // window.ethereum.off("accountsChanged", handleAccountsChanged);
+      // window.ethereum.off("chainChanged", handleChainChanged);
+    };
+  }, []);
+  /*  */
+
+  /* core functions  */
   const loadWalletData = async () => {
     try {
       let address = "";
@@ -76,61 +94,6 @@ export const useWallet = (): WalletHookReturnType => {
       console.error("Error loading wallet:", error);
     }
   };
-
-  useEffect(() => {
-    const handleConnect = async (connectInfo: ConnectInfo) => {
-      console.log("onConnect: ", connectInfo);
-    };
-
-    const handleDisconnect = async (error: ProviderRpcError) => {
-      console.log("onDisconnect: ", error);
-      disconnect();
-    };
-
-    const handleMessage = async (message: ProviderMessage) => {
-      console.log("onMessage: ", message);
-    };
-
-    const handleAccountsChanged = async (accounts: string[]) => {
-      // console.log("Wallet address changed: ", accounts);
-      if (!accounts[0]) {
-        disconnect();
-        return;
-      }
-      loadWalletData();
-    };
-
-    const handleChainChanged = async (chainId: string) => {
-      if (!chainId) return;
-      console.log("Wallet chain changed: ", chainId);
-      // window.ethereum.off("accountsChanged", handleAccountsChanged);
-
-      if (!isDisconnected() && !isNetworkSupported(Number(chainId))) {
-        console.log("Network not supported");
-        disconnect();
-        toast({
-          title: `Network not supported`,
-          description: "Please switch to a supported network.",
-        });
-        return;
-      }
-      await loadWalletData();
-      onAccountsChanged(handleAccountsChanged);
-    };
-
-    onConnect(handleConnect);
-    onDisconnect(handleDisconnect);
-    onMessage(handleMessage);
-    onAccountsChanged(handleAccountsChanged);
-    onChainChanged(handleChainChanged);
-    loadWalletData();
-
-    // Clean up subscriptions when component unmounts
-    return () => {
-      // window.ethereum.off("accountsChanged", handleAccountsChanged);
-      // window.ethereum.off("chainChanged", handleChainChanged);
-    };
-  }, []);
 
   const connect = async (
     wallet: "metamask" | "coinbase" = "metamask",
@@ -186,6 +149,49 @@ export const useWallet = (): WalletHookReturnType => {
       return false;
     }
   };
+  /*  */
+
+  /* handlers */
+  const handleConnect = async (connectInfo: ConnectInfo) => {
+    console.log("onConnect: ", connectInfo);
+  };
+
+  const handleDisconnect = async (error: ProviderRpcError) => {
+    console.log("onDisconnect: ", error);
+    disconnect();
+  };
+
+  const handleMessage = async (message: ProviderMessage) => {
+    console.log("onMessage: ", message);
+  };
+
+  const handleAccountsChanged = async (accounts: string[]) => {
+    // console.log("Wallet address changed: ", accounts);
+    if (!accounts[0]) {
+      disconnect();
+      return;
+    }
+    loadWalletData();
+  };
+
+  const handleChainChanged = async (chainId: string) => {
+    if (!chainId) return;
+    console.log("Wallet chain changed: ", chainId);
+    // window.ethereum.off("accountsChanged", handleAccountsChanged);
+
+    if (!isDisconnected() && !isNetworkSupported(Number(chainId))) {
+      console.log("Network not supported");
+      disconnect();
+      toast({
+        title: `Network not supported`,
+        description: "Please switch to a supported network.",
+      });
+      return;
+    }
+    await loadWalletData();
+    onAccountsChanged(handleAccountsChanged);
+  };
+  /*  */
 
   return {
     connect,

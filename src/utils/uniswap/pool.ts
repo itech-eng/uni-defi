@@ -74,7 +74,7 @@ export async function getPoolInfo(
     }
   }
 
-  throw new Error("No pool available");
+  throw new Error("No pool available for liquidity");
 }
 
 export async function getPoolAddress(

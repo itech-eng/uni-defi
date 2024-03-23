@@ -29,7 +29,7 @@ export const sepolia_eth_coin_data: NetworkCoinData = {
     basic: COIN_BAISC_DATA[COIN_SLUG.DKFT20],
     token_info: new Token(
       ChainId.SEPOLIA,
-      "0x0228A456B4719Dd584230202b9FF47c986Ad7893",
+      "0x58D775552F9e3F6DcFB28C9a8F7B62Ac00fc1ac5",
       EVM_NATIVE_DECIMAL,
       COIN_BAISC_DATA[COIN_SLUG.DKFT20].code,
       COIN_BAISC_DATA[COIN_SLUG.DKFT20].name,
@@ -39,7 +39,7 @@ export const sepolia_eth_coin_data: NetworkCoinData = {
     basic: COIN_BAISC_DATA[COIN_SLUG.WBTC],
     token_info: new Token(
       ChainId.SEPOLIA,
-      "0x601203c74B8391c0bB30366ADE4d9e460d4f2382",
+      "0x0F892c2988F620Ad27ABf876b74A9B1b4888E7Ac",
       8,
       COIN_BAISC_DATA[COIN_SLUG.WBTC].code,
       COIN_BAISC_DATA[COIN_SLUG.WBTC].name,

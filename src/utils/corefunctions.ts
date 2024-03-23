@@ -217,11 +217,11 @@ export function loadContractObject(
 }
 
 export function getNetworks(): NetworkData[] {
-  return Object.values(NETWORK_DATA);
+  return Object.values(NETWORK_DATA ?? {});
 }
 
 export function getNetworkCoins(network_slug: string): CoinData[] {
-  return Object.values(NETWORK_COIN_DATA[network_slug]);
+  return Object.values(NETWORK_COIN_DATA[network_slug] ?? {});
 }
 
 export function cn(...inputs: ClassValue[]) {

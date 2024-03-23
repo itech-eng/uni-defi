@@ -68,7 +68,7 @@ const useSwapSection = () => {
     } else {
       setFromAmountError("");
     }
-  }, [fromBalance]);
+  }, [fromAmount, fromBalance]);
 
   useEffect(() => {
     if (fromCoin) {
@@ -206,6 +206,8 @@ const useSwapSection = () => {
     setToAmountError("");
     setRawConvAmount("");
     setSwapTokenPath("");
+    setFromAmountDisabled(false);
+    setToAmountDisabled(false);
   };
   /*  */
 
@@ -242,15 +244,16 @@ const useSwapSection = () => {
           } else {
             setFromAmountError("");
             setFromAmount(amount);
-            if (toCoin && parsedAmount) {
-              setAssistMessage("Fetching converted amount...");
-              await fetchAndSetConvertedAmount(
-                fromCoin,
-                toCoin,
-                parsedAmount,
-                "from",
-              );
-            }
+          }
+
+          if (toCoin && parsedAmount) {
+            setAssistMessage("Fetching converted amount...");
+            await fetchAndSetConvertedAmount(
+              fromCoin,
+              toCoin,
+              parsedAmount,
+              "from",
+            );
           }
         } else {
           setFromAmount("");
@@ -258,6 +261,8 @@ const useSwapSection = () => {
         }
       }
     } catch (error) {
+      setToAmount("");
+      setToAmountError("");
       setToAmountDisabled(false);
       toast({
         title: "Error",
@@ -300,6 +305,8 @@ const useSwapSection = () => {
         }
       }
     } catch (error) {
+      setFromAmount("");
+      setFromAmountError("");
       setFromAmountDisabled(false);
       toast({
         title: "Error",

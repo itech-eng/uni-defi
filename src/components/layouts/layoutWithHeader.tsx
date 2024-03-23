@@ -1,7 +1,12 @@
 "use client";
 import React, { useEffect } from "react";
 import Navbar from "../navbar";
-import { getAddress, getChainInfo, getProvider } from "@/src/utils/wallet";
+import {
+  getAddress,
+  getChainInfo,
+  getProvider,
+  isDisconnected,
+} from "@/src/utils/wallet";
 import { IRootState } from "@/store";
 import { setWallet, walletSliceType } from "@/store/slice/wallet.slice";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,8 +24,14 @@ const LayoutWithHeader = ({ children }: { children: React.ReactNode }) => {
     provider &&
       provider.on("block", async (blockNumber: number) => {
         // console.log(`New block mined: ${blockNumber}`);
-        const address = await getAddress(provider);
-        const chain_id = await getChainInfo(provider);
+        let address: string = undefined;
+        let chain_id: number = undefined;
+        if (!isDisconnected()) {
+          address = await getAddress(provider);
+          chain_id = await getChainInfo(provider);
+        } else {
+          blockNumber = 0;
+        }
         dispatch(
           setWallet<walletSliceType>({
             wallet_address: address,
@@ -29,6 +40,10 @@ const LayoutWithHeader = ({ children }: { children: React.ReactNode }) => {
           }),
         );
       });
+
+    return () => {
+      provider && provider.off("block");
+    };
   }, [chain_id]);
 
   return (
@@ -37,7 +52,7 @@ const LayoutWithHeader = ({ children }: { children: React.ReactNode }) => {
       {children}
       <div className="bg-slate-950 h-auto flex flex-col justify-start">
         <span className="text-left text-xs p-2 text-green-500">
-          Block: {block_number}
+          Block: {chain_id ? block_number : "N/A"}
         </span>
       </div>
     </>
